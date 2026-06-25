@@ -241,6 +241,35 @@
   font-size: 0.85rem;
   font-weight: 600;
 }
+#traffic-hud {
+  position: absolute;
+  top: 230px;
+  right: 15px;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  border: 1px solid #374151;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #e5e7eb;
+  font-family: "JetBrains Mono", monospace;
+  min-width: 140px;
+  text-align: left;
+  line-height: 1.3;
+}
+
+#traffic-hud .hud-title {
+  font-size: 0.75rem;
+  color: #38bdf8;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+#traffic-hud .hud-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
 
   </style>
 </head>
@@ -324,6 +353,7 @@
   <section id="map"></section>
   <div id="wind-hud"></div>
   <div id="runway-hud"></div>
+  <div id="traffic-hud"></div>
 
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -626,6 +656,32 @@ function updateRunwayHUD(airportKey, runway, source) {
   `;
 }
 
+  /********** Mini‑HUD Trafic actif IFR PRO+++ **********/
+function updateTrafficHUD(airportKey, flightsFiltered) {
+  const hud = document.getElementById("traffic-hud");
+
+  const total = flightsFiltered.length;
+  const dep = flightsFiltered.filter(f => f._kind === "liveDep" || f._kind === "schedDep").length;
+  const arr = flightsFiltered.filter(f => f._kind === "liveArr").length;
+
+  // Couleur dynamique
+  let color = "#22c55e"; // vert ≥ 5 vols
+  if (total > 0 && total < 5) color = "#f59e0b"; // orange 1–4 vols
+  if (total === 0) color = "#ef4444"; // rouge 0 vol
+
+  hud.innerHTML = `
+    <div class="hud-title">Trafic ${airportKey}</div>
+    <div class="hud-value" style="color:${color}">
+      ${total} vol${total > 1 ? "s" : ""}
+    </div>
+    <div class="small">
+      DEP : ${dep}<br>
+      ARR : ${arr}<br>
+      Source : AirLabs
+    </div>
+  `;
+}
+
 
 /********** 5. Trapèze directionnel uniquement **********/
 function drawCorridorOnly(airportKey, heading){
@@ -848,18 +904,19 @@ async function processAirport(airportKey) {
     ]);
 
     updateMetarUI(airportKey, metar);
-    updateRunwayUI(airportKey, runway, windDir, windSpeed, source, flightsFiltered.length);
-    updateRunwayHUD(airportKey, runway, source);
-    updateWindHUD(airportKey, windDir, windSpeed);
-    drawWindOnMap(airportKey, windDir, windSpeed);
-    updateFlightsUI(airportKey, flights);
+updateWindHUD(airportKey, windDir, windSpeed);
+drawWindOnMap(airportKey, windDir, windSpeed);
+updateFlightsUI(airportKey, flights);
 
     const windDir = metar?.wind_direction?.value ?? metar?.wind?.direction?.degrees ?? null;
     const windSpeed = metar?.wind_speed?.value ?? metar?.wind?.speed_kt ?? null;
 
     const { runway: runwayFromFlights, flightsFiltered } =
       extractRunwayFromAirlabs(airportKey, flights);
-
+    
+updateTrafficHUD(airportKey, flightsFiltered);
+updateRunwayHUD(airportKey, runway, source);
+    
     let runway = runwayFromFlights;
     let source = "Airlabs";
 
