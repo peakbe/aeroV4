@@ -241,11 +241,11 @@
       <div class="filters">
         <label>
           <input type="checkbox" id="filter-ebci" checked />
-          EBCI – Charleroi
+          EBCI – Charleroi (RWY 06 / 24)
         </label>
         <label>
           <input type="checkbox" id="filter-eblg" checked />
-          EBLG – Liège
+          EBLG – Liège (RWY 04 / 22)
         </label>
 
         <label>
@@ -378,30 +378,30 @@
   }
 
   /********** 2. Données aéroports & sonomètres **********/
- const airports = {
-  EBCI: {
-    icao: "EBCI",
-    name: "Charleroi",
-    lat: 50.4592,
-    lon: 4.4538,
-    runways: [
-      { name: "06", heading: 60 },
-      { name: "24", heading: 240 }
-    ]
-  },
-  EBLG: {
-    icao: "EBLG",
-    name: "Liège",
-    lat: 50.6374,
-    lon: 5.4432,
-    runways: [
-      { name: "04", heading: 40 },
-      { name: "22", heading: 220 }
-    ]
-  }
-};
+  const airports = {
+    EBCI: {
+      icao: "EBCI",
+      name: "Charleroi",
+      lat: 50.4592,
+      lon: 4.4538,
+      runways: [
+        { name: "06", heading: 60 },
+        { name: "24", heading: 240 }
+      ]
+    },
+    EBLG: {
+      icao: "EBLG",
+      name: "Liège",
+      lat: 50.6374,
+      lon: 5.4432,
+      runways: [
+        { name: "04", heading: 40 },
+        { name: "22", heading: 220 }
+      ]
+    }
+  };
 
-  const sonometersEBCI = [
+   const sonometersEBCI = [
     { id: "F118", address: "Rue Piconette 1, Sombreffe", latDMS: "50 30 18.96 N", lonDMS: "4 36 40.25 E" },
     { id: "F109", address: "Chaussée de Charleroi 265, Sombreffe", latDMS: "50 29 25.27 N", lonDMS: "4 33 44.6 E" },
     { id: "F108", address: "Avenue Brunard 83, Fleurus", latDMS: "50 29 11.97 N", lonDMS: "4 32 46.61 E" },
@@ -537,7 +537,7 @@
   Object.values(airports).forEach(ap => {
     const m = L.circleMarker([ap.lat, ap.lon], airportStyle)
       .addTo(map)
-      .bindPopup(`<strong>${ap.icao} – ${ap.name}</strong>`);
+      .bindPopup(`<strong>${ap.icao} – ${ap.name}</strong><br>RWY ${ap.runways.map(r => r.name).join(" / ")}`);
     airportMarkers[ap.icao] = m;
   });
 
@@ -877,7 +877,6 @@
     refreshAll();
   });
 
-  // Toggle sidebar mobile
   const toggleBtn = document.getElementById("toggle-sidebar");
   const sidebar = document.getElementById("sidebar");
   toggleBtn.addEventListener("click", () => {
