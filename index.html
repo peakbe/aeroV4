@@ -379,6 +379,55 @@ function addSonometers(list, key){
 }
 addSonometers(sonometersEBCI,"EBCI");
 addSonometers(sonometersEBLG,"EBLG");
+/********** 4bis. Couche vent **********/
+const windLayers = { EBCI: null, EBLG: null };
+
+function drawWindOnMap(airportKey, windDir, windSpeed) {
+  const ap = airports[airportKey];
+
+  // Nettoyage ancien vent
+  if (windLayers[airportKey]) {
+    map.removeLayer(windLayers[airportKey]);
+    windLayers[airportKey] = null;
+  }
+
+  if (!windDir || !windSpeed) return;
+
+  // Longueur de la flèche (ex : 2 km + 80 m par kt)
+  const lengthKm = 2 + windSpeed * 0.08;
+
+  const end = computeTurnPoint(ap.lat, ap.lon, windDir, lengthKm);
+
+  const poly = L.polyline(
+    [
+      [ap.lat, ap.lon],
+      [end.lat, end.lon]
+    ],
+    {
+      color: "#38bdf8",
+      weight: 3,
+      opacity: 0.9,
+      dashArray: "6,4"
+    }
+  );
+
+  const arrowHead = L.circleMarker([end.lat, end.lon], {
+    radius: 6,
+    color: "#0ea5e9",
+    fillColor: "#38bdf8",
+    fillOpacity: 1
+  });
+
+  const group = L.layerGroup([poly, arrowHead]).addTo(map);
+
+  group.bindPopup(
+    `<strong>Vent ${airportKey}</strong><br>` +
+    `Direction : ${windDir}°<br>` +
+    `Vitesse : ${windSpeed} kt`
+  );
+
+  windLayers[airportKey] = group;
+}
 
 /********** 5. Trapèze directionnel uniquement **********/
 function drawCorridorOnly(airportKey, heading){
@@ -601,6 +650,7 @@ async function processAirport(airportKey) {
     ]);
 
     updateMetarUI(airportKey, metar);
+    drawWindOnMap(airportKey, windDir, windSpeed);
     updateFlightsUI(airportKey, flights);
 
     const windDir = metar?.wind_direction?.value ?? metar?.wind?.direction?.degrees ?? null;
