@@ -799,41 +799,50 @@ async function processAirport(airportKey) {
       fetchFlightsAirlabs(ap.icao)
     ]);
 
-    updateMetarUI(airportKey, metar);
-    updateWindHUD(airportKey, windDir, windSpeed);
-    drawWindOnMap(airportKey, windDir, windSpeed);
-    updateFlightsUI(airportKey, flights);
+   updateMetarUI(airportKey, metar);
 
-    const windDir = metar?.wind_direction?.value ?? metar?.wind?.direction?.degrees ?? null;
-    const windSpeed = metar?.wind_speed?.value ?? metar?.wind?.speed_kt ?? null;
+// 1) Définition du vent — OBLIGATOIREMENT ici
+const windDir = metar?.wind_direction?.value ?? metar?.wind?.direction?.degrees ?? null;
+const windSpeed = metar?.wind_speed?.value ?? metar?.wind?.speed_kt ?? null;
 
-    const { runway: runwayFromFlights, flightsFiltered } =
-      extractRunwayFromAirlabs(airportKey, flights);
-    
-    updateConfirmedHUD(airportKey, flightsFiltered);
-    updateTrafficHUD(airportKey, flightsFiltered);
-    updateRunwayHUD(airportKey, runway, source);
-    
-    let runway = runwayFromFlights;
-    let source = "Airlabs";
+// 2) HUD vent
+updateWindHUD(airportKey, windDir, windSpeed);
 
-    if (!runway) {
-      runway = estimateRunwayFromWind(ap, windDir);
-      source = "METAR";
-    }
+// 3) Flèche vent sur carte
+drawWindOnMap(airportKey, windDir, windSpeed);
 
-    const runwayUI = airportKey === "EBCI" ? "runway-ebci" : "runway-eblg";
-    document.getElementById(runwayUI).textContent =
-      runway
-        ? `Piste ${runway.name} (cap ${runway.heading}°) – Vent ${windDir ?? "?"}° / ${windSpeed ?? "?"} kt [${source}]`
-        : `Piste non déterminée – Vent ${windDir ?? "?"}°`;
+// 4) Vols AirLabs
+updateFlightsUI(airportKey, flights);
 
-    if (runway) {
-      drawCorridorOnly(airportKey, runway.heading);
+// 5) Extraction piste + vols filtrés
+const { runway: runwayFromFlights, flightsFiltered } =
+  extractRunwayFromAirlabs(airportKey, flights);
 
-      const lists = applySonoRules(airportKey, runway.name);
-      updateSonoListUI(airportKey, runway.name, lists);
-    }
+// 6) HUD trafic
+updateTrafficHUD(airportKey, flightsFiltered);
+
+// 7) HUD vols confirmés
+updateConfirmedHUD(airportKey, flightsFiltered);
+
+// 8) Détermination piste active
+let runway = runwayFromFlights;
+let source = "Airlabs";
+if (!runway) {
+  runway = estimateRunwayFromWind(ap, windDir);
+  source = "METAR";
+}
+
+// 9) HUD piste active
+updateRunwayHUD(airportKey, runway, source);
+
+// 10) Trapèze directionnel
+if (runway) {
+  drawCorridorOnly(airportKey, runway.heading);
+
+  const lists = applySonoRules(airportKey, runway.name);
+  updateSonoListUI(airportKey, runway.name, lists);
+}
+
 
   } catch (e) {
     console.error(e);
