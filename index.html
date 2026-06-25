@@ -177,6 +177,42 @@
       #sidebar.open { left: 0; }
       #toggle-sidebar { display: block; }
     }
+
+    #wind-hud {
+  position: absolute;
+  top: 70px;
+  right: 15px;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  border: 1px solid #374151;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #e5e7eb;
+  font-family: "JetBrains Mono", monospace;
+  min-width: 120px;
+  text-align: left;
+  line-height: 1.3;
+}
+
+#wind-hud .hud-title {
+  font-size: 0.75rem;
+  color: #38bdf8;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+#wind-hud .hud-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+#wind-hud .hud-alert {
+  color: #ef4444;
+  font-weight: 700;
+}
+
   </style>
 </head>
 
@@ -257,6 +293,8 @@
   </section>
 
   <section id="map"></section>
+  <div id="wind-hud"></div>
+
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -500,6 +538,38 @@ function drawWindOnMap(airportKey, windDir, windSpeed) {
 
   windLayers[airportKey] = group;
 }
+/********** Mini‑HUD Vent IFR PRO+++ **********/
+function updateWindHUD(airportKey, windDir, windSpeed) {
+  const hud = document.getElementById("wind-hud");
+
+  if (!windSpeed) {
+    hud.innerHTML = `<div class="hud-title">Vent ${airportKey}</div>
+                     <div class="hud-value">n/a</div>`;
+    return;
+  }
+
+  // Couleur dynamique
+  let color = "#22c55e"; // vert
+  if (windSpeed >= 10 && windSpeed <= 20) color = "#f59e0b"; // orange
+  if (windSpeed > 20) color = "#ef4444"; // rouge
+
+  // VRB ?
+  const isVRB = (windDir === null || windDir === undefined);
+
+  // Icône flèche
+  const arrow = isVRB ? "⇄" : "➤";
+
+  // Turbulence
+  const alert = windSpeed > 20 ? `<div class="hud-alert">TURBULENCE</div>` : "";
+
+  hud.innerHTML = `
+    <div class="hud-title">Vent ${airportKey}</div>
+    <div class="hud-value" style="color:${color}">
+      ${arrow} ${isVRB ? "VRB" : windDir + "°"} – ${windSpeed} kt
+    </div>
+    ${alert}
+  `;
+}
 
 
 /********** 5. Trapèze directionnel uniquement **********/
@@ -723,6 +793,7 @@ async function processAirport(airportKey) {
     ]);
 
     updateMetarUI(airportKey, metar);
+    updateWindHUD(airportKey, windDir, windSpeed);
     drawWindOnMap(airportKey, windDir, windSpeed);
     updateFlightsUI(airportKey, flights);
 
