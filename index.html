@@ -553,7 +553,7 @@ function updateTrafficHUD(airportKey, flightsFiltered) {
 }
 
 
-/********** Mini‑HUD Vols confirmés IFR PRO+++ (version sécurisée) **********/
+/********** Mini‑HUD Vols confirmés IFR PRO+++ (version ULTIME sécurisée) **********/
 function updateConfirmedHUD(airportKey, flightsFiltered) {
   const hud = document.getElementById("confirmed-hud");
 
@@ -575,16 +575,17 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
     hud.dataset.initialized = "1";
   }
 
-  // Récupération du select
+  // Récupération des éléments DOM
   const selectEl = document.getElementById(`confirmed-select-${airportKey}`);
   const listEl = document.getElementById(`confirmed-list-${airportKey}`);
 
-  // Sécurité : le select n'existe pas encore → on attend le prochain refresh
+  // 🔥 Sécurité ULTIME : si le select n'existe pas → on recrée le HUD et on sort
   if (!selectEl || !listEl) {
+    hud.dataset.initialized = "";
     return;
   }
 
-  const mode = selectEl.value;
+  const mode = selectEl.value || "DEP";
 
   // Sécurité : liste invalide
   if (!Array.isArray(flightsFiltered)) {
@@ -606,8 +607,8 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
     return ta - tb;
   });
 
-  // On garde les 12 premiers
-  list = list.slice(0, 12);
+  // On garde les 2 premiers
+  list = list.slice(0, 2);
 
   if (!list.length) {
     listEl.innerHTML = `<span class="flight-err">Aucun vol</span>`;
@@ -631,6 +632,7 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
     })
     .join("");
 }
+
 
 
 
