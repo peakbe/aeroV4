@@ -434,55 +434,74 @@ function drawWindOnMap(airportKey, windDir, windSpeed) {
 
   windLayers[airportKey] = group;
 }
-/********** Mini‑HUD Vent IFR PRO+++ **********/
+
+  /********** Mini‑HUD Vent IFR PRO+++ (version sécurisée) **********/
 function updateWindHUD(airportKey, windDir, windSpeed) {
   const hud = document.getElementById("wind-hud");
 
-  if (!windSpeed) {
-    hud.innerHTML = `<div class="hud-title">Vent ${airportKey}</div>
-                     <div class="hud-value">n/a</div>`;
-    return;
-  }
+  // Sécurité : HUD absent
+  if (!hud) return;
 
-  // Couleur dynamique
-  let color = "#22c55e"; // vert
-  if (windSpeed >= 10 && windSpeed <= 20) color = "#f59e0b"; // orange
-  if (windSpeed > 20) color = "#ef4444"; // rouge
-
-  // VRB ?
-  const isVRB = (windDir === null || windDir === undefined);
-
-  // Icône flèche
-  const arrow = isVRB ? "⇄" : "➤";
-
-  // Turbulence
-  const alert = windSpeed > 20 ? `<div class="hud-alert">TURBULENCE</div>` : "";
-
-  hud.innerHTML = `
-    <div class="hud-title">Vent ${airportKey}</div>
-    <div class="hud-value" style="color:${color}">
-      ${arrow} ${isVRB ? "VRB" : windDir + "°"} – ${windSpeed} kt
-    </div>
-    ${alert}
-  `;
-}
-/********** Mini‑HUD Piste active IFR PRO+++ **********/
-function updateRunwayHUD(airportKey, runway, source) {
-  const hud = document.getElementById("runway-hud");
-
-  if (!runway) {
+  // Sécurité : vitesse manquante
+  if (windSpeed === null || windSpeed === undefined) {
     hud.innerHTML = `
-      <div class="hud-title">Piste ${airportKey}</div>
-      <div class="hud-value">Indéterminée</div>
+      <div class="hud-title">Vent ${airportKey}</div>
+      <div class="hud-value">n/a</div>
     `;
     return;
   }
 
-  // Couleur dynamique selon la piste
-  let color = "#38bdf8"; // bleu IFR
-  if (runway.name.endsWith("06") || runway.name.endsWith("04")) color = "#22c55e"; // vert = vers l'est
-  if (runway.name.endsWith("24") || runway.name.endsWith("22")) color = "#f59e0b"; // orange = vers l'ouest
+  /********** Couleur dynamique **********/
+  let color = "#22c55e"; // vert
+  if (windSpeed >= 10 && windSpeed <= 20) color = "#f59e0b"; // orange
+  if (windSpeed > 20) color = "#ef4444"; // rouge
 
+  /********** VRB **********/
+  const isVRB = (windDir === null || windDir === undefined);
+
+  /********** Icône **********/
+  const arrow = isVRB ? "⇄" : "➤";
+
+  /********** Turbulence **********/
+  const alert = windSpeed > 20
+    ? `<div class="hud-alert">TURBULENCE</div>`
+    : "";
+
+  /********** Rendu **********/
+  hud.innerHTML = `
+    <div class="hud-title">Vent ${airportKey}</div>
+    <div class="hud-value" style="color:${color}">
+      ${arrow} ${isVRB ? "VRB" : `${windDir}°`} – ${windSpeed} kt
+    </div>
+    ${alert}
+  `;
+}
+
+/********** Mini‑HUD Piste active IFR PRO+++ (version sécurisée) **********/
+function updateRunwayHUD(airportKey, runway, source) {
+  const hud = document.getElementById("runway-hud");
+
+  // Sécurité : HUD absent
+  if (!hud) return;
+
+  // Pas de piste déterminée
+  if (!runway || !runway.name || !runway.heading) {
+    hud.innerHTML = `
+      <div class="hud-title">Piste ${airportKey}</div>
+      <div class="hud-value">Indéterminée</div>
+      <div class="small">Source : ${source || "n/a"}</div>
+    `;
+    return;
+  }
+
+  /********** Couleur dynamique selon la direction **********/
+  let color = "#5ee7ff"; // bleu cyan Glass Cockpit
+  const name = runway.name;
+
+  if (name.endsWith("06") || name.endsWith("04")) color = "#4ade80"; // vert = vers l'est
+  if (name.endsWith("24") || name.endsWith("22")) color = "#facc15"; // jaune = vers l'ouest
+
+  /********** Rendu **********/
   hud.innerHTML = `
     <div class="hud-title">Piste ${airportKey}</div>
     <div class="hud-value" style="color:${color}">
@@ -492,19 +511,34 @@ function updateRunwayHUD(airportKey, runway, source) {
   `;
 }
 
-  /********** Mini‑HUD Trafic actif IFR PRO+++ **********/
+
+ /********** Mini‑HUD Trafic actif IFR PRO+++ (version sécurisée) **********/
 function updateTrafficHUD(airportKey, flightsFiltered) {
   const hud = document.getElementById("traffic-hud");
+
+  // Sécurité : HUD absent
+  if (!hud) return;
+
+  // Sécurité : liste vide ou non définie
+  if (!Array.isArray(flightsFiltered)) {
+    hud.innerHTML = `
+      <div class="hud-title">Trafic ${airportKey}</div>
+      <div class="hud-value">n/a</div>
+      <div class="small">Source : AirLabs</div>
+    `;
+    return;
+  }
 
   const total = flightsFiltered.length;
   const dep = flightsFiltered.filter(f => f._kind === "liveDep" || f._kind === "schedDep").length;
   const arr = flightsFiltered.filter(f => f._kind === "liveArr").length;
 
-  // Couleur dynamique
-  let color = "#22c55e"; // vert ≥ 5 vols
-  if (total > 0 && total < 5) color = "#f59e0b"; // orange 1–4 vols
-  if (total === 0) color = "#ef4444"; // rouge 0 vol
+  /********** Couleur dynamique **********/
+  let color = "#4ade80"; // vert Glass Cockpit
+  if (total > 0 && total < 5) color = "#facc15"; // jaune
+  if (total === 0) color = "#ff4d6d"; // rouge
 
+  /********** Rendu **********/
   hud.innerHTML = `
     <div class="hud-title">Trafic ${airportKey}</div>
     <div class="hud-value" style="color:${color}">
@@ -518,11 +552,15 @@ function updateTrafficHUD(airportKey, flightsFiltered) {
   `;
 }
 
-/********** Mini‑HUD Vols confirmés IFR PRO+++ **********/
+
+/********** Mini‑HUD Vols confirmés IFR PRO+++ (version sécurisée) **********/
 function updateConfirmedHUD(airportKey, flightsFiltered) {
   const hud = document.getElementById("confirmed-hud");
 
-  // Création du sélecteur si pas encore créé
+  // Sécurité : HUD absent → on sort proprement
+  if (!hud) return;
+
+  // Création du HUD si pas encore initialisé
   if (!hud.dataset.initialized) {
     hud.innerHTML = `
       <div class="hud-title">Vols confirmés ${airportKey}</div>
@@ -535,6 +573,13 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
       <div id="confirmed-list-${airportKey}">Chargement...</div>
     `;
     hud.dataset.initialized = "1";
+  }
+
+  // Sécurité : liste invalide
+  if (!Array.isArray(flightsFiltered)) {
+    document.getElementById(`confirmed-list-${airportKey}`).innerHTML =
+      `<span class="flight-err">n/a</span>`;
+    return;
   }
 
   const mode = document.getElementById(`confirmed-select-${airportKey}`).value;
@@ -554,7 +599,7 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
     return ta - tb;
   });
 
-  // On garde les 12 premiers
+  // On garde les 12 premiers (comme demandé)
   list = list.slice(0, 12);
 
   if (!list.length) {
@@ -562,6 +607,7 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
     return;
   }
 
+  // Rendu final
   listEl.innerHTML = list
     .map(f => {
       const num = f.flight_iata || f.flight_icao || f.flight_number || "?";
@@ -578,6 +624,7 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
     })
     .join("");
 }
+
 
 /********** 5. Trapèze directionnel uniquement **********/
 function drawCorridorOnly(airportKey, heading){
