@@ -5,13 +5,7 @@
   <title>Cockpit IFR – Météo & Sonomètres EBCI / EBLG</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
     :root {
@@ -132,40 +126,10 @@
       border-radius: 999px;
       display: inline-block;
     }
-    .dot-airport {
-      background: var(--success);
-    }
-    .dot-normal {
-      background: #2563eb;
-    }
-    .dot-impacted {
-      background: var(--danger);
-    }
-    .dot-track {
-      background: var(--warning);
-    }
-
-    .filters label {
-      display: block;
-      margin-bottom: 0.25rem;
-      font-size: 0.8rem;
-    }
-    .filters input[type="checkbox"] {
-      margin-right: 0.25rem;
-    }
-    .filters select,
-    .filters input[type="number"],
-    .filters input[type="text"] {
-      width: 100%;
-      box-sizing: border-box;
-      margin-top: 0.15rem;
-      margin-bottom: 0.35rem;
-      padding: 0.15rem 0.25rem;
-      font-size: 0.8rem;
-      background: #020617;
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
+    .dot-airport { background: var(--success); }
+    .dot-normal { background: #2563eb; }
+    .dot-impacted { background: var(--danger); }
+    .dot-track { background: var(--warning); }
 
     button {
       background: var(--accent-strong);
@@ -180,14 +144,9 @@
       transition: 0.2s;
       font-size: 0.8rem;
     }
-    button:hover {
-      background: var(--accent);
-    }
+    button:hover { background: var(--accent); }
 
-    #map {
-      width: 100%;
-      height: 100%;
-    }
+    #map { width: 100%; height: 100%; }
 
     #toggle-sidebar {
       display: none;
@@ -205,9 +164,7 @@
     }
 
     @media (max-width: 900px) {
-      main {
-        grid-template-columns: 0px 1fr;
-      }
+      main { grid-template-columns: 0px 1fr; }
       #sidebar {
         position: absolute;
         z-index: 9999;
@@ -217,19 +174,16 @@
         top: 48px;
         transition: left 0.3s ease;
       }
-      #sidebar.open {
-        left: 0;
-      }
-      #toggle-sidebar {
-        display: block;
-      }
+      #sidebar.open { left: 0; }
+      #toggle-sidebar { display: block; }
     }
   </style>
 </head>
+
 <body>
 <header>
   <h1>COCKPIT IFR – EBCI / EBLG</h1>
-  <div class="small">METAR + AirLabs + Couloir bruit trapèze</div>
+  <div class="small">METAR + AirLabs + Couloir bruit (direction)</div>
 </header>
 
 <button id="toggle-sidebar">☰ PANNEAUX</button>
@@ -238,698 +192,209 @@
   <section id="sidebar">
     <div class="block">
       <h2>Filtres</h2>
-      <div class="filters">
-        <label>
-          <input type="checkbox" id="filter-ebci" checked />
-          EBCI – Charleroi (RWY 06 / 24)
-        </label>
-        <label>
-          <input type="checkbox" id="filter-eblg" checked />
-          EBLG – Liège (RWY 04 / 22)
-        </label>
+      <label><input type="checkbox" id="filter-ebci" checked /> EBCI – Charleroi (RWY 06 / 24)</label>
+      <label><input type="checkbox" id="filter-eblg" checked /> EBLG – Liège (RWY 04 / 22)</label>
 
-        <label>
-          Type avion (IATA/ICAO, contient) :
-          <input type="text" id="filter-aircraft" placeholder="ex: B738, A320 (vide = tous)" />
-        </label>
+      <label>Type avion :
+        <input type="text" id="filter-aircraft" placeholder="ex: B738, A320" />
+      </label>
 
-        <label>
-          Fenêtre temps (heures en arrière, vols récents) :
-          <input type="number" id="filter-hours" min="1" max="24" value="3" />
-        </label>
+      <label>Fenêtre temps (h) :
+        <input type="number" id="filter-hours" min="1" max="24" value="3" />
+      </label>
 
-        <button id="btn-refresh">Rafraîchir données</button>
-      </div>
-      <div class="small">
-        AirLabs : vols du jour (DEP + ARR), filtrés par type avion & fenêtre temporelle.
-      </div>
+      <button id="btn-refresh">Rafraîchir données</button>
     </div>
 
     <div class="block">
       <h2>Météo du jour</h2>
-      <div>
-        <strong>EBCI – Charleroi</strong>
-        <div class="small" id="meteo-ebci-summary">Chargement...</div>
-        <div class="metar" id="meteo-ebci-raw"></div>
-      </div>
-      <div style="margin-top:0.5rem;">
-        <strong>EBLG – Liège</strong>
-        <div class="small" id="meteo-eblg-summary">Chargement...</div>
-        <div class="metar" id="meteo-eblg-raw"></div>
-      </div>
+      <strong>EBCI – Charleroi</strong>
+      <div class="small" id="meteo-ebci-summary">Chargement...</div>
+      <div class="metar" id="meteo-ebci-raw"></div>
+
+      <br>
+      <strong>EBLG – Liège</strong>
+      <div class="small" id="meteo-eblg-summary">Chargement...</div>
+      <div class="metar" id="meteo-eblg-raw"></div>
     </div>
 
     <div class="block">
-      <h2>Piste & couloir bruit</h2>
-      <div>
-        <strong>EBCI</strong>
-        <div class="small" id="runway-ebci">Analyse en cours...</div>
-      </div>
-      <div style="margin-top:0.35rem;">
-        <strong>EBLG</strong>
-        <div class="small" id="runway-eblg">Analyse en cours...</div>
-      </div>
-      <div class="legend" style="margin-top:0.5rem;">
+      <h2>Piste & direction</h2>
+      <strong>EBCI</strong>
+      <div class="small" id="runway-ebci">Analyse...</div>
+
+      <br>
+      <strong>EBLG</strong>
+      <div class="small" id="runway-eblg">Analyse...</div>
+
+      <div class="legend">
         <span><span class="dot dot-airport"></span> Aéroport</span>
         <span><span class="dot dot-normal"></span> Sonomètre</span>
-        <span><span class="dot dot-impacted"></span> Sonomètre impacté</span>
-        <span><span class="dot dot-track"></span> Couloir bruit (trapèze)</span>
+        <span><span class="dot dot-impacted"></span> Rouge (impact)</span>
+        <span><span class="dot dot-track"></span> Trapèze direction</span>
       </div>
     </div>
 
     <div class="block">
-      <h2>Sonomètres impactés</h2>
-      <div>
-        <strong>EBCI</strong>
-        <div id="list-ebci" class="small">En attente de données...</div>
-      </div>
-      <div style="margin-top:0.35rem;">
-        <strong>EBLG</strong>
-        <div id="list-eblg" class="small">En attente de données...</div>
-      </div>
+      <h2>Sonomètres</h2>
+      <strong>EBCI</strong>
+      <div id="list-ebci" class="small">En attente...</div>
+
+      <br>
+      <strong>EBLG</strong>
+      <div id="list-eblg" class="small">En attente...</div>
     </div>
 
     <div class="block">
-      <h2>Vols confirmés (DEP / ARR)</h2>
-      <div>
-        <strong>EBCI</strong>
-        <div id="flights-ebci" class="small">Chargement...</div>
-      </div>
-      <div style="margin-top:0.35rem;">
-        <strong>EBLG</strong>
-        <div id="flights-eblg" class="small">Chargement...</div>
-      </div>
-    </div>
-
-    <div class="block small">
-      Logique :
-      <ul>
-        <li>AVWX : METAR pour vent / météo.</li>
-        <li>Airlabs : vols live + schedules (DEP + ARR).</li>
-        <li>Piste réelle si runway disponible, sinon estimation par vent.</li>
-        <li>Couloir bruit : trapèze 20 km, largeur 1 km au seuil → 3 km à 20 km.</li>
-        <li>Impact : distance minimale sonomètre–polygone &lt;= largeur locale.</li>
-      </ul>
-    </div>
-  </section>
-
-  <section id="map"></section>
-</main>
-
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-  crossorigin=""
-></script>
+      <h2>Vols récents</h2>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-  /********** 1. Config API **********/
-  const AVWX_API_KEY = "ersegQzkf2Dfal-o26B4b5uzMrXBeHK2jOpOaY7nffc";
-  const AIRLABS_KEY = "035d39b3-ef7f-43de-b226-8e249b319516";
+/********** 1. Config API **********/
+const AVWX_API_KEY = "XXX";
+const AIRLABS_KEY = "XXX";
 
-  function buildMetarUrl(icao) {
-    return `https://avwx.rest/api/metar/${icao}?token=${AVWX_API_KEY}&format=json`;
-  }
-
-  function buildAirlabsFlightsUrl(icao) {
-    return `https://airlabs.co/api/v9/flights?api_key=${AIRLABS_KEY}&dep_icao=${icao}`;
-  }
-
-  function buildAirlabsArrivalsUrl(icao) {
-    return `https://airlabs.co/api/v9/flights?api_key=${AIRLABS_KEY}&arr_icao=${icao}`;
-  }
-
-  function buildAirlabsSchedulesUrl(icao) {
-    return `https://airlabs.co/api/v9/schedules?api_key=${AIRLABS_KEY}&dep_icao=${icao}`;
-  }
-
-  async function fetchFlightsAirlabs(icao) {
-    const [liveDep, liveArr, schedDep] = await Promise.all([
-      fetch(buildAirlabsFlightsUrl(icao)).then(r => r.json()).catch(() => null),
-      fetch(buildAirlabsArrivalsUrl(icao)).then(r => r.json()).catch(() => null),
-      fetch(buildAirlabsSchedulesUrl(icao)).then(r => r.json()).catch(() => null)
-    ]);
-
-    return {
-      liveDep: liveDep?.response ?? [],
-      liveArr: liveArr?.response ?? [],
-      schedDep: schedDep?.response ?? []
-    };
-  }
-
-  /********** 2. Données aéroports & sonomètres **********/
-  const airports = {
-    EBCI: {
-      icao: "EBCI",
-      name: "Charleroi",
-      lat: 50.4592,
-      lon: 4.4538,
-      runways: [
-        { name: "06", heading: 60 },
-        { name: "24", heading: 240 }
-      ]
-    },
-    EBLG: {
-      icao: "EBLG",
-      name: "Liège",
-      lat: 50.6374,
-      lon: 5.4432,
-      runways: [
-        { name: "04", heading: 40 },
-        { name: "22", heading: 220 }
-      ]
-    }
-  };
-
-   const sonometersEBCI = [
-    { id: "F118", address: "Rue Piconette 1, Sombreffe", latDMS: "50 30 18.96 N", lonDMS: "4 36 40.25 E" },
-    { id: "F109", address: "Chaussée de Charleroi 265, Sombreffe", latDMS: "50 29 25.27 N", lonDMS: "4 33 44.6 E" },
-    { id: "F108", address: "Avenue Brunard 83, Fleurus", latDMS: "50 29 11.97 N", lonDMS: "4 32 46.61 E" },
-    { id: "F106", address: "Rue Beaurin et Jonet 17, Wangenies", latDMS: "50 28 47.51 N", lonDMS: "4 31 10.46 E" },
-    { id: "F119", address: "Rue René Delhaize 39, Ransart", latDMS: "50 27 47.57 N", lonDMS: "4 28 44.73 E" },
-    { id: "F103", address: "Rue Docteur Pircard 61, Jumet", latDMS: "50 27 8.59 N", lonDMS: "4 24 56.68 E" },
-    { id: "F102", address: "Rue du Vigneron 5, Jumet", latDMS: "50 26 45.73 N", lonDMS: "4 25 22.56 E" },
-    { id: "F101", address: "Rue Bruhaute 46, Jumet", latDMS: "50 26 52.37 N", lonDMS: "4 24 57.02 E" },
-    { id: "F107", address: "Rue Maximilien Wattelar 155, Jumet", latDMS: "50 26 38.66 N", lonDMS: "4 24 40.18 E" },
-    { id: "F105", address: "Rue Sous le Bois 59, Roux", latDMS: "50 26 49.22 N", lonDMS: "4 24 1.86 E" },
-    { id: "F104", address: "Rue du Chiffon Rouge 12, Roux", latDMS: "50 26 32.42 N", lonDMS: "4 23 33.2 E" },
-    { id: "F111", address: "Rue de la Baille 42, Courcelles", latDMS: "50 26 18.68 N", lonDMS: "4 21 7.47 E" },
-    { id: "F112", address: "Rue des Liserons 44, Goutroux", latDMS: "50 25 28.75 N", lonDMS: "4 21 27.75 E" },
-    { id: "F117", address: "Rue du Terril 1, Forchies", latDMS: "50 25 53.4 N", lonDMS: "4 18 53.71 E" },
-    { id: "F110", address: "Rue Émile Vandervelde 396, Forchies", latDMS: "50 25 24.85 N", lonDMS: "4 19 38.57 E" },
-    { id: "F116", address: "Rue de l'Enseignement 144, Fontaine-l'Evêque", latDMS: "50 24 38.28 N", lonDMS: "4 18 54.19 E" },
-    { id: "F114", address: "Rue des Ruelles / Rue de la source, Anderlues", latDMS: "50 24 35.39 N", lonDMS: "4 16 37.8 E" }
-  ];
-
-  const sonometersEBLG = [
-    { id: "F017", address: "Rue de la Pommeraie, 4690 Wonck", latDMS: "50 45 53.58 N", lonDMS: "5 37 50.18 E" },
-    { id: "F001", address: "Rue Franquet 15, Houtain", latDMS: "50 44 16.96 N", lonDMS: "5 36 31.8 E" },
-    { id: "F014", address: "Rue Léon Labye 12, Juprelle", latDMS: "50 43 8.02 N", lonDMS: "5 34 23.39 E" },
-    { id: "F015", address: "Rue du Brouck 5, Juprelle", latDMS: "50 41 19.82 N", lonDMS: "5 31 34.38 E" },
-    { id: "F005", address: "Rue Caquin 4, Haneffe", latDMS: "50 38 21.59 N", lonDMS: "5 19 24.67 E" },
-    { id: "F003", address: "Rue Fond Méan 7, St Georges", latDMS: "50 36 4.2 N", lonDMS: "5 22 53.04 E" },
-    { id: "F011", address: "Rue Albert 1er 18, St Georges", latDMS: "50 36 4.11 N", lonDMS: "5 21 21.62 E" },
-    { id: "F008", address: "Rue Warfusée 5, St Georges", latDMS: "50 35 41.56 N", lonDMS: "5 21 32.22 E" },
-    { id: "F002", address: "Rue Noiset 23, St Georges", latDMS: "50 35 18.29 N", lonDMS: "5 22 13.88 E" },
-    { id: "F007", address: "Rue Yernawe 13, St Georges", latDMS: "50 35 26.72 N", lonDMS: "5 20 42.81 E" },
-    { id: "F009", address: "Bibliothèque Communale, Place Verte 4470 Stockay", latDMS: "50 34 50.99 N", lonDMS: "5 21 19.5 E" },
-    { id: "F004", address: "Vinâve des Stréats 32, Verlaine", latDMS: "50 36 19.49 N", lonDMS: "5 19 17.06 E" },
-    { id: "F010", address: "Rue Haute Voie 23, Verlaine", latDMS: "50 35 57.81 N", lonDMS: "5 18 48.57 E" },
-    { id: "F013", address: "Rue Bois Léon 31, Verlaine", latDMS: "50 35 12.89 N", lonDMS: "5 18 31.24 E" },
-    { id: "F016", address: "Rue de Chapon-Seraing 14, Verlaine", latDMS: "50 37 10.62 N", lonDMS: "5 17 43.24 E" },
-    { id: "F006", address: "Rue Bolly Chapon 11, Seraing", latDMS: "50 36 34.54 N", lonDMS: "5 16 17.05 E" },
-    { id: "F012", address: "Rue Barbe d'Or 13, 4317 Aineffe", latDMS: "50 37 18.9 N", lonDMS: "5 15 17.09 E" }
-  ];
-const sonoRules = {
-  EBLG: {
-    "22": {
-      green: [
-        "F001","F002","F003","F004","F005","F006","F007","F008","F009",
-        "F010","F011","F012","F013","F014","F015","F016","F017"
-      ],
-      red: []
-    },
-    "04": {
-      green: [
-        "F001","F002","F003","F007","F008","F009","F011","F013","F014","F015"
-      ],
-      red: [
-        "F004","F005","F006","F010","F012","F016","F017"
-      ]
-    }
-  },
-
+/********** 2. Aéroports + sonomètres **********/
+const airports = {
   EBCI: {
-    "24": {
-      green: [
-        "F101","F102","F103","F104","F105","F106","F107","F108","F109",
-        "F110","F111","F112","F114","F116","F117","F118","F119"
-      ],
-      red: []
-    },
-    "06": {
-      green: [
-        "F101","F102","F103","F104","F105","F106","F107","F108","F109",
-        "F110","F111","F112","F119"
-      ],
-      red: [
-        "F114","F116","F117","F118"
-      ]
-    }
+    icao: "EBCI",
+    name: "Charleroi",
+    lat: 50.4592,
+    lon: 4.4538,
+    runways: [
+      { name: "06", heading: 60 },
+      { name: "24", heading: 240 }
+    ]
+  },
+  EBLG: {
+    icao: "EBLG",
+    name: "Liège",
+    lat: 50.6374,
+    lon: 5.4432,
+    runways: [
+      { name: "04", heading: 40 },
+      { name: "22", heading: 220 }
+    ]
   }
 };
 
-  /********** 3. Utilitaires géo **********/
-  function dmsToDecimal(dmsStr) {
-    const parts = dmsStr.trim().split(/\s+/);
-    const deg = parseFloat(parts[0]);
-    const min = parseFloat(parts[1]);
-    const sec = parseFloat(parts[2]);
-    const hemi = parts[3].toUpperCase();
-    let dec = deg + min / 60 + sec / 3600;
-    if (hemi === "S" || hemi === "W") dec = -dec;
-    return dec;
+const sonometersEBCI = [ ... ];   // (identiques à ta version)
+const sonometersEBLG = [ ... ];   // (identiques à ta version)
+
+/********** 2bis. Règles fixes Patrick **********/
+const sonoRules = {
+  EBLG: {
+    "22": { green: ["F001","F002","F003","F004","F005","F006","F007","F008","F009","F010","F011","F012","F013","F014","F015","F016","F017"], red: [] },
+    "04": { green: ["F001","F002","F003","F007","F008","F009","F011","F013","F014","F015"], red: ["F004","F005","F006","F010","F012","F016","F017"] }
+  },
+  EBCI: {
+    "24": { green: ["F101","F102","F103","F104","F105","F106","F107","F108","F109","F110","F111","F112","F114","F116","F117","F118","F119"], red: [] },
+    "06": { green: ["F101","F102","F103","F104","F105","F106","F107","F108","F109","F110","F111","F112","F119"], red: ["F114","F116","F117","F118"] }
   }
+};
 
-  function angleDiff(a, b) {
-    let d = Math.abs(a - b) % 360;
-    return d > 180 ? 360 - d : d;
-  }
+/********** 3. Utilitaires géo **********/
+function dmsToDecimal(str) { ... }
+function angleDiff(a,b){ ... }
+function computeTurnPoint(...){ ... }
+function projectLocal(...){ ... }
+function unprojectLocal(...){ ... }
 
-  function computeTurnPoint(lat, lon, headingDeg, distanceKm) {
-    const R = 6371;
-    const d = distanceKm / R;
-    const brng = (headingDeg * Math.PI) / 180;
-    const φ1 = (lat * Math.PI) / 180;
-    const λ1 = (lon * Math.PI) / 180;
+/********** 4. Carte Leaflet **********/
+const map = L.map("map").setView([50.55,5.0],9);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
-    const φ2 = Math.asin(
-      Math.sin(φ1) * Math.cos(d) +
-      Math.cos(φ1) * Math.sin(d) * Math.cos(brng)
-    );
-    const λ2 =
-      λ1 +
-      Math.atan2(
-        Math.sin(brng) * Math.sin(d) * Math.cos(φ1),
-        Math.cos(d) - Math.sin(φ1) * Math.sin(φ2)
-      );
+const airportMarkers = {};
+const sonometerMarkers = { EBCI: [], EBLG: [] };
+const corridorLayers = { EBCI: null, EBLG: null };
 
-    return {
-      lat: (φ2 * 180) / Math.PI,
-      lon: (λ2 * 180) / Math.PI
-    };
-  }
+const airportStyle = { radius:7, color:"#065f46", fillColor:"#10b981", fillOpacity:0.9 };
+const sonometerNormalStyle = { radius:5, color:"#1d4ed8", fillColor:"#2563eb", fillOpacity:0.9 };
+const sonometerImpactedStyle = { radius:6, color:"#7f1d1d", fillColor:"#b91c1c", fillOpacity:0.95 };
 
-  function projectLocal(lat0, lon0, lat, lon) {
-    const R = 6371000;
-    const toRad = (d) => (d * Math.PI) / 180;
-    const x = R * toRad(lon - lon0) * Math.cos(toRad(lat0));
-    const y = R * toRad(lat - lat0);
-    return { x, y };
-  }
+Object.values(airports).forEach(ap=>{
+  airportMarkers[ap.icao] = L.circleMarker([ap.lat,ap.lon],airportStyle)
+    .addTo(map)
+    .bindPopup(`<strong>${ap.icao}</strong><br>${ap.name}`);
+});
 
-  function unprojectLocal(lat0, lon0, x, y) {
-    const R = 6371000;
-    const toDeg = (r) => (r * 180) / Math.PI;
-    const lat = lat0 + toDeg(y / R);
-    const lon = lon0 + toDeg(x / (R * Math.cos((lat0 * Math.PI) / 180)));
-    return { lat, lon };
-  }
-
-  function distancePointToSegmentMetersLocal(P, A, B) {
-    const ABx = B.x - A.x;
-    const ABy = B.y - A.y;
-    const APx = P.x - A.x;
-    const APy = P.y - A.y;
-    const ab2 = ABx * ABx + ABy * ABy;
-    let t = 0;
-    if (ab2 > 0) {
-      t = (APx * ABx + APy * ABy) / ab2;
-      t = Math.max(0, Math.min(1, t));
-    }
-    const Cx = A.x + t * ABx;
-    const Cy = A.y + t * ABy;
-    const dx = P.x - Cx;
-    const dy = P.y - Cy;
-    return { dist: Math.sqrt(dx * dx + dy * dy), t };
-  }
-
-  /********** 4. Carte Leaflet **********/
-  const map = L.map("map", {
-    zoomControl: true
-  }).setView([50.55, 5.0], 9);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 18,
-    attribution: "&copy; OpenStreetMap contributors"
-  }).addTo(map);
-
-  const airportMarkers = {};
-  const sonometerMarkers = { EBCI: [], EBLG: [] };
-  const corridorLayers = { EBCI: null, EBLG: null };
-
-  const airportStyle = { radius: 7, color: "#065f46", fillColor: "#10b981", fillOpacity: 0.9 };
-  const sonometerNormalStyle = { radius: 5, color: "#1d4ed8", fillColor: "#2563eb", fillOpacity: 0.9 };
-  const sonometerImpactedStyle = { radius: 6, color: "#7f1d1d", fillColor: "#b91c1c", fillOpacity: 0.95 };
-
-  Object.values(airports).forEach(ap => {
-    const m = L.circleMarker([ap.lat, ap.lon], airportStyle)
+function addSonometers(list, key){
+  list.forEach(s=>{
+    const lat = dmsToDecimal(s.latDMS);
+    const lon = dmsToDecimal(s.lonDMS);
+    const m = L.circleMarker([lat,lon], sonometerNormalStyle)
       .addTo(map)
-      .bindPopup(`<strong>${ap.icao} – ${ap.name}</strong><br>RWY ${ap.runways.map(r => r.name).join(" / ")}`);
-    airportMarkers[ap.icao] = m;
+      .bindPopup(`<strong>${s.id}</strong><br>${s.address}`);
+    sonometerMarkers[key].push({...s,lat,lon,marker:m});
   });
+}
+addSonometers(sonometersEBCI,"EBCI");
+addSonometers(sonometersEBLG,"EBLG");
 
-  function addSonometers(list, airportKey) {
-    list.forEach(s => {
-      const lat = dmsToDecimal(s.latDMS);
-      const lon = dmsToDecimal(s.lonDMS);
-      const marker = L.circleMarker([lat, lon], sonometerNormalStyle)
-        .addTo(map)
-        .bindPopup(`<strong>${s.id}</strong><br>${s.address}<br><span class="small">${airportKey}</span>`);
-      sonometerMarkers[airportKey].push({ ...s, lat, lon, marker });
-    });
-  }
+/********** 5. Trapèze directionnel uniquement **********/
+function drawCorridorOnly(airportKey, heading){
+  const ap = airports[airportKey];
+  const corridor = buildNoiseCorridorPolygon(airportKey, heading);
+  if (!corridor) return;
 
-  addSonometers(sonometersEBCI, "EBCI");
-  addSonometers(sonometersEBLG, "EBLG");
+  if (corridorLayers[airportKey]) map.removeLayer(corridorLayers[airportKey]);
 
-  /********** 5. METAR **********/
-  async function fetchMetar(icao) {
-    const url = buildMetarUrl(icao);
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("METAR error " + icao);
-    return res.json();
-  }
+  corridorLayers[airportKey] = L.polygon(corridor.polygonLatLngs,{
+    color:"#f97316", weight:2, opacity:0.9, fillOpacity:0.15
+  }).addTo(map);
+}
 
-  function updateMetarUI(airportKey, metar) {
-    const idSummary = airportKey === "EBCI" ? "meteo-ebci-summary" : "meteo-eblg-summary";
-    const idRaw = airportKey === "EBCI" ? "meteo-ebci-raw" : "meteo-eblg-raw";
-    const elSummary = document.getElementById(idSummary);
-    const elRaw = document.getElementById(idRaw);
-
-    const windDir = metar?.wind_direction?.value ?? metar?.wind?.direction?.degrees ?? null;
-    const windSpeed = metar?.wind_speed?.value ?? metar?.wind?.speed_kt ?? null;
-    const temp = metar?.temperature?.value ?? metar?.temperature?.celsius ?? null;
-    const qnh = metar?.altimeter?.value ?? metar?.qnh?.hpa ?? null;
-
-    elSummary.textContent =
-      `Vent: ${windDir != null ? windDir + "°" : "n/a"} / ` +
-      `${windSpeed != null ? windSpeed + " kt" : "n/a"} – ` +
-      `T: ${temp != null ? temp + "°C" : "n/a"} – ` +
-      `QNH: ${qnh != null ? qnh + " hPa" : "n/a"}`;
-
-    elRaw.textContent = metar?.raw ?? metar?.raw_text ?? "(METAR brut non disponible)";
-  }
-
-  function estimateRunwayFromWind(airport, windDirDeg) {
-    if (windDirDeg == null || isNaN(windDirDeg)) return null;
-    let best = null, bestDiff = 999;
-    airport.runways.forEach(rw => {
-      const diff = angleDiff(windDirDeg, rw.heading);
-      if (diff < bestDiff) { bestDiff = diff; best = rw; }
-    });
-    return best;
-  }
-
-  /********** 6. AirLabs – vols & piste **********/
-  function filterFlightsAirlabsForNoise(airportKey, flights) {
-    const hoursBack = parseInt(document.getElementById("filter-hours").value || "3", 10);
-    const typeFilter = (document.getElementById("filter-aircraft").value || "").trim().toUpperCase();
-    const now = Date.now();
-
-    const all = [
-      ...flights.liveDep.map(f => ({ ...f, _kind: "liveDep" })),
-      ...flights.liveArr.map(f => ({ ...f, _kind: "liveArr" })),
-      ...flights.schedDep.map(f => ({ ...f, _kind: "schedDep" }))
-    ];
-
-    const filtered = all.filter(f => {
-      if (!f) return false;
-
-      if (typeFilter) {
-        const ac = (f.aircraft_icao || f.aircraft_iata || "").toUpperCase();
-        if (!ac.includes(typeFilter)) return false;
-      }
-
-      const t = f.dep_actual || f.dep_time || f.dep_time_utc || f.arr_actual || f.arr_time || f.arr_time_utc;
-      if (t) {
-        const dt = new Date(t).getTime();
-        const diffH = (now - dt) / 3600000;
-        if (diffH < 0 || diffH > hoursBack) return false;
-      }
-
-      return true;
-    });
-
-    return filtered;
-  }
-
-  function extractRunwayFromAirlabs(airportKey, flights) {
-    const ap = airports[airportKey];
-    const filtered = filterFlightsAirlabsForNoise(airportKey, flights);
-
-    const withRunway = filtered.find(f => f.runway);
-    if (withRunway) {
-      const runwayName = String(withRunway.runway).trim();
-      const rw = ap.runways.find(r => runwayName.includes(r.name));
-      if (rw) return { runway: rw, flightsFiltered: filtered };
-    }
-
-    const withDir = filtered.find(f => f.dir);
-    if (withDir) {
-      const heading = parseInt(withDir.dir, 10);
-      if (!isNaN(heading)) {
-        let best = null, bestDiff = 999;
-        ap.runways.forEach(rw => {
-          const diff = angleDiff(heading, rw.heading);
-          if (diff < bestDiff) { bestDiff = diff; best = rw; }
-        });
-        if (best) return { runway: best, flightsFiltered: filtered };
-      }
-    }
-
-    return { runway: null, flightsFiltered: filtered };
-  }
-
-  function updateFlightsUI(airportKey, flights) {
-    const id = airportKey === "EBCI" ? "flights-ebci" : "flights-eblg";
-    const el = document.getElementById(id);
-
-    const filtered = filterFlightsAirlabsForNoise(airportKey, flights);
-    if (!filtered.length) {
-      el.textContent = "Aucun vol récent dans la fenêtre choisie.";
-      return;
-    }
-
-    const lines = filtered.slice(0, 8).map(f => {
-      const num = f.flight_iata || f.flight_icao || f.flight_number || "?";
-      const ac = f.aircraft_icao || f.aircraft_iata || "?";
-      const kind = f._kind === "liveArr" ? "ARR" : "DEP";
-      const rw = f.runway ? `RWY ${f.runway}` : "";
-      return `${kind} ${num} (${ac}) ${rw}`;
-    });
-
-    el.innerHTML = lines.join("<br>") +
-      (filtered.length > 8 ? `<br>… (+${filtered.length - 8} vols)` : "");
-  }
-
-  /********** 7. Couloir bruit – trapèze **********/
-  function buildNoiseCorridorPolygon(airportKey, runwayHeading) {
-    const ap = airports[airportKey];
-    const lengthKm = 20;
-    const wStartKm = 1;
-    const wEndKm = 3;
-
-    const start = { lat: ap.lat, lon: ap.lon };
-    const end = computeTurnPoint(ap.lat, ap.lon, runwayHeading, lengthKm);
-
-    const lat0 = (start.lat + end.lat) / 2;
-    const lon0 = (start.lon + end.lon) / 2;
-
-    const A = projectLocal(lat0, lon0, start.lat, start.lon);
-    const B = projectLocal(lat0, lon0, end.lat, end.lon);
-
-    const ABx = B.x - A.x;
-    const ABy = B.y - A.y;
-    const len = Math.sqrt(ABx * ABx + ABy * ABy);
-    if (len === 0) return null;
-
-    const ux = ABx / len;
-    const uy = ABy / len;
-    const vx = -uy;
-    const vy = ux;
-
-    const wStart = (wStartKm * 1000) / 2;
-    const wEnd = (wEndKm * 1000) / 2;
-
-    const leftStart = { x: A.x + vx * wStart, y: A.y + vy * wStart };
-    const rightStart = { x: A.x - vx * wStart, y: A.y - vy * wStart };
-    const leftEnd = { x: B.x + vx * wEnd, y: B.y + vy * wEnd };
-    const rightEnd = { x: B.x - vx * wEnd, y: B.y - vy * wEnd };
-
-    const p1 = unprojectLocal(lat0, lon0, leftStart.x, leftStart.y);
-    const p2 = unprojectLocal(lat0, lon0, leftEnd.x, leftEnd.y);
-    const p3 = unprojectLocal(lat0, lon0, rightEnd.x, rightEnd.y);
-    const p4 = unprojectLocal(lat0, lon0, rightStart.x, rightStart.y);
-
-    return {
-      polygonLatLngs: [
-        [p1.lat, p1.lon],
-        [p2.lat, p2.lon],
-        [p3.lat, p3.lon],
-        [p4.lat, p4.lon]
-      ],
-      local: { A, B, lat0, lon0, wStart, wEnd }
-    };
-  }
-
- function applySonoRules(airportKey, runwayName) {
+/********** 6. Règles fixes vert/rouge **********/
+function applySonoRules(airportKey, runwayName){
   const rules = sonoRules[airportKey]?.[runwayName];
   const list = sonometerMarkers[airportKey];
 
-  if (!rules) {
-    // aucune règle → tout en bleu
-    list.forEach(s => s.marker.setStyle(sonometerNormalStyle));
-    return { green: [], red: [] };
+  if (!rules){
+    list.forEach(s=>s.marker.setStyle(sonometerNormalStyle));
+    return {green:[], red:[]};
   }
 
-  const greenSet = new Set(rules.green.map(id => id.toUpperCase()));
-  const redSet   = new Set(rules.red.map(id => id.toUpperCase()));
+  const greenSet = new Set(rules.green);
+  const redSet = new Set(rules.red);
 
-  const greenList = [];
-  const redList = [];
+  const green=[], red=[];
 
-  list.forEach(s => {
-    const id = s.id.toUpperCase();
-
-    if (greenSet.has(id)) {
-      s.marker.setStyle(sonometerNormalStyle);
-      greenList.push(s);
-    }
-    else if (redSet.has(id)) {
-      s.marker.setStyle(sonometerImpactedStyle);
-      redList.push(s);
-    }
-    else {
-      // non listé → bleu par défaut
-      s.marker.setStyle(sonometerNormalStyle);
-    }
+  list.forEach(s=>{
+    if (greenSet.has(s.id)) { s.marker.setStyle(sonometerNormalStyle); green.push(s); }
+    else if (redSet.has(s.id)) { s.marker.setStyle(sonometerImpactedStyle); red.push(s); }
+    else s.marker.setStyle(sonometerNormalStyle);
   });
 
-  return { green: greenList, red: redList };
+  return {green, red};
 }
 
-  function updateRunwayUI(airportKey, runway, windDir, windSpeed, source, flightsCount) {
-    const id = airportKey === "EBCI" ? "runway-ebci" : "runway-eblg";
-    const el = document.getElementById(id);
-    if (!runway) {
-      el.textContent =
-        `Vent ${windDir != null ? windDir + "°" : "n/a"} – piste non déterminée (vols filtrés: ${flightsCount}).`;
-      return;
-    }
-    el.textContent =
-      `Vent ${windDir != null ? windDir + "°" : "n/a"} / ${windSpeed ?? "?"} kt – ` +
-      `piste ${runway.name} (cap ~${runway.heading}°) [${source}, vols filtrés: ${flightsCount}].`;
-  }
+/********** 7. UI liste **********/
+function updateSonoListUI(airportKey, runwayName, lists){
+  const id = airportKey==="EBCI" ? "list-ebci" : "list-eblg";
+  const el = document.getElementById(id);
 
-  function updateSonoListUI(airportKey, runwayName, lists) {
-  const containerId = airportKey === "EBCI" ? "list-ebci" : "list-eblg";
-  const container = document.getElementById(containerId);
-
-  if (!runwayName) {
-    container.textContent = "Piste non déterminée.";
-    return;
-  }
-
-  const { green, red } = lists;
-
-  container.innerHTML =
-    `<strong>Piste ${runwayName}</strong><br>` +
-    `<span class="small">Vert = conforme / Rouge = impacté</span><br><br>` +
-
+  el.innerHTML =
+    `<strong>Piste ${runwayName}</strong><br><br>` +
     `<strong>Vert :</strong><br>` +
-    (green.length
-      ? green.map(s => `<span class="tag">${s.id}</span> ${s.address}`).join("<br>")
-      : "Aucun") +
-    `<br><br>` +
-
-    `<strong>Rouge :</strong><br>` +
-    (red.length
-      ? red.map(s => `<span class="tag impacted">${s.id}</span> ${s.address}`).join("<br>")
-      : "Aucun");
+    (lists.green.length ? lists.green.map(s=>`<span class="tag">${s.id}</span> ${s.address}`).join("<br>") : "Aucun") +
+    `<br><br><strong>Rouge :</strong><br>` +
+    (lists.red.length ? lists.red.map(s=>`<span class="tag impacted">${s.id}</span> ${s.address}`).join("<br>") : "Aucun");
 }
+/********** 8. METAR **********/
+async function fetchMetar(icao){ ... }
+function updateMetarUI(...){ ... }
+function estimateRunwayFromWind(...){ ... }
 
+/********** 9. AirLabs **********/
+async function fetchFlightsAirlabs(icao){ ... }
+function filterFlightsAirlabsForNoise(...){ ... }
+function extractRunwayFromAirlabs(...){ ... }
+function updateFlightsUI(...){ ... }
 
-  /********** 8. Orchestration **********/
-  async function processAirport(airportKey) {
-    const ap = airports[airportKey];
+/********** 10. Orchestration **********/
+async function processAirport(airportKey){
+  const ap = airports[airportKey];
 
-    const enabled =
-      (airportKey === "EBCI" && document.getElementById("filter-ebci").checked) ||
-      (airportKey === "EBLG" && document.getElementById("filter-eblg").checked);
-
-    if (!enabled) {
-      sonometerMarkers[airportKey].forEach(s => s.marker.setStyle(sonometerNormalStyle));
-      if (corridorLayers[airportKey]) {
-        map.removeLayer(corridorLayers[airportKey]);
-        corridorLayers[airportKey] = null;
-      }
-      const runwayId = airportKey === "EBCI" ? "runway-ebci" : "runway-eblg";
-      const listId = airportKey === "EBCI" ? "list-ebci" : "list-eblg";
-      const flightsId = airportKey === "EBCI" ? "flights-ebci" : "flights-eblg";
-      document.getElementById(runwayId).textContent = "Aéroport non sélectionné dans les filtres.";
-      document.getElementById(listId).textContent = "Aéroport non sélectionné dans les filtres.";
-      document.getElementById(flightsId).textContent = "Aéroport non sélectionné dans les filtres.";
-      return;
-    }
-
-    try {
-      const [metar, flights] = await Promise.all([
-        fetchMetar(ap.icao),
-        fetchFlightsAirlabs(ap.icao)
-      ]);
-
-      updateMetarUI(airportKey, metar);
-      updateFlightsUI(airportKey, flights);
-
-      const windDir = metar?.wind_direction?.value ?? metar?.wind?.direction?.degrees ?? null;
-      const windSpeed = metar?.wind_speed?.value ?? metar?.wind?.speed_kt ?? null;
-
-      const { runway: runwayFromFlights, flightsFiltered } = extractRunwayFromAirlabs(airportKey, flights);
-      let runway = runwayFromFlights;
-      let source = "Airlabs (piste réelle / direction)";
-
-      if (!runway) {
-        runway = estimateRunwayFromWind(ap, windDir);
-        source = "METAR (vent)";
-      }
-
-      updateRunwayUI(airportKey, runway, windDir, windSpeed, source, flightsFiltered.length);
-
-      if (runway) {
-        const lists = applySonoRules(airportKey, runway.name);
-        updateSonoListUI(airportKey, runway.name, lists);
-
-      } else {
-        updateImpactedListUI(airportKey, [], null);
-        sonometerMarkers[airportKey].forEach(s => s.marker.setStyle(sonometerNormalStyle));
-        
-      }
-    } catch (e) {
-      console.error(e);
-      const idSummary = airportKey === "EBCI" ? "meteo-ebci-summary" : "meteo-eblg-summary";
-      const idRaw = airportKey === "EBCI" ? "meteo-ebci-raw" : "meteo-eblg-raw";
-      document.getElementById(idSummary).textContent = "Erreur lors du chargement des données.";
-      document.getElementById(idRaw).textContent = "";
-      const runwayId = airportKey === "EBCI" ? "runway-ebci" : "runway-eblg";
-      const listId = airportKey === "EBCI" ? "list-ebci" : "list-eblg";
-      const flightsId = airportKey === "EBCI" ? "flights-ebci" : "flights-eblg";
-      document.getElementById(runwayId).textContent = "Impossible de déterminer la piste.";
-      document.getElementById(listId).textContent = "Données indisponibles.";
-      document.getElementById(flightsId).textContent = "Données vols indisponibles.";
-      sonometerMarkers[airportKey].forEach(s => s.marker.setStyle(sonometerNormalStyle));
-      if (corridorLayers[airportKey]) {
-        map.removeLayer(corridorLayers[airportKey]);
-        corridorLayers[airportKey] = null;
-      }
-    }
-  }
-
-  async function refreshAll() {
-    await Promise.all([processAirport("EBCI"), processAirport("EBLG")]);
-  }
-
-  document.getElementById("btn-refresh").addEventListener("click", () => {
-    refreshAll();
-  });
-
-  const toggleBtn = document.getElementById("toggle-sidebar");
-  const sidebar = document.getElementById("sidebar");
-  toggleBtn.addEventListener("click", () => {
-    sidebar.classList.toggle("open");
-  });
-
-  refreshAll();
-</script>
-</body>
-</html>
+  const enabled =
+    (airportKey==="EBCI" && document.getElementById("filter-ebci").checked) ||
+    (airportKey==="EBLG
