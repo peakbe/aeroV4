@@ -440,6 +440,44 @@
     { id: "F006", address: "Rue Bolly Chapon 11, Seraing", latDMS: "50 36 34.54 N", lonDMS: "5 16 17.05 E" },
     { id: "F012", address: "Rue Barbe d'Or 13, 4317 Aineffe", latDMS: "50 37 18.9 N", lonDMS: "5 15 17.09 E" }
   ];
+const sonoRules = {
+  EBLG: {
+    "22": {
+      green: [
+        "F001","F002","F003","F004","F005","F006","F007","F008","F009",
+        "F010","F011","F012","F013","F014","F015","F016","F017"
+      ],
+      red: []
+    },
+    "04": {
+      green: [
+        "F001","F002","F003","F007","F008","F009","F011","F013","F014","F015"
+      ],
+      red: [
+        "F004","F005","F006","F010","F012","F016","F017"
+      ]
+    }
+  },
+
+  EBCI: {
+    "24": {
+      green: [
+        "F101","F102","F103","F104","F105","F106","F107","F108","F109",
+        "F110","F111","F112","F114","F116","F117","F118","F119"
+      ],
+      red: []
+    },
+    "06": {
+      green: [
+        "F101","F102","F103","F104","F105","F106","F107","F108","F109",
+        "F110","F111","F112","F119"
+      ],
+      red: [
+        "F114","F116","F117","F118"
+      ]
+    }
+  }
+};
 
   /********** 3. Utilitaires géo **********/
   function dmsToDecimal(dmsStr) {
@@ -725,38 +763,41 @@
     };
   }
 
-  function computeImpactedSonometersCorridor(airportKey, runwayHeading) {
-    const list = sonometerMarkers[airportKey];
+ function applySonoRules(airportKey, runwayName) {
+  const rules = sonoRules[airportKey]?.[runwayName];
+  const list = sonometerMarkers[airportKey];
 
-    const corridor = buildNoiseCorridorPolygon(airportKey, runwayHeading);
-    if (!corridor) return [];
-
-    if (corridorLayers[airportKey]) {
-      map.removeLayer(corridorLayers[airportKey]);
-    }
-    const poly = L.polygon(corridor.polygonLatLngs, {
-      color: "#f97316",
-      weight: 2,
-      opacity: 0.9,
-      fillOpacity: 0.15
-    }).addTo(map);
-    corridorLayers[airportKey] = poly;
-
-    const { A, B, lat0, lon0, wStart, wEnd } = corridor.local;
-    const impacted = [];
-
-    list.forEach(s => {
-      const P = projectLocal(lat0, lon0, s.lat, s.lon);
-      const { dist, t } = distancePointToSegmentMetersLocal(P, A, B);
-      const widthLocal = wStart + (wEnd - wStart) * t;
-      const isImpacted = dist <= widthLocal;
-      if (isImpacted) impacted.push({ ...s, distance_m: dist });
-      s.marker.setStyle(isImpacted ? sonometerImpactedStyle : sonometerNormalStyle);
-    });
-
-    impacted.sort((a, b) => a.distance_m - b.distance_m);
-    return impacted;
+  if (!rules) {
+    // aucune règle → tout en bleu
+    list.forEach(s => s.marker.setStyle(sonometerNormalStyle));
+    return { green: [], red: [] };
   }
+
+  const greenSet = new Set(rules.green.map(id => id.toUpperCase()));
+  const redSet   = new Set(rules.red.map(id => id.toUpperCase()));
+
+  const greenList = [];
+  const redList = [];
+
+  list.forEach(s => {
+    const id = s.id.toUpperCase();
+
+    if (greenSet.has(id)) {
+      s.marker.setStyle(sonometerNormalStyle);
+      greenList.push(s);
+    }
+    else if (redSet.has(id)) {
+      s.marker.setStyle(sonometerImpactedStyle);
+      redList.push(s);
+    }
+    else {
+      // non listé → bleu par défaut
+      s.marker.setStyle(sonometerNormalStyle);
+    }
+  });
+
+  return { green: greenList, red: redList };
+}
 
   function updateRunwayUI(airportKey, runway, windDir, windSpeed, source, flightsCount) {
     const id = airportKey === "EBCI" ? "runway-ebci" : "runway-eblg";
@@ -771,26 +812,33 @@
       `piste ${runway.name} (cap ~${runway.heading}°) [${source}, vols filtrés: ${flightsCount}].`;
   }
 
-  function updateImpactedListUI(airportKey, impacted, runway) {
-    const containerId = airportKey === "EBCI" ? "list-ebci" : "list-eblg";
-    const container = document.getElementById(containerId);
-    if (!runway) {
-      container.textContent = "Piste non déterminée (vent calme / données manquantes).";
-      return;
-    }
-    if (impacted.length === 0) {
-      container.textContent = `Aucun sonomètre dans le couloir (piste ${runway.name}).`;
-      return;
-    }
-    container.innerHTML =
-      `Piste : <strong>${runway.name}</strong> (trapèze 20 km, 1→3 km)<br>` +
-      impacted
-        .map(s =>
-          `<span class="tag impacted">${s.id}</span> ` +
-          `<span class="small">${s.address} – ${s.distance_m.toFixed(0)} m du couloir</span>`
-        )
-        .join("<br>");
+  function updateSonoListUI(airportKey, runwayName, lists) {
+  const containerId = airportKey === "EBCI" ? "list-ebci" : "list-eblg";
+  const container = document.getElementById(containerId);
+
+  if (!runwayName) {
+    container.textContent = "Piste non déterminée.";
+    return;
   }
+
+  const { green, red } = lists;
+
+  container.innerHTML =
+    `<strong>Piste ${runwayName}</strong><br>` +
+    `<span class="small">Vert = conforme / Rouge = impacté</span><br><br>` +
+
+    `<strong>Vert :</strong><br>` +
+    (green.length
+      ? green.map(s => `<span class="tag">${s.id}</span> ${s.address}`).join("<br>")
+      : "Aucun") +
+    `<br><br>` +
+
+    `<strong>Rouge :</strong><br>` +
+    (red.length
+      ? red.map(s => `<span class="tag impacted">${s.id}</span> ${s.address}`).join("<br>")
+      : "Aucun");
+}
+
 
   /********** 8. Orchestration **********/
   async function processAirport(airportKey) {
