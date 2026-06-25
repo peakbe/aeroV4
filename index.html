@@ -627,17 +627,41 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
 
 
 /********** 5. Trapèze directionnel uniquement **********/
-function drawCorridorOnly(airportKey, heading){
+/********** Trapèze directionnel simple – PRO+++ **********/
+function drawCorridorOnly(airportKey, heading) {
   const ap = airports[airportKey];
-  const corridor = buildNoiseCorridorPolygon(airportKey, heading);
-  if (!corridor) return;
+  if (!ap || !ap.lat || !ap.lon) return;
 
-  if (corridorLayers[airportKey]) map.removeLayer(corridorLayers[airportKey]);
+  // Largeur du trapèze (en degrés lat/lon)
+  const offset = 0.01;
 
-  corridorLayers[airportKey] = L.polygon(corridor.polygonLatLngs,{
-    color:"#f97316", weight:2, opacity:0.9, fillOpacity:0.15
+  // Calcul du vecteur directionnel
+  const rad = (heading * Math.PI) / 180;
+  const dx = Math.sin(rad) * 0.02;
+  const dy = Math.cos(rad) * 0.02;
+
+  // Points du trapèze
+  const p1 = [ap.lat - offset, ap.lon - offset];
+  const p2 = [ap.lat + dy - offset, ap.lon + dx - offset];
+  const p3 = [ap.lat + dy + offset, ap.lon + dx + offset];
+  const p4 = [ap.lat + offset, ap.lon + offset];
+
+  const polygon = [p1, p2, p3, p4];
+
+  // Suppression ancienne couche
+  if (corridorLayers[airportKey]) {
+    map.removeLayer(corridorLayers[airportKey]);
+  }
+
+  // Ajout nouvelle couche
+  corridorLayers[airportKey] = L.polygon(polygon, {
+    color: "#5ee7ff",       // cyan Glass Cockpit
+    weight: 2,
+    opacity: 0.9,
+    fillOpacity: 0.15
   }).addTo(map);
 }
+
 
 /********** 6. Règles fixes vert/rouge **********/
 function applySonoRules(airportKey, runwayName){
