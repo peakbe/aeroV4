@@ -887,15 +887,13 @@ const sonoRules = {
       updateRunwayUI(airportKey, runway, windDir, windSpeed, source, flightsFiltered.length);
 
       if (runway) {
-        const impacted = computeImpactedSonometersCorridor(airportKey, runway.heading);
-        updateImpactedListUI(airportKey, impacted, runway);
+        const lists = applySonoRules(airportKey, runway.name);
+        updateSonoListUI(airportKey, runway.name, lists);
+
       } else {
         updateImpactedListUI(airportKey, [], null);
         sonometerMarkers[airportKey].forEach(s => s.marker.setStyle(sonometerNormalStyle));
-        if (corridorLayers[airportKey]) {
-          map.removeLayer(corridorLayers[airportKey]);
-          corridorLayers[airportKey] = null;
-        }
+        
       }
     } catch (e) {
       console.error(e);
