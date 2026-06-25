@@ -379,7 +379,7 @@ function addSonometers(list, key){
 }
 addSonometers(sonometersEBCI,"EBCI");
 addSonometers(sonometersEBLG,"EBLG");
-/********** 4bis. Couche vent **********/
+/********** 4bis. Couche vent IFR PRO+++ **********/
 const windLayers = { EBCI: null, EBLG: null };
 
 function drawWindOnMap(airportKey, windDir, windSpeed) {
@@ -391,43 +391,116 @@ function drawWindOnMap(airportKey, windDir, windSpeed) {
     windLayers[airportKey] = null;
   }
 
-  if (!windDir || !windSpeed) return;
+  // Pas de données → rien à afficher
+  if (!windSpeed) return;
 
-  // Longueur de la flèche (ex : 2 km + 80 m par kt)
+  /******************************
+   * 1) Couleur dynamique
+   ******************************/
+  let color = "#22c55e"; // vert < 10 kt
+  if (windSpeed >= 10 && windSpeed <= 20) color = "#f59e0b"; // orange
+  if (windSpeed > 20) color = "#ef4444"; // rouge
+
+  /******************************
+   * 2) Vent variable (VRB)
+   ******************************/
+  const isVRB = (windDir === null || windDir === undefined);
+
+  /******************************
+   * 3) Longueur flèche
+   ******************************/
   const lengthKm = 2 + windSpeed * 0.08;
 
-  const end = computeTurnPoint(ap.lat, ap.lon, windDir, lengthKm);
+  let elements = [];
 
-  const poly = L.polyline(
-    [
-      [ap.lat, ap.lon],
-      [end.lat, end.lon]
-    ],
-    {
-      color: "#38bdf8",
+  if (isVRB) {
+    /********************************************
+     * MODE VRB → Flèche double sens
+     ********************************************/
+    const end1 = computeTurnPoint(ap.lat, ap.lon, 45, lengthKm);
+    const end2 = computeTurnPoint(ap.lat, ap.lon, 225, lengthKm);
+
+    const line1 = L.polyline([[ap.lat, ap.lon], [end1.lat, end1.lon]], {
+      color,
       weight: 3,
       opacity: 0.9,
       dashArray: "6,4"
-    }
-  );
+    });
 
-  const arrowHead = L.circleMarker([end.lat, end.lon], {
-    radius: 6,
-    color: "#0ea5e9",
-    fillColor: "#38bdf8",
-    fillOpacity: 1
-  });
+    const line2 = L.polyline([[ap.lat, ap.lon], [end2.lat, end2.lon]], {
+      color,
+      weight: 3,
+      opacity: 0.9,
+      dashArray: "6,4"
+    });
 
-  const group = L.layerGroup([poly, arrowHead]).addTo(map);
+    const head1 = L.circleMarker([end1.lat, end1.lon], {
+      radius: 6,
+      color,
+      fillColor: color,
+      fillOpacity: 1
+    });
+
+    const head2 = L.circleMarker([end2.lat, end2.lon], {
+      radius: 6,
+      color,
+      fillColor: color,
+      fillOpacity: 1
+    });
+
+    elements = [line1, line2, head1, head2];
+
+  } else {
+    /********************************************
+     * MODE NORMAL → Flèche simple
+     ********************************************/
+    const end = computeTurnPoint(ap.lat, ap.lon, windDir, lengthKm);
+
+    const line = L.polyline([[ap.lat, ap.lon], [end.lat, end.lon]], {
+      color,
+      weight: 3,
+      opacity: 0.9,
+      dashArray: "6,4"
+    });
+
+    const head = L.circleMarker([end.lat, end.lon], {
+      radius: 6,
+      color,
+      fillColor: color,
+      fillOpacity: 1
+    });
+
+    elements = [line, head];
+  }
+
+  /******************************
+   * 4) Cercle turbulence > 20 kt
+   ******************************/
+  if (windSpeed > 20) {
+    const turb = L.circle([ap.lat, ap.lon], {
+      radius: 800, // 800 m
+      color: "#ef4444",
+      weight: 2,
+      fillOpacity: 0.05
+    });
+    elements.push(turb);
+  }
+
+  /******************************
+   * 5) Groupement + popup
+   ******************************/
+  const group = L.layerGroup(elements).addTo(map);
 
   group.bindPopup(
     `<strong>Vent ${airportKey}</strong><br>` +
-    `Direction : ${windDir}°<br>` +
-    `Vitesse : ${windSpeed} kt`
+    (isVRB ? `Direction : VRB<br>` : `Direction : ${windDir}°<br>`) +
+    `Vitesse : ${windSpeed} kt<br>` +
+    `Couleur : ${color}`
   );
 
   windLayers[airportKey] = group;
 }
+
 
 /********** 5. Trapèze directionnel uniquement **********/
 function drawCorridorOnly(airportKey, heading){
