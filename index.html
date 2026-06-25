@@ -760,10 +760,9 @@ async function fetchFlightsAirlabs(icao) {
   };
 }
 
+/********** Filtrage AirLabs pour le bruit – version sans filtres **********/
 function filterFlightsAirlabsForNoise(airportKey, flights) {
-  const hoursBack = parseInt(document.getElementById("filter-hours").value || "3", 10);
-  const typeFilter = (document.getElementById("filter-aircraft").value || "").trim().toUpperCase();
-  const now = Date.now();
+  if (!flights) return [];
 
   const all = [
     ...flights.liveDep.map(f => ({ ...f, _kind: "liveDep" })),
@@ -771,26 +770,10 @@ function filterFlightsAirlabsForNoise(airportKey, flights) {
     ...flights.schedDep.map(f => ({ ...f, _kind: "schedDep" }))
   ];
 
-  return all.filter(f => {
-    if (!f) return false;
-
-    if (typeFilter) {
-      const ac = (f.aircraft_icao || f.aircraft_iata || "").toUpperCase();
-      if (!ac.includes(typeFilter)) return false;
-    }
-
-    const t = f.dep_actual || f.dep_time || f.dep_time_utc ||
-              f.arr_actual || f.arr_time || f.arr_time_utc;
-
-    if (t) {
-      const dt = new Date(t).getTime();
-      const diffH = (now - dt) / 3600000;
-      if (diffH < 0 || diffH > hoursBack) return false;
-    }
-
-    return true;
-  });
+  // Aucun filtre avion / aucune fenêtre temporelle
+  return all.filter(f => !!f);
 }
+
 
 function extractRunwayFromAirlabs(airportKey, flights) {
   const ap = airports[airportKey];
@@ -819,27 +802,36 @@ function extractRunwayFromAirlabs(airportKey, flights) {
   return { runway: null, flightsFiltered: filtered };
 }
 
+/********** Mini‑liste des vols – IFR PRO+++ **********/
 function updateFlightsUI(airportKey, flights) {
   const id = airportKey === "EBCI" ? "flights-ebci" : "flights-eblg";
   const el = document.getElementById(id);
 
+  if (!el) return;
+
+  // Filtrage PRO+++ (sans type avion / sans fenêtre temps)
   const filtered = filterFlightsAirlabsForNoise(airportKey, flights);
+
   if (!filtered.length) {
     el.textContent = "Aucun vol récent.";
     return;
   }
 
+  // On limite à 8 vols pour garder un affichage cockpit compact
   const lines = filtered.slice(0, 8).map(f => {
     const num = f.flight_iata || f.flight_icao || f.flight_number || "?";
     const ac = f.aircraft_icao || f.aircraft_iata || "?";
     const kind = f._kind === "liveArr" ? "ARR" : "DEP";
     const rw = f.runway ? `RWY ${f.runway}` : "";
+
     return `${kind} ${num} (${ac}) ${rw}`;
   });
 
-  el.innerHTML = lines.join("<br>") +
+  el.innerHTML =
+    lines.join("<br>") +
     (filtered.length > 8 ? `<br>… (+${filtered.length - 8} vols)` : "");
 }
+
 
 /********** 10. ORCHESTRATION **********/
 async function processAirport(airportKey) {
