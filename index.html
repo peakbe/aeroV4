@@ -416,8 +416,38 @@
 
 <script>
 /********** 1. Config API **********/
-const AVWX_API_KEY = "XXX";
-const AIRLABS_KEY = "XXX";
+const AVWX_API_KEY = "ersegQzkf2Dfal-o26B4b5uzMrXBeHK2jOpOaY7nffc";
+  const AIRLABS_KEY = "035d39b3-ef7f-43de-b226-8e249b319516";
+
+  function buildMetarUrl(icao) {
+    return `https://avwx.rest/api/metar/${icao}?token=${AVWX_API_KEY}&format=json`;
+  }
+
+  function buildAirlabsFlightsUrl(icao) {
+    return `https://airlabs.co/api/v9/flights?api_key=${AIRLABS_KEY}&dep_icao=${icao}`;
+  }
+
+  function buildAirlabsArrivalsUrl(icao) {
+    return `https://airlabs.co/api/v9/flights?api_key=${AIRLABS_KEY}&arr_icao=${icao}`;
+  }
+
+  function buildAirlabsSchedulesUrl(icao) {
+    return `https://airlabs.co/api/v9/schedules?api_key=${AIRLABS_KEY}&dep_icao=${icao}`;
+  }
+
+  async function fetchFlightsAirlabs(icao) {
+    const [liveDep, liveArr, schedDep] = await Promise.all([
+      fetch(buildAirlabsFlightsUrl(icao)).then(r => r.json()).catch(() => null),
+      fetch(buildAirlabsArrivalsUrl(icao)).then(r => r.json()).catch(() => null),
+      fetch(buildAirlabsSchedulesUrl(icao)).then(r => r.json()).catch(() => null)
+    ]);
+
+    return {
+      liveDep: liveDep?.response ?? [],
+      liveArr: liveArr?.response ?? [],
+      schedDep: schedDep?.response ?? []
+    };
+  }
 
 /********** 2. Aéroports + sonomètres **********/
 const airports = {
@@ -497,11 +527,79 @@ const sonoRules = {
 };
 
 /********** 3. Utilitaires géo **********/
-function dmsToDecimal(str) { ... }
-function angleDiff(a,b){ ... }
-function computeTurnPoint(...){ ... }
-function projectLocal(...){ ... }
-function unprojectLocal(...){ ... }
+function dmsToDecimal(dmsStr) {
+    const parts = dmsStr.trim().split(/\s+/);
+    const deg = parseFloat(parts[0]);
+    const min = parseFloat(parts[1]);
+    const sec = parseFloat(parts[2]);
+    const hemi = parts[3].toUpperCase();
+    let dec = deg + min / 60 + sec / 3600;
+    if (hemi === "S" || hemi === "W") dec = -dec;
+    return dec;
+  }
+
+  function angleDiff(a, b) {
+    let d = Math.abs(a - b) % 360;
+    return d > 180 ? 360 - d : d;
+  }
+
+  function computeTurnPoint(lat, lon, headingDeg, distanceKm) {
+    const R = 6371;
+    const d = distanceKm / R;
+    const brng = (headingDeg * Math.PI) / 180;
+    const φ1 = (lat * Math.PI) / 180;
+    const λ1 = (lon * Math.PI) / 180;
+
+    const φ2 = Math.asin(
+      Math.sin(φ1) * Math.cos(d) +
+      Math.cos(φ1) * Math.sin(d) * Math.cos(brng)
+    );
+    const λ2 =
+      λ1 +
+      Math.atan2(
+        Math.sin(brng) * Math.sin(d) * Math.cos(φ1),
+        Math.cos(d) - Math.sin(φ1) * Math.sin(φ2)
+      );
+
+    return {
+      lat: (φ2 * 180) / Math.PI,
+      lon: (λ2 * 180) / Math.PI
+    };
+  }
+
+  function projectLocal(lat0, lon0, lat, lon) {
+    const R = 6371000;
+    const toRad = (d) => (d * Math.PI) / 180;
+    const x = R * toRad(lon - lon0) * Math.cos(toRad(lat0));
+    const y = R * toRad(lat - lat0);
+    return { x, y };
+  }
+
+  function unprojectLocal(lat0, lon0, x, y) {
+    const R = 6371000;
+    const toDeg = (r) => (r * 180) / Math.PI;
+    const lat = lat0 + toDeg(y / R);
+    const lon = lon0 + toDeg(x / (R * Math.cos((lat0 * Math.PI) / 180)));
+    return { lat, lon };
+  }
+
+  function distancePointToSegmentMetersLocal(P, A, B) {
+    const ABx = B.x - A.x;
+    const ABy = B.y - A.y;
+    const APx = P.x - A.x;
+    const APy = P.y - A.y;
+    const ab2 = ABx * ABx + ABy * ABy;
+    let t = 0;
+    if (ab2 > 0) {
+      t = (APx * ABx + APy * ABy) / ab2;
+      t = Math.max(0, Math.min(1, t));
+    }
+    const Cx = A.x + t * ABx;
+    const Cy = A.y + t * ABy;
+    const dx = P.x - Cx;
+    const dy = P.y - Cy;
+    return { dist: Math.sqrt(dx * dx + dy * dy), t };
+  }
 
 /********** 4. Carte Leaflet **********/
 const map = L.map("map").setView([50.55,5.0],9);
