@@ -270,6 +270,61 @@
   font-size: 0.85rem;
   font-weight: 600;
 }
+#confirmed-hud {
+  position: absolute;
+  top: 310px;
+  right: 15px;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  border: 1px solid #374151;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #e5e7eb;
+  font-family: "JetBrains Mono", monospace;
+  min-width: 160px;
+  text-align: left;
+  line-height: 1.3;
+}
+
+#confirmed-hud .hud-title {
+  font-size: 0.75rem;
+  color: #38bdf8;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+#confirmed-hud .hud-select {
+  margin-bottom: 6px;
+}
+
+#confirmed-hud select {
+  width: 100%;
+  background: #111827;
+  color: #e5e7eb;
+  border: 1px solid #374151;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+#confirmed-hud .flight-line {
+  margin-top: 4px;
+  font-size: 0.78rem;
+}
+
+#confirmed-hud .flight-ok {
+  color: #22c55e;
+}
+
+#confirmed-hud .flight-warn {
+  color: #f59e0b;
+}
+
+#confirmed-hud .flight-err {
+  color: #ef4444;
+}
 
   </style>
 </head>
@@ -354,6 +409,7 @@
   <div id="wind-hud"></div>
   <div id="runway-hud"></div>
   <div id="traffic-hud"></div>
+  <div id="confirmed-hud"></div>
 
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -682,6 +738,66 @@ function updateTrafficHUD(airportKey, flightsFiltered) {
   `;
 }
 
+/********** Mini‑HUD Vols confirmés IFR PRO+++ **********/
+function updateConfirmedHUD(airportKey, flightsFiltered) {
+  const hud = document.getElementById("confirmed-hud");
+
+  // Création du sélecteur si pas encore créé
+  if (!hud.dataset.initialized) {
+    hud.innerHTML = `
+      <div class="hud-title">Vols confirmés ${airportKey}</div>
+      <div class="hud-select">
+        <select id="confirmed-select-${airportKey}">
+          <option value="DEP">Décollages</option>
+          <option value="ARR">Atterrissages</option>
+        </select>
+      </div>
+      <div id="confirmed-list-${airportKey}">Chargement...</div>
+    `;
+    hud.dataset.initialized = "1";
+  }
+
+  const mode = document.getElementById(`confirmed-select-${airportKey}`).value;
+  const listEl = document.getElementById(`confirmed-list-${airportKey}`);
+
+  // Filtrage selon le mode
+  let list = flightsFiltered.filter(f =>
+    mode === "DEP"
+      ? (f._kind === "liveDep" || f._kind === "schedDep")
+      : (f._kind === "liveArr")
+  );
+
+  // Tri par heure
+  list.sort((a, b) => {
+    const ta = new Date(a.dep_actual || a.dep_time || a.arr_actual || a.arr_time || 0).getTime();
+    const tb = new Date(b.dep_actual || b.dep_time || b.arr_actual || b.arr_time || 0).getTime();
+    return ta - tb;
+  });
+
+  // On garde les 12 premiers
+  list = list.slice(0, 12);
+
+  if (!list.length) {
+    listEl.innerHTML = `<span class="flight-err">Aucun vol</span>`;
+    return;
+  }
+
+  listEl.innerHTML = list
+    .map(f => {
+      const num = f.flight_iata || f.flight_icao || f.flight_number || "?";
+      const ac = f.aircraft_icao || f.aircraft_iata || "?";
+      const time =
+        f.dep_actual || f.dep_time || f.arr_actual || f.arr_time || "n/a";
+
+      return `
+        <div class="flight-line flight-ok">
+          ${num} (${ac})<br>
+          <span class="small">${time}</span>
+        </div>
+      `;
+    })
+    .join("");
+}
 
 /********** 5. Trapèze directionnel uniquement **********/
 function drawCorridorOnly(airportKey, heading){
@@ -904,9 +1020,9 @@ async function processAirport(airportKey) {
     ]);
 
     updateMetarUI(airportKey, metar);
-updateWindHUD(airportKey, windDir, windSpeed);
-drawWindOnMap(airportKey, windDir, windSpeed);
-updateFlightsUI(airportKey, flights);
+    updateWindHUD(airportKey, windDir, windSpeed);
+    drawWindOnMap(airportKey, windDir, windSpeed);
+    updateFlightsUI(airportKey, flights);
 
     const windDir = metar?.wind_direction?.value ?? metar?.wind?.direction?.degrees ?? null;
     const windSpeed = metar?.wind_speed?.value ?? metar?.wind?.speed_kt ?? null;
@@ -914,8 +1030,9 @@ updateFlightsUI(airportKey, flights);
     const { runway: runwayFromFlights, flightsFiltered } =
       extractRunwayFromAirlabs(airportKey, flights);
     
-updateTrafficHUD(airportKey, flightsFiltered);
-updateRunwayHUD(airportKey, runway, source);
+    updateConfirmedHUD(airportKey, flightsFiltered);
+    updateTrafficHUD(airportKey, flightsFiltered);
+    updateRunwayHUD(airportKey, runway, source);
     
     let runway = runwayFromFlights;
     let source = "Airlabs";
