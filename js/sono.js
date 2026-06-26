@@ -4,6 +4,7 @@
  * - Coloration dynamique selon piste active
  * - Règles EBCI / EBLG
  ****************************************************/
+import L from "leaflet";
 
 import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
 let sonoEnabled = true;
