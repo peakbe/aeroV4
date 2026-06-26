@@ -106,7 +106,7 @@ const RULES_EBLG = {
 /* -------------------------------------------------
    4) Application des règles
 --------------------------------------------------*/
-export function applySonoRules(airportKey, activeRunway) {
+export function applySonoRules(airportKey, activeRunway, map) {
   const rules = airportKey === "EBCI" ? RULES_EBCI : RULES_EBLG;
 
   if (!rules[activeRunway]) {
@@ -115,26 +115,69 @@ export function applySonoRules(airportKey, activeRunway) {
   }
 
   const { green, red } = rules[activeRunway];
-
-  // Reset couleurs
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
+
+  // Sélection de la couche Leaflet
+  const layer = airportKey === "EBCI" ? sonoLayerEBCI : sonoLayerEBLG;
+
+  /* -------------------------
+     RESET (gris cockpit)
+  ------------------------- */
   list.forEach(s => {
+    // UI
     const el = document.getElementById(`sono-${s.id}`);
-    if (el) el.style.color = "#e2e8f0"; // gris cockpit
+    if (el) el.style.color = "#e2e8f0";
+
+    // Marker
+    layer.eachLayer(marker => {
+      if (marker._sonoId === s.id) {
+        marker.setStyle({
+          color: "#e2e8f0",
+          fillColor: "#e2e8f0"
+        });
+      }
+    });
   });
 
-  // Appliquer vert
+  /* -------------------------
+     VERT
+  ------------------------- */
   green.forEach(id => {
+    // UI
     const el = document.getElementById(`sono-${id}`);
     if (el) el.style.color = "lime";
+
+    // Marker
+    layer.eachLayer(marker => {
+      if (marker._sonoId === id) {
+        marker.setStyle({
+          color: "lime",
+          fillColor: "lime"
+        });
+      }
+    });
   });
 
-  // Appliquer rouge
+  /* -------------------------
+     ROUGE
+  ------------------------- */
   red.forEach(id => {
+    // UI
     const el = document.getElementById(`sono-${id}`);
     if (el) el.style.color = "red";
+
+    // Marker
+    layer.eachLayer(marker => {
+      if (marker._sonoId === id) {
+        marker.setStyle({
+          color: "red",
+          fillColor: "red"
+        });
+      }
+    });
   });
 }
+
 
 /* -------------------------------------------------
    5) Fonction principale appelée par app.js
