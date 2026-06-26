@@ -10,18 +10,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
   initMap();
 
-  async function processAirport(airportKey) {
-    const ap = airports[airportKey];
+  import { updateSono } from "./sono.js";
 
-    const metar = await fetchMetar(ap.icao);
-    updateMetarUI(airportKey, metar);
+async function processAirport(airportKey) {
+  const ap = airports[airportKey];
 
-    updateRunwayHUD(ap, metar?.wind_direction?.value);
+  const metar = await fetchMetar(ap.icao);
+  updateMetarUI(airportKey, metar);
 
-    updateSonoListUI(airportKey, window[`sonometers${airportKey}`]);
+  const windDir = metar?.wind_direction?.value;
+  const activeRunway = computeRunway(ap, windDir);
 
-    updateFlightsUI(airportKey, []);
-  }
+  updateRunwayHUD(ap, windDir);
+
+  updateSono(airportKey, activeRunway);
+}
+
 
   await Promise.all([
     processAirport("EBCI"),
