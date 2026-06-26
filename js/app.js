@@ -36,18 +36,16 @@ function computeRunway(airport, windDirDeg) {
 async function processAirport(airportKey) {
   const ap = airports[airportKey];
 
-  // METAR
   const metar = await fetchMetar(ap.icao);
   updateMetarUI(airportKey, metar);
 
-  // Piste active
   const windDir = metar?.wind_direction?.value;
   const activeRunway = computeRunway(ap, windDir);
 
   updateRunwayHUD(ap, windDir);
 
-  // SONO
-  updateSono(airportKey, activeRunway);
+  // IMPORTANT : envoyer la carte Leaflet
+  updateSono(airportKey, activeRunway, map);
 }
 
 /****************************************************
