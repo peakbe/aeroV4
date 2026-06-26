@@ -103,7 +103,9 @@ export function applySonoRules(airportKey, activeRunway) {
 /* -------------------------------------------------
    5) Fonction principale appelée par app.js
 --------------------------------------------------*/
-export function updateSono(airportKey, activeRunway) {
+export function updateSono(airportKey, activeRunway, map) {
   updateSonoListUI(airportKey);
-  applySonoRules(airportKey, activeRunway);
+  renderSonoMarkers(airportKey, map);
+  applySonoRules(airportKey, activeRunway, map);
 }
+
