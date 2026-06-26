@@ -12,9 +12,21 @@ import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
 --------------------------------------------------*/
 let sonoLayerEBCI = null;
 let sonoLayerEBLG = null;
+let sonoEnabled = true;
 
 function renderSonoMarkers(airportKey, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
+
+   function hideSono(airportKey, map) {
+  const layer = airportKey === "EBCI" ? sonoLayerEBCI : sonoLayerEBLG;
+  if (layer) map.removeLayer(layer);
+
+  const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
+  list.forEach(s => {
+    const el = document.getElementById(`sono-${s.id}`);
+    if (el) el.style.color = "#444"; // gris éteint
+  });
+}
 
   // Supprimer ancienne couche
   if (airportKey === "EBCI" && sonoLayerEBCI) map.removeLayer(sonoLayerEBCI);
@@ -183,8 +195,31 @@ export function applySonoRules(airportKey, activeRunway, map) {
    5) Fonction principale appelée par app.js
 --------------------------------------------------*/
 export function updateSono(airportKey, activeRunway, map) {
+
+  // Gestion du bouton ON/OFF
+  const toggle = document.getElementById("toggle-sono");
+  if (toggle) {
+    toggle.onchange = () => {
+      sonoEnabled = toggle.checked;
+      document.querySelector(".mcd-switch-indicator").textContent =
+        sonoEnabled ? "ON" : "OFF";
+
+      if (!sonoEnabled) {
+        hideSono(airportKey, map);
+      } else {
+        updateSono(airportKey, activeRunway, map);
+      }
+    };
+  }
+
+  if (!sonoEnabled) {
+    hideSono(airportKey, map);
+    return;
+  }
+
   updateSonoListUI(airportKey);
   renderSonoMarkers(airportKey, map);
   applySonoRules(airportKey, activeRunway, map);
 }
+
 
