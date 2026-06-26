@@ -16,5 +16,5 @@ export function initMap() {
 
   Object.values(airports).forEach(ap => {
     L.marker([ap.lat, ap.lon]).addTo(map).bindPopup(ap.name);
-  };
+  });
 }
