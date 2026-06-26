@@ -6,6 +6,7 @@
  ****************************************************/
 
 import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
+let sonoEnabled = true;
 
 /* -------------------------------------------------
    0) Markers Leaflet — création dynamique
@@ -183,6 +184,18 @@ export function applySonoRules(airportKey, activeRunway, map) {
 /* -------------------------------------------------
    5) Fonction principale appelée par app.js
 --------------------------------------------------*/
+function hideSono(airportKey, map) {
+  const layer = airportKey === "EBCI" ? sonoLayerEBCI : sonoLayerEBLG;
+  if (layer) map.removeLayer(layer);
+
+  const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
+  list.forEach(s => {
+    const el = document.getElementById(`sono-${s.id}`);
+    if (el) el.style.color = "#444"; // gris éteint
+  });
+}
+
+
 export function updateSono(airportKey, activeRunway, map) {
 
   // Gestion du bouton ON/OFF
