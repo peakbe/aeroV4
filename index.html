@@ -600,8 +600,8 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
     return ta - tb;
   });
 
-  // On garde les 2 premiers
-  list = list.slice(0, 2);
+  // On garde les 10 premiers
+  list = list.slice(0, 10);
 
   if (!list.length) {
     listEl.innerHTML = `<span class="flight-err">Aucun vol</span>`;
@@ -865,8 +865,8 @@ function updateFlightsUI(airportKey, flights) {
     return;
   }
 
-  // On limite à 8 vols pour garder un affichage cockpit compact
-  const lines = filtered.slice(0, 8).map(f => {
+  // On limite à 10 vols pour garder un affichage cockpit compact
+  const lines = filtered.slice(0, 10).map(f => {
     const num = f.flight_iata || f.flight_icao || f.flight_number || "?";
     const ac = f.aircraft_icao || f.aircraft_iata || "?";
     const kind = f._kind === "liveArr" ? "ARR" : "DEP";
@@ -877,7 +877,7 @@ function updateFlightsUI(airportKey, flights) {
 
   el.innerHTML =
     lines.join("<br>") +
-    (filtered.length > 8 ? `<br>… (+${filtered.length - 8} vols)` : "");
+    (filtered.length > 8 ? `<br>… (+${filtered.length - 10} vols)` : "");
 }
 
 
