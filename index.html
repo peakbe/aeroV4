@@ -20,70 +20,47 @@
 <button id="toggle-sidebar">☰ PANNEAUX</button>
 
 <main>
-  <section id="sidebar">
-    <div class="block">
-      <h2>Filtres</h2>
-      <label><input type="checkbox" id="filter-ebci" checked /> EBCI – Charleroi (RWY 06 / 24)</label>
-      <label><input type="checkbox" id="filter-eblg" checked /> EBLG – Liège (RWY 04 / 22)</label>
+ <div id="sidebar" class="sidebar">
 
-      <div class="sidebar-block">
-      <div class="sidebar-title">Sonomètres</div>
+  <!-- Barre d’onglets -->
+  <div class="sidebar-tabs">
+    <button class="tab-btn active" data-tab="tab-fids">FIDS</button>
+    <button class="tab-btn" data-tab="tab-sono">Sonomètres</button>
+    <button class="tab-btn" data-tab="tab-metar">METAR / TAF</button>
+    <button class="tab-btn" data-tab="tab-logs">Logs</button>
+  </div>
 
-  <button id="toggle-sono-ebci" class="btn-sono">EBCI – Afficher</button>
-  <button id="toggle-sono-eblg" class="btn-sono">EBLG – Afficher</button>
+  <!-- Contenu FIDS -->
+  <div id="tab-fids" class="tab-panel active">
+    <div class="sidebar-title">Vols</div>
+    <div id="flights-ebci"></div>
+    <div id="flights-eblg"></div>
+  </div>
+
+  <!-- Contenu Sonomètres -->
+  <div id="tab-sono" class="tab-panel">
+    <div class="sidebar-title">Sonomètres EBCI</div>
+    <div id="sono-list-ebci"></div>
+
+    <div class="sidebar-title">Sonomètres EBLG</div>
+    <div id="sono-list-eblg"></div>
+  </div>
+
+  <!-- Contenu METAR / TAF -->
+  <div id="tab-metar" class="tab-panel">
+    <div class="sidebar-title">METAR / TAF</div>
+    <div id="metar-ebci"></div>
+    <div id="metar-eblg"></div>
+  </div>
+
+  <!-- Contenu Logs -->
+  <div id="tab-logs" class="tab-panel">
+    <div class="sidebar-title">Logs cockpit</div>
+    <div id="logs-console"></div>
+  </div>
+
 </div>
 
-      <button id="btn-refresh">Rafraîchir données</button>
-    </div>
-
-    <div class="block">
-      <h2>Météo du jour</h2>
-      <strong>EBCI – Charleroi</strong>
-      <div class="small" id="meteo-ebci-summary">Chargement...</div>
-      <div class="metar" id="meteo-ebci-raw"></div>
-
-      <br>
-      <strong>EBLG – Liège</strong>
-      <div class="small" id="meteo-eblg-summary">Chargement...</div>
-      <div class="metar" id="meteo-eblg-raw"></div>
-    </div>
-
-    <div class="block">
-      <h2>Piste & direction</h2>
-      <strong>EBCI</strong>
-      <div class="small" id="runway-ebci">Analyse...</div>
-
-      <br>
-      <strong>EBLG</strong>
-      <div class="small" id="runway-eblg">Analyse...</div>
-
-      <div class="legend">
-        <span><span class="dot dot-airport"></span> Aéroport</span>
-        <span><span class="dot dot-normal"></span> Sonomètre</span>
-        <span><span class="dot dot-impacted"></span> Rouge (impact)</span>
-        <span><span class="dot dot-track"></span> Trapèze direction</span>
-      </div>
-    </div>
-
-    <div class="block">
-      <h2>Sonomètres</h2>
-      <strong>EBCI</strong>
-      <div id="list-ebci" class="small">En attente...</div>
-
-      <br>
-      <strong>EBLG</strong>
-      <div id="list-eblg" class="small">En attente...</div>
-    </div>
-
-    <div class="block">
-      <h2>Vols récents</h2>
-      <strong>EBCI</strong>
-      <div id="flights-ebci" class="small">Chargement...</div>
-
-      <br>
-      <strong>EBLG</strong>
-      <div id="flights-eblg" class="small">Chargement...</div>
-    </div>
   </section>
 
   <section id="map"></section>
@@ -194,6 +171,9 @@ const airports = {
     { id: "F006", address: "Rue Bolly Chapon 11, Seraing", latDMS: "50 36 34.54 N", lonDMS: "5 16 17.05 E" },
     { id: "F012", address: "Rue Barbe d'Or 13, 4317 Aineffe", latDMS: "50 37 18.9 N", lonDMS: "5 15 17.09 E" }
   ];
+
+  let showSonoEBCI = false;
+  let showSonoEBLG = false;
 
 /********** 2bis. Règles fixes Patrick **********/
 const sonoRules = {
