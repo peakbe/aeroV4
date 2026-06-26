@@ -319,3 +319,68 @@ button:hover {
   font-size: 13px;
   color: #93c5fd;
 }
+/********** MCDU Tabs **********/
+.sidebar-tabs-mcdu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #0a0f1c;
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  box-shadow: inset 0 0 12px rgba(0, 255, 255, 0.15);
+}
+
+.mcdu-tab {
+  padding: 6px 10px;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 13px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border: 1px solid #1e293b;
+  border-radius: 4px;
+  text-align: center;
+  background: #0f172a;
+  color: #38bdf8; /* bleu avionique */
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.25);
+  transition: 0.15s;
+}
+
+.mcdu-tab:hover {
+  background: #1e293b;
+}
+
+.mcdu-tab.active {
+  background: #1d4ed8;
+  color: #e0f2fe;
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+/********** MCDU Panels **********/
+.tab-panel {
+  display: none;
+  padding: 6px;
+  border: 1px solid #1e293b;
+  border-radius: 4px;
+  background: #0b1220;
+  box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.1);
+  font-family: "Consolas", "Courier New", monospace;
+  color: #e2e8f0;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/********** MCDU separators **********/
+.sidebar-title {
+  font-family: "Consolas", monospace;
+  font-size: 12px;
+  color: #5ee7ff;
+  border-bottom: 1px solid #1e293b;
+  margin: 8px 0 4px;
+  padding-bottom: 2px;
+  letter-spacing: 1px;
+}
