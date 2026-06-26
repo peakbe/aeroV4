@@ -384,3 +384,69 @@ button:hover {
   padding-bottom: 2px;
   letter-spacing: 1px;
 }
+/********** Checkboxes avioniques MCDU **********/
+.mcdu-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 8px;
+  background: #0a0f1c;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  box-shadow: inset 0 0 12px rgba(0, 255, 255, 0.15);
+}
+
+.mcdu-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-family: "Consolas", "Courier New", monospace;
+  color: #38bdf8;
+  font-size: 13px;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+.mcdu-checkbox input {
+  display: none;
+}
+
+/* Carré avionique */
+.mcdu-checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #1e293b;
+  background: #0f172a;
+  margin-right: 10px;
+  border-radius: 3px;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.25);
+  transition: 0.15s;
+  position: relative;
+}
+
+/* État activé */
+.mcdu-checkbox input:checked + .mcdu-checkmark {
+  background: #1d4ed8;
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+}
+
+/* Petit carré intérieur façon cockpit */
+.mcdu-checkbox input:checked + .mcdu-checkmark::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 10px;
+  height: 10px;
+  background: #e0f2fe;
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(224, 242, 254, 0.8);
+}
+
+/* Label */
+.mcdu-label {
+  color: #e2e8f0;
+  font-size: 13px;
+}
