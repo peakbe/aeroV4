@@ -1,7 +1,8 @@
 /****************************************************
  * SONO MODULE PRO+++ — Cockpit IFR
  ****************************************************/
-import L from "leaflet";
+/* global L */
+
 import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
 
 window.sonoEnabled = true;
