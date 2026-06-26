@@ -9,6 +9,11 @@ export function initMap() {
     maxZoom: 18
   }).addTo(map);
 
+  // Signaler que la carte est prête
+  map.whenReady(() => {
+    window._mapReady = true;
+  });
+
   // Markers aéroports
   Object.values(airports).forEach(ap => {
     L.marker([ap.lat, ap.lon])
