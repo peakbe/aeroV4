@@ -20,82 +20,52 @@
 <button id="toggle-sidebar">☰ PANNEAUX</button>
 
 <main>
- <div id="sidebar" class="sidebar">
+<!-- PANEL FIDS — MCDU STYLE -->
+<div id="tab-fids" class="tab-panel">
 
-  <!-- Barre d’onglets -->
- <div class="sidebar-tabs-mcdu">
-  <div class="mcdu-tab active" data-tab="tab-fids">FIDS</div>
-  <div class="mcdu-tab" data-tab="tab-sono">SONO</div>
-  <div class="mcdu-tab" data-tab="tab-metar">METAR/TAF</div>
-  <div class="mcdu-tab" data-tab="tab-logs">LOGS</div>
-</div>
+  <!-- TITRE -->
+  <div class="sidebar-title">FIDS — Vols & Pistes</div>
 
-   <!-- checkbox mcdu -->
-<div class="mcdu-checkbox-group">
-  <label class="mcdu-checkbox">
-    <input type="checkbox" id="filter-ebci" checked>
-    <span class="mcdu-checkmark"></span>
-    <span class="mcdu-label">EBCI</span>
-  </label>
+  <!-- RUNWAY EBCI -->
+  <div class="mcdu-section-title">PISTE ACTIVE EBCI</div>
+  <div id="runway-ebci" class="mcdu-line">Chargement...</div>
 
-  <label class="mcdu-checkbox">
-    <input type="checkbox" id="filter-eblg" checked>
-    <span class="mcdu-checkmark"></span>
-    <span class="mcdu-label">EBLG</span>
-  </label>
-  
-</div>
-   
-  <!-- Contenu FIDS -->
-  <div id="tab-fids" class="tab-panel active">
-    <div class="sidebar-title">Vols</div>
-    <div id="flights-ebci"></div>
-    <div id="flights-eblg"></div>
-  </div>
-   
+  <!-- LISTE SONOMÈTRES EBCI -->
+  <div class="mcdu-section-title">Sonomètres EBCI</div>
+  <div id="list-ebci" class="mcdu-list">Chargement...</div>
 
+  <!-- FLIGHTS EBCI -->
+  <div class="mcdu-section-title">Vols EBCI</div>
+  <div id="flights-ebci" class="mcdu-list">Chargement...</div>
 
-  <!-- Contenu Sonomètres -->
-  <div id="tab-sono" class="tab-panel">
-    <div class="sidebar-title">Sonomètres EBCI</div>
-    <div id="sono-list-ebci"></div>
+  <hr class="mcdu-sep">
 
-    <div class="sidebar-title">Sonomètres EBLG</div>
-    <div id="sono-list-eblg"></div>
-  </div>
+  <!-- RUNWAY EBLG -->
+  <div class="mcdu-section-title">PISTE ACTIVE EBLG</div>
+  <div id="runway-eblg" class="mcdu-line">Chargement...</div>
 
-<!-- Contenu METAR / TAF -->
-<div id="tab-metar" class="tab-panel">
-  <div class="sidebar-title">METAR EBCI</div>
-  <div id="meteo-ebci-summary" class="mcdu-line"></div>
-  <div id="meteo-ebci-raw" class="mcdu-raw"></div>
+  <!-- LISTE SONOMÈTRES EBLG -->
+  <div class="mcdu-section-title">Sonomètres EBLG</div>
+  <div id="list-eblg" class="mcdu-list">Chargement...</div>
 
-  <div class="sidebar-title">METAR EBLG</div>
-  <div id="meteo-eblg-summary" class="mcdu-line"></div>
-  <div id="meteo-eblg-raw" class="mcdu-raw"></div>
-</div>
+  <!-- FLIGHTS EBLG -->
+  <div class="mcdu-section-title">Vols EBLG</div>
+  <div id="flights-eblg" class="mcdu-list">Chargement...</div>
 
+  <hr class="mcdu-sep">
 
-  <!-- Contenu Logs -->
-  <div id="tab-logs" class="tab-panel">
-    <div class="sidebar-title">Logs cockpit</div>
-    <div id="logs-console"></div>
-  </div>
-
-</div>
-
-  </section>
-
-  <section id="map"></section>
-  <div id="wind-hud"></div>
-  <div id="runway-hud"></div>
-  <div id="traffic-hud"></div>
+  <!-- HUD CONFIRMÉS -->
+  <div class="mcdu-section-title">Vols confirmés</div>
   <div id="confirmed-hud"></div>
+
+</div>
+
 
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+  
 /********** 1. Config API **********/
 const AVWX_API_KEY = "ersegQzkf2Dfal-o26B4b5uzMrXBeHK2jOpOaY7nffc";
   const AIRLABS_KEY = "035d39b3-ef7f-43de-b226-8e249b319516";
@@ -578,9 +548,13 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
     hud.dataset.initialized = "1";
   }
 
-   
-  // 🔥 Sécurité ULTIME : si le select n'existe pas → on recrée le HUD et on sort
+  // Récupération des éléments DOM
+  const selectEl = document.getElementById(`confirmed-select-${airportKey}`);
+  const listEl = document.getElementById(`confirmed-list-${airportKey}`);
+
+  // 🔥 Sécurité ULTIME : si le select ou la liste n'existent pas → on recrée le HUD
   if (!selectEl || !listEl) {
+    console.warn("⚠️ HUD confirmé incomplet, reconstruction…");
     hud.dataset.initialized = "";
     return;
   }
@@ -632,6 +606,7 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
     })
     .join("");
 }
+
 
 
 /********** Mini‑liste des vols – IFR PRO+++ avec ETA/ETD + couleurs **********/
