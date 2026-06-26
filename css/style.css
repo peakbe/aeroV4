@@ -261,3 +261,17 @@ button:hover {
     display: block;
   }
 }
+
+.btn-sono {
+  width: 100%;
+  margin: 4px 0;
+  padding: 6px;
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-sono:hover {
+  background: #334155;
+}
