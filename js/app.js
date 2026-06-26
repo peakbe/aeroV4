@@ -63,3 +63,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     processAirport("EBLG")
   ]);
 });
+
