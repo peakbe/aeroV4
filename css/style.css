@@ -275,3 +275,47 @@ button:hover {
 .btn-sono:hover {
   background: #334155;
 }
+.sidebar {
+  width: 280px;
+  background: #0b1220;
+  color: #e2e8f0;
+  padding: 8px;
+  font-family: system-ui, sans-serif;
+}
+
+.sidebar-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 4px 6px;
+  background: #020617;
+  color: #e2e8f0;
+  border: 1px solid #1f2937;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background: #1d4ed8;
+  border-color: #3b82f6;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.sidebar-title {
+  font-weight: 600;
+  margin: 6px 0 4px;
+  font-size: 13px;
+  color: #93c5fd;
+}
