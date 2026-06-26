@@ -9,6 +9,19 @@ import L from "leaflet";
 import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
 let sonoEnabled = true;
 
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.getElementById("toggle-sono");
+  if (toggle) {
+    toggle.checked = true;
+    toggle.addEventListener("change", () => {
+      sonoEnabled = toggle.checked;
+      const ind = document.querySelector(".mcd-switch-indicator");
+      if (ind) ind.textContent = sonoEnabled ? "ON" : "OFF";
+    });
+  }
+});
+
+
 /* -------------------------------------------------
    0) Markers Leaflet — création dynamique
 --------------------------------------------------*/
@@ -199,22 +212,6 @@ function hideSono(airportKey, map) {
 
 export function updateSono(airportKey, activeRunway, map) {
 
-  // Gestion du bouton ON/OFF
-  const toggle = document.getElementById("toggle-sono");
-  if (toggle) {
-    toggle.onchange = () => {
-      sonoEnabled = toggle.checked;
-      document.querySelector(".mcd-switch-indicator").textContent =
-        sonoEnabled ? "ON" : "OFF";
-
-      if (!sonoEnabled) {
-        hideSono(airportKey, map);
-      } else {
-        updateSono(airportKey, activeRunway, map);
-      }
-    };
-  }
-
   if (!sonoEnabled) {
     hideSono(airportKey, map);
     return;
@@ -224,5 +221,6 @@ export function updateSono(airportKey, activeRunway, map) {
   renderSonoMarkers(airportKey, map);
   applySonoRules(airportKey, activeRunway, map);
 }
+
 
 
