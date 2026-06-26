@@ -6,5 +6,9 @@ export function angleDiff(a, b) {
 export function safeSet(id, text) {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
-  else console.warn("⚠️ Élément manquant :", id);
+ else {
+  console.warn(`⚠️ Élément DOM introuvable : #${id}`);
+  const logs = document.getElementById("logs-console");
+  if (logs) logs.innerHTML += `\n⚠️ Élément DOM introuvable : #${id}`;
 }
+
