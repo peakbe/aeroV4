@@ -30,14 +30,7 @@
   <div class="mcdu-tab" data-tab="tab-logs">LOGS</div>
 </div>
 
-
-  <!-- Contenu FIDS -->
-  <div id="tab-fids" class="tab-panel active">
-    <div class="sidebar-title">Vols</div>
-    <div id="flights-ebci"></div>
-    <div id="flights-eblg"></div>
-  </div>
-   
+   <!-- checkbox mcdu -->
 <div class="mcdu-checkbox-group">
   <label class="mcdu-checkbox">
     <input type="checkbox" id="filter-ebci" checked>
@@ -50,7 +43,17 @@
     <span class="mcdu-checkmark"></span>
     <span class="mcdu-label">EBLG</span>
   </label>
+  
 </div>
+   
+  <!-- Contenu FIDS -->
+  <div id="tab-fids" class="tab-panel active">
+    <div class="sidebar-title">Vols</div>
+    <div id="flights-ebci"></div>
+    <div id="flights-eblg"></div>
+  </div>
+   
+
 
   <!-- Contenu Sonomètres -->
   <div id="tab-sono" class="tab-panel">
@@ -61,12 +64,17 @@
     <div id="sono-list-eblg"></div>
   </div>
 
-  <!-- Contenu METAR / TAF -->
-  <div id="tab-metar" class="tab-panel">
-    <div class="sidebar-title">METAR / TAF</div>
-    <div id="metar-ebci"></div>
-    <div id="metar-eblg"></div>
-  </div>
+<!-- Contenu METAR / TAF -->
+<div id="tab-metar" class="tab-panel">
+  <div class="sidebar-title">METAR EBCI</div>
+  <div id="meteo-ebci-summary" class="mcdu-line"></div>
+  <div id="meteo-ebci-raw" class="mcdu-raw"></div>
+
+  <div class="sidebar-title">METAR EBLG</div>
+  <div id="meteo-eblg-summary" class="mcdu-line"></div>
+  <div id="meteo-eblg-raw" class="mcdu-raw"></div>
+</div>
+
 
   <!-- Contenu Logs -->
   <div id="tab-logs" class="tab-panel">
@@ -764,6 +772,12 @@ function updateMetarUI(airportKey, metar) {
   const elSummary = document.getElementById(idSummary);
   const elRaw = document.getElementById(idRaw);
 
+  // Si les éléments n'existent pas → on ne plante pas
+  if (!elSummary || !elRaw) {
+    console.warn("⚠️ updateMetarUI : éléments METAR manquants pour", airportKey);
+    return;
+  }
+
   const windDir = metar?.wind_direction?.value ?? metar?.wind?.direction?.degrees ?? null;
   const windSpeed = metar?.wind_speed?.value ?? metar?.wind?.speed_kt ?? null;
   const temp = metar?.temperature?.value ?? metar?.temperature?.celsius ?? null;
@@ -775,6 +789,7 @@ function updateMetarUI(airportKey, metar) {
 
   elRaw.textContent = metar?.raw ?? metar?.raw_text ?? "(METAR brut non disponible)";
 }
+
 
 function estimateRunwayFromWind(airport, windDirDeg) {
   if (windDirDeg == null || isNaN(windDirDeg)) return null;
