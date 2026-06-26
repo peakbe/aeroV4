@@ -464,3 +464,47 @@ button:hover {
   margin-bottom: 12px;
   white-space: pre-wrap;
 }
+
+.mcdu-section-title {
+  font-family: "Consolas", monospace;
+  color: #5ee7ff;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.mcdu-line {
+  font-family: "Consolas", monospace;
+  color: #38bdf8;
+  margin-bottom: 6px;
+}
+
+.mcdu-raw {
+  font-family: "Consolas", monospace;
+  color: #e2e8f0;
+  font-size: 12px;
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+}
+
+.mcdu-list {
+  font-family: "Consolas", monospace;
+  color: #e2e8f0;
+  font-size: 12px;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+}
+
+.mcdu-logs {
+  font-family: "Consolas", monospace;
+  color: #94a3b8;
+  font-size: 12px;
+  background: #0a0f1c;
+  padding: 8px;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  height: 200px;
+  overflow-y: auto;
+  box-shadow: inset 0 0 12px rgba(0, 255, 255, 0.15);
+}
