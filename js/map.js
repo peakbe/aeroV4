@@ -9,6 +9,11 @@ export function initMap() {
     maxZoom: 18
   }).addTo(map);
 
+  map.whenReady(() => {
+    window._mapReady = true;
+  });
+}
+
   Object.values(airports).forEach(ap => {
     L.marker([ap.lat, ap.lon]).addTo(map).bindPopup(ap.name);
   });
