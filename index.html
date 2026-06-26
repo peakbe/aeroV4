@@ -2,16 +2,15 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Cockpit IFR – Météo & Sonomètres EBCI / EBLG</title>
+  <title>Cockpit IFR – EBCI / EBLG</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/style.css?v=155">
-
-
 </head>
 
 <body>
+
 <header>
   <h1>COCKPIT IFR – EBCI / EBLG</h1>
   <div class="small">METAR + AirLabs + Couloir bruit (direction)</div>
@@ -29,7 +28,7 @@
 
     <!-- Onglets -->
     <div class="sidebar-tabs">
-      <button class="mcdu-tab" data-tab="tab-metar">METAR</button>
+      <button class="mcdu-tab active" data-tab="tab-metar">METAR</button>
       <button class="mcdu-tab" data-tab="tab-sono">SONO</button>
       <button class="mcdu-tab" data-tab="tab-fids">FIDS</button>
       <button class="mcdu-tab" data-tab="tab-logs">LOGS</button>
@@ -39,16 +38,64 @@
     <div class="sidebar-content">
 
       <!-- PANEL METAR -->
-      <div id="tab-metar" class="tab-panel">…</div>
+      <div id="tab-metar" class="tab-panel active">
+        <div class="sidebar-title">METAR / TAF</div>
+
+        <div class="mcdu-section-title">METAR EBCI</div>
+        <div id="meteo-ebci-summary" class="mcdu-line">Chargement...</div>
+        <div id="meteo-ebci-raw" class="mcdu-raw">Chargement...</div>
+
+        <div class="mcdu-section-title">METAR EBLG</div>
+        <div id="meteo-eblg-summary" class="mcdu-line">Chargement...</div>
+        <div id="meteo-eblg-raw" class="mcdu-raw">Chargement...</div>
+      </div>
 
       <!-- PANEL SONO -->
-      <div id="tab-sono" class="tab-panel">…</div>
+      <div id="tab-sono" class="tab-panel">
+        <div class="sidebar-title">Sonomètres</div>
+
+        <div class="mcdu-section-title">Sonomètres EBCI</div>
+        <div id="sono-list-ebci" class="mcdu-list">Chargement...</div>
+
+        <div class="mcdu-section-title">Sonomètres EBLG</div>
+        <div id="sono-list-eblg" class="mcdu-list">Chargement...</div>
+      </div>
 
       <!-- PANEL FIDS -->
-      <div id="tab-fids" class="tab-panel">…</div>
+      <div id="tab-fids" class="tab-panel">
+        <div class="sidebar-title">FIDS — Vols & Pistes</div>
+
+        <div class="mcdu-section-title">PISTE ACTIVE EBCI</div>
+        <div id="runway-ebci" class="mcdu-line">Chargement...</div>
+
+        <div class="mcdu-section-title">Sonomètres EBCI</div>
+        <div id="list-ebci" class="mcdu-list">Chargement...</div>
+
+        <div class="mcdu-section-title">Vols EBCI</div>
+        <div id="flights-ebci" class="mcdu-list">Chargement...</div>
+
+        <hr class="mcdu-sep">
+
+        <div class="mcdu-section-title">PISTE ACTIVE EBLG</div>
+        <div id="runway-eblg" class="mcdu-line">Chargement...</div>
+
+        <div class="mcdu-section-title">Sonomètres EBLG</div>
+        <div id="list-eblg" class="mcdu-list">Chargement...</div>
+
+        <div class="mcdu-section-title">Vols EBLG</div>
+        <div id="flights-eblg" class="mcdu-list">Chargement...</div>
+
+        <hr class="mcdu-sep">
+
+        <div class="mcdu-section-title">Vols confirmés</div>
+        <div id="confirmed-hud"></div>
+      </div>
 
       <!-- PANEL LOGS -->
-      <div id="tab-logs" class="tab-panel">…</div>
+      <div id="tab-logs" class="tab-panel">
+        <div class="sidebar-title">Logs Cockpit IFR</div>
+        <div id="logs-console" class="mcdu-logs">En attente de données…</div>
+      </div>
 
     </div>
   </div>
@@ -56,8 +103,8 @@
 </main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/app.js?v=155"></script>
 
-<script>
   
 /********** 1. Config API **********/
 const AVWX_API_KEY = "ersegQzkf2Dfal-o26B4b5uzMrXBeHK2jOpOaY7nffc";
