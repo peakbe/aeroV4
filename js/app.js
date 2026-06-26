@@ -56,6 +56,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
   initMap();
 
+  // 🔥 Attendre que la carte soit prête
+  await new Promise(resolve => {
+    const check = () => {
+      if (window._mapReady) resolve();
+      else setTimeout(check, 50);
+    };
+    check();
+  });
+
   await Promise.all([
     processAirport("EBCI"),
     processAirport("EBLG")
