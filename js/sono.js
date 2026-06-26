@@ -7,7 +7,7 @@
 import L from "leaflet";
 
 import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
-let sonoEnabled = true;
+window.sonoEnabled = true;
 
 document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.getElementById("toggle-sono");
@@ -212,7 +212,7 @@ function hideSono(airportKey, map) {
 
 export function updateSono(airportKey, activeRunway, map) {
 
-  if (!sonoEnabled) {
+  if (!window.sonoEnabled) {
     hideSono(airportKey, map);
     return;
   }
@@ -221,6 +221,7 @@ export function updateSono(airportKey, activeRunway, map) {
   renderSonoMarkers(airportKey, map);
   applySonoRules(airportKey, activeRunway, map);
 }
+
 
 
 
