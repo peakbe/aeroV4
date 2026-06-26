@@ -23,12 +23,13 @@
  <div id="sidebar" class="sidebar">
 
   <!-- Barre d’onglets -->
-  <div class="sidebar-tabs">
-    <button class="tab-btn active" data-tab="tab-fids">FIDS</button>
-    <button class="tab-btn" data-tab="tab-sono">Sonomètres</button>
-    <button class="tab-btn" data-tab="tab-metar">METAR / TAF</button>
-    <button class="tab-btn" data-tab="tab-logs">Logs</button>
-  </div>
+ <div class="sidebar-tabs-mcdu">
+  <div class="mcdu-tab active" data-tab="tab-fids">FIDS</div>
+  <div class="mcdu-tab" data-tab="tab-sono">SONO</div>
+  <div class="mcdu-tab" data-tab="tab-metar">METAR/TAF</div>
+  <div class="mcdu-tab" data-tab="tab-logs">LOGS</div>
+</div>
+
 
   <!-- Contenu FIDS -->
   <div id="tab-fids" class="tab-panel active">
@@ -555,30 +556,7 @@ function updateConfirmedHUD(airportKey, flightsFiltered) {
     hud.dataset.initialized = "1";
   }
 
-  // Récupération des éléments DOM
-  const selectEl = document.getElementById(`confirmed-select-${airportKey}`);
-  const listEl = document.getElementById(`confirmed-list-${airportKey}`);
-
-
-  // Système d’onglets IFR
-document.querySelectorAll(".tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const target = btn.dataset.tab;
-
-    // Onglets actifs
-    document.querySelectorAll(".tab-btn").forEach(b =>
-      b.classList.toggle("active", b === btn)
-    );
-
-    // Panels actifs
-    document.querySelectorAll(".tab-panel").forEach(panel =>
-      panel.classList.toggle("active", panel.id === target)
-    );
-  });
-});
-
-
-  
+   
   // 🔥 Sécurité ULTIME : si le select n'existe pas → on recrée le HUD et on sort
   if (!selectEl || !listEl) {
     hud.dataset.initialized = "";
@@ -1005,4 +983,22 @@ document.getElementById("toggle-sidebar").addEventListener("click", () => {
 });
 
 refreshAll();
+  
+// Système d’onglets IFR
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.tab;
+
+    // Onglets actifs
+    document.querySelectorAll(".tab-btn").forEach(b =>
+      b.classList.toggle("active", b === btn)
+    );
+
+    // Panels actifs
+    document.querySelectorAll(".tab-panel").forEach(panel =>
+      panel.classList.toggle("active", panel.id === target)
+    );
+  });
+});
+  
 </script>
