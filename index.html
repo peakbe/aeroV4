@@ -984,21 +984,22 @@ document.getElementById("toggle-sidebar").addEventListener("click", () => {
 
 refreshAll();
   
-// Système d’onglets IFR
-document.querySelectorAll(".tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const target = btn.dataset.tab;
+/********** Onglets MCDU **********/
+document.querySelectorAll(".mcdu-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    const target = tab.dataset.tab;
 
-    // Onglets actifs
-    document.querySelectorAll(".tab-btn").forEach(b =>
-      b.classList.toggle("active", b === btn)
+    // Activer l’onglet sélectionné
+    document.querySelectorAll(".mcdu-tab").forEach(t =>
+      t.classList.toggle("active", t === tab)
     );
 
-    // Panels actifs
+    // Activer le panel correspondant
     document.querySelectorAll(".tab-panel").forEach(panel =>
       panel.classList.toggle("active", panel.id === target)
     );
   });
 });
+
   
 </script>
