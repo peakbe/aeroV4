@@ -450,3 +450,17 @@ button:hover {
   color: #e2e8f0;
   font-size: 13px;
 }
+
+.mcdu-line {
+  font-family: "Consolas", monospace;
+  color: #38bdf8;
+  margin-bottom: 4px;
+}
+
+.mcdu-raw {
+  font-family: "Consolas", monospace;
+  color: #e2e8f0;
+  font-size: 12px;
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+}
