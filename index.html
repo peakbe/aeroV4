@@ -968,38 +968,49 @@ if (runway) {
   }
 }
 
-/********** 11. Refresh global **********/
-async function refreshAll() {
-  await Promise.all([
-    processAirport("EBCI"),
-    processAirport("EBLG")
-  ]);
-}
+document.addEventListener("DOMContentLoaded", () => {
 
-document.getElementById("btn-refresh").addEventListener("click", refreshAll);
+  /********** 11. Refresh global **********/
+  async function refreshAll() {
+    await Promise.all([
+      processAirport("EBCI"),
+      processAirport("EBLG")
+    ]);
+  }
 
-document.getElementById("toggle-sidebar").addEventListener("click", () => {
-  document.getElementById("sidebar").classList.toggle("open");
-});
+  const btnRefresh = document.getElementById("btn-refresh");
+  if (btnRefresh) {
+    btnRefresh.addEventListener("click", refreshAll);
+  } else {
+    console.warn("⚠️ btn-refresh introuvable dans le DOM");
+  }
 
-refreshAll();
-  
-/********** Onglets MCDU **********/
-document.querySelectorAll(".mcdu-tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    const target = tab.dataset.tab;
+  const toggleSidebar = document.getElementById("toggle-sidebar");
+  if (toggleSidebar) {
+    toggleSidebar.addEventListener("click", () => {
+      document.getElementById("sidebar").classList.toggle("open");
+    });
+  }
 
-    // Activer l’onglet sélectionné
-    document.querySelectorAll(".mcdu-tab").forEach(t =>
-      t.classList.toggle("active", t === tab)
-    );
+  refreshAll();
 
-    // Activer le panel correspondant
-    document.querySelectorAll(".tab-panel").forEach(panel =>
-      panel.classList.toggle("active", panel.id === target)
-    );
+
+  /********** Onglets MCDU **********/
+  document.querySelectorAll(".mcdu-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.tab;
+
+      // Activer l’onglet sélectionné
+      document.querySelectorAll(".mcdu-tab").forEach(t =>
+        t.classList.toggle("active", t === tab)
+      );
+
+      // Activer le panel correspondant
+      document.querySelectorAll(".tab-panel").forEach(panel =>
+        panel.classList.toggle("active", panel.id === target)
+      );
+    });
   });
-});
 
-  
+});
 </script>
