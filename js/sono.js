@@ -8,6 +8,42 @@
 import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
 
 /* -------------------------------------------------
+   0) Markers Leaflet — création dynamique
+--------------------------------------------------*/
+let sonoLayerEBCI = null;
+let sonoLayerEBLG = null;
+
+function renderSonoMarkers(airportKey, map) {
+  const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
+
+  // Supprimer ancienne couche
+  if (airportKey === "EBCI" && sonoLayerEBCI) map.removeLayer(sonoLayerEBCI);
+  if (airportKey === "EBLG" && sonoLayerEBLG) map.removeLayer(sonoLayerEBLG);
+
+  const group = L.layerGroup();
+
+  list.forEach(s => {
+    const marker = L.circleMarker([s.lat, s.lon], {
+      radius: 7,
+      color: "#e2e8f0",
+      fillColor: "#e2e8f0",
+      fillOpacity: 0.9,
+      weight: 2
+    });
+
+    marker.bindPopup(`<b>${s.id}</b><br>${s.address}`);
+    marker._sonoId = s.id; // pour recoloration
+
+    group.addLayer(marker);
+  });
+
+  if (airportKey === "EBCI") sonoLayerEBCI = group;
+  if (airportKey === "EBLG") sonoLayerEBLG = group;
+
+  group.addTo(map);
+}
+
+/* -------------------------------------------------
    1) Rendu UI MCDU
 --------------------------------------------------*/
 export function updateSonoListUI(airportKey) {
