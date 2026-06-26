@@ -12,21 +12,9 @@ import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
 --------------------------------------------------*/
 let sonoLayerEBCI = null;
 let sonoLayerEBLG = null;
-let sonoEnabled = true;
 
 function renderSonoMarkers(airportKey, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
-
-   function hideSono(airportKey, map) {
-  const layer = airportKey === "EBCI" ? sonoLayerEBCI : sonoLayerEBLG;
-  if (layer) map.removeLayer(layer);
-
-  const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
-  list.forEach(s => {
-    const el = document.getElementById(`sono-${s.id}`);
-    if (el) el.style.color = "#444"; // gris éteint
-  });
-}
 
   // Supprimer ancienne couche
   if (airportKey === "EBCI" && sonoLayerEBCI) map.removeLayer(sonoLayerEBCI);
@@ -54,6 +42,7 @@ function renderSonoMarkers(airportKey, map) {
 
   group.addTo(map);
 }
+
 
 /* -------------------------------------------------
    1) Rendu UI MCDU
