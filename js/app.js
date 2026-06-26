@@ -3,7 +3,7 @@
  ****************************************************/
 
 import { airports } from "./config.js";
-import { initMap } from "./map.js";
+import { initMap, map } from "./map.js";
 import { fetchMetar, updateMetarUI } from "./metar.js";
 import { updateSono } from "./sono.js";
 import { updateRunwayHUD } from "./fids.js";
@@ -44,7 +44,6 @@ async function processAirport(airportKey) {
 
   updateRunwayHUD(ap, windDir);
 
-  // IMPORTANT : envoyer la carte Leaflet
   updateSono(airportKey, activeRunway, map);
 }
 
@@ -56,22 +55,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
   initMap();
 
-  // 🔥 Attendre que la carte soit prête
-  await new Promise(resolve => {
-    const check = () => {
-      if (window._mapReady) resolve();
-      else setTimeout(check, 50);
-    };
-    check();
+  // Attendre que la carte soit prête
+  map.whenReady(async () => {
+    await Promise.all([
+      processAirport("EBCI"),
+      processAirport("EBLG")
+    ]);
   });
 
-  await Promise.all([
-    processAirport("EBCI"),
-    processAirport("EBLG")
-  ]);
-});
-
-document.addEventListener("DOMContentLoaded", () => {
+  // Gestion du bouton SONO
   const toggle = document.getElementById("toggle-sono");
   if (toggle) {
     toggle.checked = true;
@@ -82,4 +74,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
