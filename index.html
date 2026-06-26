@@ -867,12 +867,16 @@ function updateFlightsUI(airportKey, flights) {
 
 
 /********** 10. ORCHESTRATION **********/
-async function processAirport(airportKey) {
+
+
+  async function processAirport(airportKey) {
   const ap = airports[airportKey];
 
-  const enabled =
-    (airportKey === "EBCI" && document.getElementById("filter-ebci").checked) ||
-    (airportKey === "EBLG" && document.getElementById("filter-eblg").checked);
+  const cbId = airportKey === "EBCI" ? "filter-ebci" : "filter-eblg";
+  const cb = document.getElementById(cbId);
+
+  // Safe mode : si la checkbox n’existe pas → activé par défaut
+  const enabled = cb ? cb.checked : true;
 
   if (!enabled) {
     sonometerMarkers[airportKey].forEach(s => s.marker.setStyle(sonometerNormalStyle));
