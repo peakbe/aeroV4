@@ -71,3 +71,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   ]);
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.getElementById("toggle-sono");
+  if (toggle) {
+    toggle.checked = true;
+    toggle.addEventListener("change", () => {
+      window.sonoEnabled = toggle.checked;
+      const ind = document.querySelector(".mcd-switch-indicator");
+      if (ind) ind.textContent = window.sonoEnabled ? "ON" : "OFF";
+    });
+  }
+});
+
