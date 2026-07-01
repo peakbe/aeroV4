@@ -49,6 +49,11 @@ async function processAirport(airportKey) {
   updateSono(airportKey, activeRunway, map);
 }
 
+import { injectMetarEmbed } from "./metar.js";
+injectMetarEmbed(airportKey);
+updateMetarUI(airportKey, metar);
+
+
 /****************************************************
  * Initialisation cockpit IFR
  ****************************************************/
