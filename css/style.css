@@ -187,3 +187,25 @@ main {
 .metar-line.green { color: #00ff00; }
 .metar-line.orange { color: #ffaa00; }
 .metar-line.red { color: #ff0000; }
+
+.wind-rose {
+  width: 120px;
+  height: 120px;
+  border: 2px solid #0ff;
+  border-radius: 50%;
+  position: relative;
+  margin: 10px auto;
+}
+
+.wind-arrow {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 40px solid lime;
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform-origin: 50% 100%;
+}
+
