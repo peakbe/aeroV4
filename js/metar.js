@@ -20,3 +20,46 @@ export function updateMetarUI(airportKey, metar) {
   safeSet(idSummary, `Vent: ${windDir}° / ${windSpeed} kt – T: ${temp}°C – QNH: ${qnh} hPa`);
   safeSet(idRaw, metar?.raw ?? metar?.raw_text ?? "(METAR brut non disponible)");
 }
+<div id="metar-embed-ebci"></div>
+<div id="metar-embed-eblg"></div>
+
+export function injectMetarEmbed(airportKey) {
+  let targetId, url, linkText;
+
+  if (airportKey === "EBCI") {
+    targetId = "metar-embed-ebci";
+    url = "https://metar-taf.com/fr/embed-js/EBCI?qnh=hPa&rh=rh&target=GrcWAfkb";
+    linkText = "METAR Brussels South Charleroi Airport";
+  } else if (airportKey === "EBLG") {
+    targetId = "metar-embed-eblg";
+    url = "https://metar-taf.com/fr/embed-js/EBLG?qnh=hPa&rh=rh&target=J0YHElLt";
+    linkText = "METAR Liège Airport";
+  } else {
+    return;
+  }
+
+  const container = document.getElementById(targetId);
+  if (!container) return;
+
+  // Nettoyage
+  container.innerHTML = "";
+
+  // Ajout du lien
+  const a = document.createElement("a");
+  a.href = `https://metar-taf.com/fr/metar/${airportKey}`;
+  a.id = airportKey === "EBCI" ? "metartaf-GrcWAfkb" : "metartaf-J0YHElLt";
+  a.style = "font-size:18px; font-weight:500; color:#000; width:300px; height:435px; display:block";
+  a.textContent = linkText;
+
+  container.appendChild(a);
+
+  // Ajout du script dynamique
+  const script = document.createElement("script");
+  script.src = url;
+  script.async = true;
+  script.defer = true;
+  script.crossOrigin = "anonymous";
+
+  container.appendChild(script);
+}
+
