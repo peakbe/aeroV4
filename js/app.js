@@ -78,6 +78,10 @@ if (resetBtn) {
     resetMapView();
   });
 }
+resetBtn.addEventListener("click", () => {
+  const ap = airports[currentAirportKey];
+  map.setView([ap.lat, ap.lon], 13);
+});
 
   }
 });
