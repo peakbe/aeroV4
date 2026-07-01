@@ -1,3 +1,4 @@
+/* global L */
 import { airports } from "./config.js";
 
 export let map;
@@ -21,9 +22,13 @@ export function initMap() {
       .bindPopup(ap.name);
   });
 }
-export function resetMapView() {
+
+export function resetMapView(airportKey) {
   if (!map) return;
 
-  // Vue par défaut
-  map.setView([50.5, 4.7], 10);
+  // Vue centrée sur l'aéroport actif
+  const ap = airports[airportKey];
+  if (ap) {
+    map.setView([ap.lat, ap.lon], 13); // zoom IFR
+  }
 }
