@@ -21,3 +21,9 @@ export function initMap() {
       .bindPopup(ap.name);
   });
 }
+export function resetMapView() {
+  if (!map) return;
+
+  // Vue par défaut
+  map.setView([50.5, 4.7], 10);
+}
