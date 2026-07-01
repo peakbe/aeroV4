@@ -3,7 +3,7 @@
  ****************************************************/
 
 import { airports } from "./config.js";
-import { initMap, map } from "./map.js";
+import { initMap, map, resetMapView } from "./map.js";
 import { fetchMetar, updateMetarUI } from "./metar.js";
 import { updateSono } from "./sono.js";
 import { updateRunwayHUD } from "./fids.js";
