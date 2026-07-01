@@ -72,5 +72,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const ind = document.querySelector(".mcd-switch-indicator");
       if (ind) ind.textContent = window.sonoEnabled ? "ON" : "OFF";
     });
+    const resetBtn = document.getElementById("reset-map");
+if (resetBtn) {
+  resetBtn.addEventListener("click", () => {
+    resetMapView();
+  });
+}
+
   }
 });
