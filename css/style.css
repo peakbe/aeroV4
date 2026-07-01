@@ -184,3 +184,6 @@ main {
   border-color: lime;
   color: lime;
 }
+.metar-line.green { color: #00ff00; }
+.metar-line.orange { color: #ffaa00; }
+.metar-line.red { color: #ff0000; }
