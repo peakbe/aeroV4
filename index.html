@@ -43,27 +43,36 @@
     <!-- Contenu des panels -->
     <div class="sidebar-content">
 
-      <!-- PANEL METAR -->
-      <div id="tab-metar" class="tab-panel active">
-        <div class="sidebar-title">METAR / TAF</div>
+    <!-- PANEL METAR -->
+<div id="tab-metar" class="tab-panel active">
+  <div class="sidebar-title">METAR / TAF</div>
 
-        <div class="mcdu-section-title">METAR EBCI</div>
-        <div id="meteo-ebci-summary" class="mcdu-line">Chargement...</div>
-        <div id="meteo-ebci-raw" class="mcdu-raw">Chargement...</div>
+  <div class="mcdu-section-title">METAR EBCI</div>
+  <div id="meteo-ebci-summary" class="mcdu-line">Chargement...</div>
+  <div id="meteo-ebci-raw" class="mcdu-raw">Chargement...</div>
 
-        <div class="mcdu-section-title">METAR EBLG</div>
-        <div id="meteo-eblg-summary" class="mcdu-line">Chargement...</div>
-        <div id="meteo-eblg-raw" class="mcdu-raw">Chargement...</div>
-        <div class="metar-switch">
-  <button id="btn-metar" class="mcd-btn">METAR</button>
-  <button id="btn-taf" class="mcd-btn">TAF</button>
-          <div id="wind-rose"></div>
+  <div class="mcdu-section-title">METAR EBLG</div>
+  <div id="meteo-eblg-summary" class="mcdu-line">Chargement...</div>
+  <div id="meteo-eblg-raw" class="mcdu-raw">Chargement...</div>
 
+  <!-- SWITCH METAR / TAF -->
+  <div class="metar-switch">
+    <button id="btn-metar" class="mcd-btn">METAR</button>
+    <button id="btn-taf" class="mcd-btn">TAF</button>
+  </div>
+
+  <!-- ROSE DES VENTS -->
+  <div id="wind-rose"></div>
+
+  <!-- CONTENU METAR / TAF -->
+  <div id="metar-content"></div>
+  <div id="taf-content" style="display:none;"></div>
+
+  <!-- EMBED METAR-TAF.COM -->
+  <div id="metar-embed-ebci"></div>
+  <div id="metar-embed-eblg"></div>
 </div>
 
-<div id="metar-content"></div>
-<div id="taf-content" style="display:none;"></div>
-      </div>
 
 
       <!-- PANEL SONO -->
