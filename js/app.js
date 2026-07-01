@@ -65,7 +65,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     ]);
   });
 
-  // Gestion du bouton SONO
+  /****************************************************
+   * Bouton SONO ON/OFF
+   ****************************************************/
   const toggle = document.getElementById("toggle-sono");
   if (toggle) {
     toggle.checked = true;
@@ -74,16 +76,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       const ind = document.querySelector(".mcd-switch-indicator");
       if (ind) ind.textContent = window.sonoEnabled ? "ON" : "OFF";
     });
-    const resetBtn = document.getElementById("reset-map");
-if (resetBtn) {
-  resetBtn.addEventListener("click", () => {
-    resetMapView();
-  });
-}
-resetBtn.addEventListener("click", () => {
-  const ap = airports[currentAirportKey];
-  map.setView([ap.lat, ap.lon], 13);
-});
+  }
 
+  /****************************************************
+   * Bouton RESET MAP — centré sur l’aéroport actif
+   ****************************************************/
+  const resetBtn = document.getElementById("reset-map");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      if (window.currentAirportKey) {
+        resetMapView(window.currentAirportKey);
+      }
+    });
   }
 });
