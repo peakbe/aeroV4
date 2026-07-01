@@ -58,6 +58,9 @@ import { updateTafUI } from "./metar.js";
 const taf = await fetchTaf(ap.icao);
 updateTafUI(airportKey, taf);
 
+import { updateWindRose } from "./metar.js";
+updateWindRose(metar);
+updateMetarUI(airportKey, metar);
 
 /****************************************************
  * Initialisation cockpit IFR
