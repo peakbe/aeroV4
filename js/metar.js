@@ -34,6 +34,16 @@ export function updateMetarUI(airportKey, metar) {
 <div id="metar-embed-ebci"></div>
 <div id="metar-embed-eblg"></div>
 
+export function updateTafUI(airportKey, taf) {
+  const el = document.getElementById("taf-content");
+  if (!el) return;
+
+  el.innerHTML = `
+    <div class="taf-title">TAF ${airportKey}</div>
+    <div class="taf-raw">${taf?.raw_text || "n/a"}</div>
+  `;
+}
+
 export function injectMetarEmbed(airportKey) {
   let targetId, url, linkText;
 
