@@ -9,13 +9,24 @@ export async function fetchMetar(icao) {
 }
 
 export function updateMetarUI(airportKey, metar) {
-  const idSummary = airportKey === "EBCI" ? "meteo-ebci-summary" : "meteo-eblg-summary";
-  const idRaw = airportKey === "EBCI" ? "meteo-ebci-raw" : "meteo-eblg-raw";
+  const el = document.getElementById(`metar-${airportKey}`);
+  if (!el) return;
 
-  const windDir = metar?.wind_direction?.value ?? metar?.wind?.direction?.degrees ?? "n/a";
-  const windSpeed = metar?.wind_speed?.value ?? metar?.wind?.speed_kt ?? "n/a";
-  const temp = metar?.temperature?.value ?? metar?.temperature?.celsius ?? "n/a";
-  const qnh = metar?.altimeter?.value ?? metar?.qnh?.hpa ?? "n/a";
+  const color = classifyMetar(metar);
+
+  const windDir = metar?.wind_direction?.value ?? "n/a";
+  const windSpd = metar?.wind_speed?.value ?? "n/a";
+  const temp = metar?.temperature?.value ?? "n/a";
+  const qnh = metar?.altimeter?.value ?? "n/a";
+
+  el.innerHTML = `
+    <div class="metar-line ${color}">
+      Vent: ${windDir}° / ${windSpd} kt — T: ${temp}°C — QNH: ${qnh} hPa
+    </div>
+    <div class="metar-raw">${metar?.raw_text || "n/a"}</div>
+  `;
+}
+
 
   safeSet(idSummary, `Vent: ${windDir}° / ${windSpeed} kt – T: ${temp}°C – QNH: ${qnh} hPa`);
   safeSet(idRaw, metar?.raw ?? metar?.raw_text ?? "(METAR brut non disponible)");
@@ -41,6 +52,26 @@ export function injectMetarEmbed(airportKey) {
   const container = document.getElementById(targetId);
   if (!container) return;
 
+  export function initMetarSwitch() {
+  const btnMetar = document.getElementById("btn-metar");
+  const btnTaf = document.getElementById("btn-taf");
+  const metarContent = document.getElementById("metar-content");
+  const tafContent = document.getElementById("taf-content");
+
+  if (!btnMetar || !btnTaf) return;
+
+  btnMetar.addEventListener("click", () => {
+    metarContent.style.display = "block";
+    tafContent.style.display = "none";
+  });
+
+  btnTaf.addEventListener("click", () => {
+    metarContent.style.display = "none";
+    tafContent.style.display = "block";
+  });
+}
+
+  
   // Nettoyage
   container.innerHTML = "";
 
@@ -61,5 +92,15 @@ export function injectMetarEmbed(airportKey) {
   script.crossOrigin = "anonymous";
 
   container.appendChild(script);
+}
+function classifyMetar(metar) {
+  if (!metar) return "red";
+
+  const wind = metar.wind_speed?.value || 0;
+  const vis = metar.visibility?.value || 0;
+
+  if (wind <= 8 && vis >= 8000) return "green";
+  if (wind <= 15 && vis >= 4000) return "orange";
+  return "red";
 }
 
