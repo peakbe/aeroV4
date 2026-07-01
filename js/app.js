@@ -53,6 +53,11 @@ import { injectMetarEmbed } from "./metar.js";
 injectMetarEmbed(airportKey);
 updateMetarUI(airportKey, metar);
 
+import { updateTafUI } from "./metar.js";
+
+const taf = await fetchTaf(ap.icao);
+updateTafUI(airportKey, taf);
+
 
 /****************************************************
  * Initialisation cockpit IFR
@@ -61,6 +66,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initTabs();
   initMap();
+  
+import { initMetarSwitch } from "./metar.js";
+
+initMetarSwitch();
 
   // Attendre que la carte soit prête
   map.whenReady(async () => {
