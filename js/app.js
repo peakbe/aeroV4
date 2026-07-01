@@ -35,6 +35,7 @@ function computeRunway(airport, windDirDeg) {
  ****************************************************/
 async function processAirport(airportKey) {
   const ap = airports[airportKey];
+window.currentAirportKey = airportKey;
 
   const metar = await fetchMetar(ap.icao);
   updateMetarUI(airportKey, metar);
