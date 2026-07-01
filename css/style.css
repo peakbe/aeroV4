@@ -150,3 +150,17 @@ main {
   color: #0ff;
   font-size: 14px;
 }
+.mcd-btn {
+  background: #111;
+  border: 2px solid #0ff;
+  color: #0ff;
+  padding: 6px 12px;
+  font-family: monospace;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.mcd-btn:hover {
+  border-color: lime;
+  color: lime;
+}
