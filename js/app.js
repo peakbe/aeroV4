@@ -63,6 +63,8 @@ async function processAirport(airportKey) {
   updateSono(airportKey, activeRunway, map);
 
   // ⭐ FIDS — Sonomètres + Vols + Confirmés
+  updateFidsFlights(airportKey);
+
   updateFidsList(airportKey);
   updateFidsFlights(airportKey);
   updateFidsConfirmed();
