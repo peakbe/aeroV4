@@ -88,16 +88,19 @@ export async function updateFidsFlights(airportKey) {
     return;
   }
 
-  // Tri par heure
+  // Tri par heure (arrivée ou départ)
   flights.sort((a, b) => {
     const ta = a.arr_time || a.dep_time || "";
     const tb = b.arr_time || b.dep_time || "";
     return ta.localeCompare(tb);
   });
 
+  // Garder uniquement les 15 prochains vols
+  const upcoming = flights.slice(0, 15);
+
   tbody.innerHTML = "";
 
-  flights.slice(0, 20).forEach(f => {
+  upcoming.forEach(f => {
     const tr = document.createElement("tr");
 
     const time = formatTime(f.arr_time || f.dep_time);
@@ -121,6 +124,7 @@ export async function updateFidsFlights(airportKey) {
     tbody.appendChild(tr);
   });
 }
+
 
 /****************************************************
  * Sonomètres (optionnel)
