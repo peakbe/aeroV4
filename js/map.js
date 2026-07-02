@@ -32,3 +32,15 @@ export function resetMapView(airportKey) {
     map.setView([ap.lat, ap.lon], 13); // zoom IFR
   }
 }
+
+// Ajouter une icône avion PRO+++
+export const planeDot = L.circleMarker([0,0], {
+  radius: 6,
+  color: "#00eaff",
+  fillColor: "#00eaff",
+  fillOpacity: 0.9
+});
+
+// Ajouter un layer pour les avions
+export const planesLayer = L.layerGroup();
+planesLayer.addTo(map);
