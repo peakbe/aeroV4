@@ -12,9 +12,11 @@ import { initTabs } from "./tabs.js";
 import { angleDiff } from "./utils.js";
 import { updateAircraftPositions } from "./fids.js";
 
-setInterval(updateAircraftPositions, 30000);
-updateAircraftPositions();
-;
+map.whenReady(() => {
+  updateAircraftPositions();
+  setInterval(updateAircraftPositions, 30000);
+});
+
 
 /****************************************************
  * Détection piste active (computeRunway)
