@@ -2,8 +2,11 @@
 import { airports } from "./config.js";
 
 export let map;
-export let planesLayer;   // ← exporté proprement
+export let planesLayer;
 
+/****************************************************
+ * INIT MAP
+ ****************************************************/
 export function initMap() {
   map = L.map("map").setView([50.5, 4.7], 10);
 
@@ -11,7 +14,10 @@ export function initMap() {
     maxZoom: 18
   }).addTo(map);
 
-  // Signaler que la carte est prête
+  // Layer avions
+  planesLayer = L.layerGroup().addTo(map);
+
+  // Carte prête
   map.whenReady(() => {
     window._mapReady = true;
   });
@@ -22,16 +28,23 @@ export function initMap() {
       .addTo(map)
       .bindPopup(ap.name);
   });
-
-  /********************************************
-   * CRÉATION DU LAYER AVIONS APRÈS initMap()
-   ********************************************/
-  planesLayer = L.layerGroup().addTo(map);
 }
 
-/********************************************
- * Icônes avion approche / départ
- ********************************************/
+/****************************************************
+ * RESET MAP VIEW
+ ****************************************************/
+export function resetMapView(airportKey) {
+  if (!map) return;
+
+  const ap = airports[airportKey];
+  if (ap) {
+    map.setView([ap.lat, ap.lon], 13); // zoom IFR
+  }
+}
+
+/****************************************************
+ * ICONES AVION
+ ****************************************************/
 export const planeIconApproach = L.icon({
   iconUrl: "img/plane-blue.png",
   iconSize: [32, 32],
