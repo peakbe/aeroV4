@@ -10,6 +10,13 @@ import { updateFidsList, updateFidsFlights, updateFidsConfirmed } from "./fids.j
 import { updateRunwayHUD } from "./fids.js";
 import { initTabs } from "./tabs.js";
 import { angleDiff } from "./utils.js";
+import { updateAircraftPositions } from "./fids.js";
+
+setInterval(() => {
+  updateAircraftPositions();
+}, 30000);
+
+updateAircraftPositions();
 
 /****************************************************
  * Détection piste active (computeRunway)
