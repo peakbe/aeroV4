@@ -185,13 +185,12 @@ export async function updateFidsConfirmed() {
 }
 
 // Fonction PRO+++ pour afficher les avions
-import { map, planeIcon, planesLayer } from "./map.js";
+import { map, planesLayer, planeIconApproach, planeIconDeparture } from "./map.js";
 
 export async function updateAircraftPositions() {
-  // Nettoyer les anciens avions
   planesLayer.clearLayers();
 
-  const key = "04cb1c09-8abb-468a-95fa-ee90c3c2b65";
+  const key = "04cb1c09-8abb-468a-95fa-ee90c3c2b651";
 
   const urls = [
     `https://airlabs.co/api/v9/flights?arr_icao=EBLG&api_key=${key}`,
@@ -212,12 +211,22 @@ export async function updateAircraftPositions() {
     }
   }
 
-  // Filtrer les avions avec position valide
   const aircraft = all.filter(f => f.lat && f.lng);
 
   aircraft.forEach(f => {
+
+    // Déterminer si approche ou départ
+    const isApproach =
+      f.arr_icao === "EBLG" || f.arr_icao === "EBCI";
+
+    const isDeparture =
+      f.dep_icao === "EBLG" || f.dep_icao === "EBCI";
+
+    // Choix de l’icône
+    const icon = isApproach ? planeIconApproach : planeIconDeparture;
+
     const marker = L.marker([f.lat, f.lng], {
-      icon: planeIcon,
+      icon: icon,
       rotationAngle: f.dir || 0,
       rotationOrigin: "center"
     });
@@ -232,4 +241,5 @@ export async function updateAircraftPositions() {
     planesLayer.addLayer(marker);
   });
 }
+
 
