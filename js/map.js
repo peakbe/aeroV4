@@ -44,3 +44,17 @@ export const planeDot = L.circleMarker([0,0], {
 // Ajouter un layer pour les avions
 export const planesLayer = L.layerGroup();
 planesLayer.addTo(map);
+
+// Deux icônes avion (approche / départ)
+export const planeIconApproach = L.icon({
+  iconUrl: "img/plane-blue.png",   // avion bleu = approche
+  iconSize: [32, 32],
+  iconAnchor: [16, 16]
+});
+
+export const planeIconDeparture = L.icon({
+  iconUrl: "img/plane-green.png",  // avion vert = départ
+  iconSize: [32, 32],
+  iconAnchor: [16, 16]
+});
+
