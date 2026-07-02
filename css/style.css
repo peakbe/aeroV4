@@ -209,3 +209,7 @@ main {
   transform-origin: 50% 100%;
 }
 
+.fids-status-dep { color:#0f0; }
+.fids-status-enr { color:#ffa500; }
+.fids-status-lnd { color:#f00; }
+.fids-status-arr { color:#0ff; }
