@@ -61,14 +61,12 @@ async function processAirport(airportKey) {
 
   // SONO
   updateSono(airportKey, activeRunway, map);
+
+  // ⭐ FIDS — Sonomètres + Vols + Confirmés
+  updateFidsList(airportKey);
+  updateFidsFlights(airportKey);
+  updateFidsConfirmed();
 }
-
-// FIDS — Sonomètres + Vols + Confirmés
-updateFidsList(airportKey);
-updateFidsFlights(airportKey);
-updateFidsConfirmed();
-
-
 
 /****************************************************
  * Initialisation cockpit IFR
