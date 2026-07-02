@@ -191,7 +191,7 @@ export async function updateAircraftPositions() {
   // Nettoyer les anciens avions
   planesLayer.clearLayers();
 
-  const key = "YOUR_AIRLABS_KEY";
+  const key = "04cb1c09-8abb-468a-95fa-ee90c3c2b65";
 
   const urls = [
     `https://airlabs.co/api/v9/flights?arr_icao=EBLG&api_key=${key}`,
