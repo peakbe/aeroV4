@@ -149,19 +149,27 @@ export async function updateFidsList(airportKey) {
  * Vols confirmés (fallback JSON)
  ****************************************************/
 export async function updateFidsConfirmed() {
-  const el = document.getElementById("fids-confirmed");
-  if (!el) return;
+  const listEl = document.getElementById("confirmed-hud");
+  const countEl = document.getElementById("confirmed-count");
+  if (!listEl || !countEl) return;
 
-  el.textContent = "Chargement...";
+  listEl.textContent = "Chargement...";
 
   try {
     const res = await fetch(`/api/fids/confirmed.json`);
     const data = await res.json();
 
-    el.innerHTML = data
+    // Compteur
+    countEl.textContent = data.length;
+
+    // Liste
+    listEl.innerHTML = data
       .map(v => `${v.flight} — ${v.status}`)
       .join("<br>");
+
   } catch (e) {
-    el.textContent = "Aucun vol confirmé";
+    listEl.textContent = "Aucun vol confirmé";
+    countEl.textContent = "0";
   }
 }
+
