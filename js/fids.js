@@ -184,3 +184,52 @@ export async function updateFidsConfirmed() {
   }
 }
 
+// Fonction PRO+++ pour afficher les avions
+import { map, planeIcon, planesLayer } from "./map.js";
+
+export async function updateAircraftPositions() {
+  // Nettoyer les anciens avions
+  planesLayer.clearLayers();
+
+  const key = "YOUR_AIRLABS_KEY";
+
+  const urls = [
+    `https://airlabs.co/api/v9/flights?arr_icao=EBLG&api_key=${key}`,
+    `https://airlabs.co/api/v9/flights?dep_icao=EBLG&api_key=${key}`,
+    `https://airlabs.co/api/v9/flights?arr_icao=EBCI&api_key=${key}`,
+    `https://airlabs.co/api/v9/flights?dep_icao=EBCI&api_key=${key}`
+  ];
+
+  let all = [];
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.response) all = all.concat(json.response);
+    } catch (e) {
+      console.warn("AirLabs error:", e);
+    }
+  }
+
+  // Filtrer les avions avec position valide
+  const aircraft = all.filter(f => f.lat && f.lng);
+
+  aircraft.forEach(f => {
+    const marker = L.marker([f.lat, f.lng], {
+      icon: planeIcon,
+      rotationAngle: f.dir || 0,
+      rotationOrigin: "center"
+    });
+
+    marker.bindPopup(`
+      <b>${f.flight_iata || f.flight_icao || "?"}</b><br>
+      ${f.airline_iata || f.airline_icao || ""}<br>
+      ${f.dep_iata || "?"} → ${f.arr_iata || "?"}<br>
+      <b>${f.status}</b>
+    `);
+
+    planesLayer.addLayer(marker);
+  });
+}
+
