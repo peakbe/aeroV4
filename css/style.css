@@ -243,3 +243,10 @@ main {
 .fids-status-enr { color:#ffa500; font-weight:bold; }
 .fids-status-lnd { color:#ff4444; font-weight:bold; }
 .fids-status-arr { color:#00eaff; font-weight:bold; }
+
+.fids-approach {
+  background-color: #663300 !important; /* brun cockpit approche */
+  color: #fff !important;
+  font-weight: bold;
+}
+
