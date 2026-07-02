@@ -4,7 +4,7 @@
 
 import { airports } from "./config.js";
 import { initMap, map, resetMapView } from "./map.js";
-import { fetchMetar, updateMetarUI } from "./metar.js";
+import { fetchMetar, updateMetarUI, fetchTaf, updateTafUI, injectMetarEmbed, updateWindRose, initMetarSwitch } from "./metar.js";
 import { updateSono } from "./sono.js";
 import { updateRunwayHUD } from "./fids.js";
 import { initTabs } from "./tabs.js";
@@ -38,29 +38,29 @@ async function processAirport(airportKey) {
 
   const ap = airports[airportKey];
 
+  // METAR
   const metar = await fetchMetar(ap.icao);
   updateMetarUI(airportKey, metar);
 
+  // TAF
+  const taf = await fetchTaf(ap.icao);
+  updateTafUI(airportKey, taf);
+
+  // Embed METAR-TAF.com
+  injectMetarEmbed(airportKey);
+
+  // Rose des vents
+  updateWindRose(metar);
+
+  // Piste active
   const windDir = metar?.wind_direction?.value;
   const activeRunway = computeRunway(ap, windDir);
 
   updateRunwayHUD(ap, windDir);
 
+  // SONO
   updateSono(airportKey, activeRunway, map);
 }
-
-import { injectMetarEmbed } from "./metar.js";
-injectMetarEmbed(airportKey);
-updateMetarUI(airportKey, metar);
-
-import { updateTafUI } from "./metar.js";
-
-const taf = await fetchTaf(ap.icao);
-updateTafUI(airportKey, taf);
-
-import { updateWindRose } from "./metar.js";
-updateWindRose(metar);
-updateMetarUI(airportKey, metar);
 
 /****************************************************
  * Initialisation cockpit IFR
@@ -69,10 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initTabs();
   initMap();
-  
-import { initMetarSwitch } from "./metar.js";
-
-initMetarSwitch();
+  initMetarSwitch();
 
   // Attendre que la carte soit prête
   map.whenReady(async () => {
