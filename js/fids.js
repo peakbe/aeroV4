@@ -88,14 +88,14 @@ export async function updateFidsFlights(airportKey) {
     return;
   }
 
-  // Tri par heure (arrivée ou départ)
+  // Tri par heure
   flights.sort((a, b) => {
     const ta = a.arr_time || a.dep_time || "";
     const tb = b.arr_time || b.dep_time || "";
     return ta.localeCompare(tb);
   });
 
-  // Garder uniquement les 15 prochains vols
+  // 15 prochains vols
   const upcoming = flights.slice(0, 15);
 
   tbody.innerHTML = "";
@@ -111,6 +111,16 @@ export async function updateFidsFlights(airportKey) {
     const dest = f.arr_iata || f.arr_icao || "n/a";
     const status = f.status || "n/a";
 
+    // Highlight vols en approche
+    const isApproach =
+      status === "active" ||
+      status === "en-route" ||
+      status === "enr" ||
+      status === "approach" ||
+      status === "on final";
+
+    if (isApproach) tr.classList.add("fids-approach");
+
     tr.innerHTML = `
       <td>${time}</td>
       <td>${flight}</td>
@@ -124,6 +134,7 @@ export async function updateFidsFlights(airportKey) {
     tbody.appendChild(tr);
   });
 }
+
 
 
 /****************************************************
