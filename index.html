@@ -90,58 +90,49 @@
 
       </div>
 
-      <!-- PANEL FIDS -->
-      <div id="tab-fids" class="tab-panel">
-        <div class="sidebar-title">FIDS — Vols & Pistes</div>
+    <div id="tab-fids" class="tab-panel">
+  <div class="sidebar-title">FIDS — Vols & Pistes</div>
 
-        <div class="mcdu-section-title">PISTE ACTIVE EBCI</div>
-        <div id="runway-ebci" class="mcdu-line">Chargement...</div>
+  <!-- PISTE ACTIVE EBCI -->
+  <div class="mcdu-section-title">PISTE ACTIVE EBCI</div>
+  <div id="runway-ebci" class="mcdu-line">Chargement...</div>
 
-       <div class="mcdu-section-title">Vols EBCI</div>
+  <!-- VOLS EBCI -->
+  <div class="mcdu-section-title">Vols EBCI</div>
+  <table class="fids-table">
+    <thead>
+      <tr>
+        <th>Heure</th><th>Vol</th><th>Compagnie</th><th>Type</th>
+        <th>Origine</th><th>Destination</th><th>Statut</th>
+      </tr>
+    </thead>
+    <tbody id="fids-ebci"></tbody>
+  </table>
 
-<table class="fids-table">
-  <thead>
-    <tr>
-      <th>Heure</th><th>Vol</th><th>Compagnie</th><th>Type</th>
-      <th>Origine</th><th>Destination</th><th>Statut</th>
-    </tr>
-  </thead>
-  <tbody id="fids-ebci"></tbody>
-</table>
+  <hr class="mcdu-sep">
 
+  <!-- PISTE ACTIVE EBLG -->
+  <div class="mcdu-section-title">PISTE ACTIVE EBLG</div>
+  <div id="runway-eblg" class="mcdu-line">Chargement...</div>
 
-        <div class="mcdu-section-title">Vols EBLG</div>
+  <!-- VOLS EBLG -->
+  <div class="mcdu-section-title">Vols EBLG</div>
+  <table class="fids-table">
+    <thead>
+      <tr>
+        <th>Heure</th><th>Vol</th><th>Compagnie</th><th>Type</th>
+        <th>Origine</th><th>Destination</th><th>Statut</th>
+      </tr>
+    </thead>
+    <tbody id="fids-eblg"></tbody>
+  </table>
 
-<table class="fids-table">
-  <thead>
-    <tr>
-      <th>Heure</th><th>Vol</th><th>Compagnie</th><th>Type</th>
-      <th>Origine</th><th>Destination</th><th>Statut</th>
-    </tr>
-  </thead>
-  <tbody id="fids-eblg"></tbody>
-</table>
+  <hr class="mcdu-sep">
 
-
-        <hr class="mcdu-sep">
-
-        <div class="mcdu-section-title">PISTE ACTIVE EBLG</div>
-        <div id="runway-eblg" class="mcdu-line">Chargement...</div>
-
-        <div class="mcdu-section-title">Sonomètres EBLG</div>
-        <div id="list-eblg" class="mcdu-list">Chargement...</div>
-
-        <div class="mcdu-section-title">Vols EBLG</div>
-        <div id="flights-eblg" class="mcdu-list">Chargement...</div>
-
-        <hr class="mcdu-sep">
-        
-<div class="mcdu-section-title">Vols confirmés (<span id="confirmed-count">0</span>)</div>
-<div id="confirmed-hud"></div>
-
-        <div class="mcdu-section-title">Vols confirmés</div>
-        <div id="confirmed-hud"></div>
-      </div>
+  <!-- VOLS CONFIRMÉS -->
+  <div class="mcdu-section-title">Vols confirmés (<span id="confirmed-count">0</span>)</div>
+  <div id="confirmed-hud"></div>
+</div>
 
       <!-- PANEL LOGS -->
       <div id="tab-logs" class="tab-panel">
