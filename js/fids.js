@@ -164,7 +164,10 @@ export async function updateFidsConfirmed() {
   const countEl = document.getElementById("confirmed-count");
   if (!listEl || !countEl) return;
 
-  listEl.textContent = "Chargement...";
+ listEl.textContent = "Aucun vol confirmé";
+countEl.textContent = "0";
+return;
+
 
   try {
     const res = await fetch(`/api/fids/confirmed.json`);
