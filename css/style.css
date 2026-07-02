@@ -213,3 +213,33 @@ main {
 .fids-status-enr { color:#ffa500; }
 .fids-status-lnd { color:#f00; }
 .fids-status-arr { color:#0ff; }
+
+.fids-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #444; /* gris cockpit */
+  color: #fff;            /* texte blanc */
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.fids-table th {
+  background-color: #555; /* gris un peu plus clair */
+  color: #fff;            /* texte blanc */
+  padding: 6px;
+  border-bottom: 2px solid #888;
+}
+
+.fids-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #666;
+  color: #fff;            /* texte blanc */
+}
+
+.fids-table tr:nth-child(even) {
+  background-color: #505050; /* alternance cockpit */
+}
+.fids-status-dep { color:#00ff00; font-weight:bold; }
+.fids-status-enr { color:#ffa500; font-weight:bold; }
+.fids-status-lnd { color:#ff4444; font-weight:bold; }
+.fids-status-arr { color:#00eaff; font-weight:bold; }
