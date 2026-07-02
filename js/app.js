@@ -6,6 +6,7 @@ import { airports } from "./config.js";
 import { initMap, map, resetMapView } from "./map.js";
 import { fetchMetar, updateMetarUI, fetchTaf, updateTafUI, injectMetarEmbed, updateWindRose, initMetarSwitch } from "./metar.js";
 import { updateSono } from "./sono.js";
+import { updateFidsList, updateFidsFlights, updateFidsConfirmed } from "./fids.js";
 import { updateRunwayHUD } from "./fids.js";
 import { initTabs } from "./tabs.js";
 import { angleDiff } from "./utils.js";
@@ -61,6 +62,13 @@ async function processAirport(airportKey) {
   // SONO
   updateSono(airportKey, activeRunway, map);
 }
+
+// FIDS — Sonomètres + Vols + Confirmés
+updateFidsList(airportKey);
+updateFidsFlights(airportKey);
+updateFidsConfirmed();
+
+
 
 /****************************************************
  * Initialisation cockpit IFR
