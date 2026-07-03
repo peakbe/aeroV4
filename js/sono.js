@@ -81,6 +81,7 @@ export function applySonoRules(airportKey, activeRunway, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
   const layer = airportKey === "EBCI" ? sonoLayerEBCI : sonoLayerEBLG;
 
+  // Reset
   list.forEach(s => {
     const el = document.getElementById(`sono-${s.id}`);
     if (el) el.style.color = "#e2e8f0";
@@ -92,6 +93,7 @@ export function applySonoRules(airportKey, activeRunway, map) {
     });
   });
 
+  // Green
   green.forEach(id => {
     const el = document.getElementById(`sono-${id}`);
     if (el) el.style.color = "lime";
@@ -103,6 +105,7 @@ export function applySonoRules(airportKey, activeRunway, map) {
     });
   });
 
+  // Red
   red.forEach(id => {
     const el = document.getElementById(`sono-${id}`);
     if (el) el.style.color = "red";
@@ -136,7 +139,7 @@ export function updateSono(airportKey, activeRunway, map) {
   const ap = airports[airportKey];
   if (!ap) return;
 
-  const metar = ap.lastMetar; // stocké dans processAirport()
+  const metar = ap.lastMetar;
   if (!metar) return;
 
   const windDir = metar.wind_dir;
@@ -160,9 +163,8 @@ export function updateSono(airportKey, activeRunway, map) {
       Vent ${windDir}° / ${windSpd} kt — Piste ${activeRunway}
     </div>
   `;
-}
 
-
+  // ⭐ Appels corrects (à l’intérieur de la fonction)
   updateSonoListUI(airportKey);
   renderSonoMarkers(airportKey, map);
   applySonoRules(airportKey, activeRunway, map);
