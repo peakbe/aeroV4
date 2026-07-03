@@ -85,23 +85,27 @@ document.addEventListener("DOMContentLoaded", async () => {
  // Attendre que la carte soit prête
 map.whenReady(async () => {
 
+ map.whenReady(async () => {
+
   // Radar avion
   updateAircraftPositions();
   setInterval(updateAircraftPositions, 30000);
+
+  // ⭐⭐⭐ CÔNES ILS — À COLLER EXACTEMENT ICI ⭐⭐⭐
+  drawILS("EBCI", "25");
+  drawILS("EBCI", "07");
+
+  drawILS("EBLG", "23");
+  drawILS("EBLG", "05");
+  // ⭐⭐⭐ FIN DU BLOC ILS ⭐⭐⭐
 
   // Charger les deux aéroports
   await Promise.all([
     processAirport("EBCI"),
     processAirport("EBLG")
-
-    drawILS("EBCI", "25");
-drawILS("EBCI", "07");
-
-drawILS("EBLG", "23");
-drawILS("EBLG", "05");
-
   ]);
 });
+
 
 
 
