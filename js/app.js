@@ -93,6 +93,13 @@ map.whenReady(async () => {
   await Promise.all([
     processAirport("EBCI"),
     processAirport("EBLG")
+
+    drawILS("EBCI", "25");
+drawILS("EBCI", "07");
+
+drawILS("EBLG", "23");
+drawILS("EBLG", "05");
+
   ]);
 });
 
