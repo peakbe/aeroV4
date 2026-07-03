@@ -3,7 +3,7 @@
  ****************************************************/
 
 import { airports } from "./config.js";
-import { initMap, map, resetMapView } from "./map.js";
+import { initMap, map, resetMapView, drawILS } from "./map.js";
 import { fetchMetar, updateMetarUI, fetchTaf, updateTafUI, injectMetarEmbed, updateWindRose, initMetarSwitch } from "./metar.js";
 import { updateSono } from "./sono.js";
 import { updateFidsList, updateFidsFlights } from "./fids.js";
@@ -11,9 +11,6 @@ import { updateRunwayHUD } from "./fids.js";
 import { initTabs } from "./tabs.js";
 import { angleDiff } from "./utils.js";
 import { updateAircraftPositions } from "./fids.js";
-
-
-
 
 /****************************************************
  * Détection piste active (computeRunway)
@@ -66,12 +63,10 @@ async function processAirport(airportKey) {
   // SONO
   updateSono(airportKey, activeRunway, map);
 
-  // ⭐ FIDS — Sonomètres + Vols + Confirmés
+  // FIDS
   updateFidsFlights(airportKey);
-
   updateFidsList(airportKey);
-  updateFidsFlights(airportKey);
-  }
+}
 
 /****************************************************
  * Initialisation cockpit IFR
@@ -82,32 +77,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   initMap();
   initMetarSwitch();
 
- // Attendre que la carte soit prête
-map.whenReady(async () => {
+  // Attendre que la carte soit prête
+  map.whenReady(async () => {
 
- map.whenReady(async () => {
+    // Radar avion
+    updateAircraftPositions();
+    setInterval(updateAircraftPositions, 30000);
 
-  // Radar avion
-  updateAircraftPositions();
-  setInterval(updateAircraftPositions, 30000);
+    // CÔNES ILS
+    drawILS("EBCI", "25");
+    drawILS("EBCI", "07");
+    drawILS("EBLG", "23");
+    drawILS("EBLG", "05");
 
-  // ⭐⭐⭐ CÔNES ILS — À COLLER EXACTEMENT ICI ⭐⭐⭐
-  drawILS("EBCI", "25");
-  drawILS("EBCI", "07");
-
-  drawILS("EBLG", "23");
-  drawILS("EBLG", "05");
-  // ⭐⭐⭐ FIN DU BLOC ILS ⭐⭐⭐
-
-  // Charger les deux aéroports
-  await Promise.all([
-    processAirport("EBCI"),
-    processAirport("EBLG")
-  ]);
-});
-
-
-
+    // Charger les deux aéroports
+    await Promise.all([
+      processAirport("EBCI"),
+      processAirport("EBLG")
+    ]);
+  });
 
   /****************************************************
    * Bouton SONO ON/OFF
@@ -123,7 +111,7 @@ map.whenReady(async () => {
   }
 
   /****************************************************
-   * Bouton RESET MAP — centré sur l’aéroport actif
+   * Bouton RESET MAP
    ****************************************************/
   const resetBtn = document.getElementById("reset-map");
   if (resetBtn) {
@@ -133,4 +121,5 @@ map.whenReady(async () => {
       }
     });
   }
-});
+
+}); // ← FERMETURE FINALE OK
