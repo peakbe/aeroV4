@@ -8,18 +8,23 @@ import { angleDiff, safeSet } from "./utils.js";
  * HUD Piste active
  ****************************************************/
 export function updateRunwayHUD(airport, windDir) {
-  if (!windDir) return;
+  const hud = document.getElementById("runway-hud");
+  if (!hud) return;
 
-  let best = null, bestDiff = 999;
+  if (!windDir) {
+    hud.innerHTML = "<div class='hud-line'>Piste active: n/a</div>";
+    return;
+  }
 
-  airport.runways.forEach(rw => {
-    const diff = angleDiff(windDir, rw.heading);
-    if (diff < bestDiff) { bestDiff = diff; best = rw; }
-  });
+  const active = computeRunway(airport, windDir);
 
-  const id = airport.icao === "EBCI" ? "runway-ebci" : "runway-eblg";
-  safeSet(id, best ? `Piste ${best.name}` : "n/a");
+  hud.innerHTML = `
+    <div class="hud-line">
+      Vent: ${windDir}° — Piste active: <strong>${active}</strong>
+    </div>
+  `;
 }
+
 
 /****************************************************
  * Format HH:MM cockpit IFR
