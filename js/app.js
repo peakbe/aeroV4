@@ -57,7 +57,7 @@ updateMetarUI(airportKey, metar);
   updateWindRose(metar);
 
 // Piste active
-const windDir = metar?.wind_direction?.value;
+const windDir = metar?.wind_dir;
 const activeRunway = computeRunway(ap, windDir);
 
 window.activeRunway = activeRunway;   // ⭐ AJOUT IMPORTANT ⭐
