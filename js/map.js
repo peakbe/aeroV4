@@ -73,7 +73,7 @@ export function drawILS(airportKey, runwayName) {
   const angleDeg = 3;      // ouverture ±3°
 
   // Convertir km → degrés approximatifs
-  const kmToDeg = lengthKm / 111;
+   const kmToDeg = lengthKm / 111;
 
   // Calcul du point central du cône
   const rad = heading * Math.PI / 180;
@@ -91,8 +91,8 @@ export function drawILS(airportKey, runwayName) {
   const rightLon = lon + kmToDeg * Math.sin(rightRad);
 
   // Polygone du cône ILS
-  const ilsCone = L.polygon([
-    [lat, lon],        // seuil piste
+   const ilsCone = L.polygon([
+    [lat, lon],
     [leftLat, leftLon],
     [endLat, endLon],
     [rightLat, rightLon]
