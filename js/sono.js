@@ -133,11 +133,35 @@ function hideSono(airportKey, map) {
    5) Fonction principale
 --------------------------------------------------*/
 export function updateSono(airportKey, activeRunway, map) {
+  const ap = airports[airportKey];
+  if (!ap) return;
 
-  if (!window.sonoEnabled) {
-    hideSono(airportKey, map);
+  const metar = ap.lastMetar; // stocké dans processAirport()
+  if (!metar) return;
+
+  const windDir = metar.wind_dir;
+  const windSpd = metar.wind_speed;
+
+  const sono = document.getElementById("sono-status");
+  if (!sono) return;
+
+  if (!windDir || !windSpd) {
+    sono.innerHTML = "<div class='sono-line'>SONO: n/a</div>";
     return;
   }
+
+  const color =
+    windSpd <= 8 ? "lime" :
+    windSpd <= 15 ? "orange" :
+    "red";
+
+  sono.innerHTML = `
+    <div class="sono-line" style="color:${color}">
+      Vent ${windDir}° / ${windSpd} kt — Piste ${activeRunway}
+    </div>
+  `;
+}
+
 
   updateSonoListUI(airportKey);
   renderSonoMarkers(airportKey, map);
