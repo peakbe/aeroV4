@@ -156,36 +156,7 @@ export async function updateFidsList(airportKey) {
   }
 }
 
-/****************************************************
- * Vols confirmés (fallback JSON)
- ****************************************************/
-export async function updateFidsConfirmed() {
-  const listEl = document.getElementById("confirmed-hud");
-  const countEl = document.getElementById("confirmed-count");
-  if (!listEl || !countEl) return;
 
- listEl.textContent = "Aucun vol confirmé";
-countEl.textContent = "0";
-return;
-
-
-  try {
-    const res = await fetch(`/api/fids/confirmed.json`);
-    const data = await res.json();
-
-    // Compteur
-    countEl.textContent = data.length;
-
-    // Liste
-    listEl.innerHTML = data
-      .map(v => `${v.flight} — ${v.status}`)
-      .join("<br>");
-
-  } catch (e) {
-    listEl.textContent = "Aucun vol confirmé";
-    countEl.textContent = "0";
-  }
-}
 
 // Fonction PRO+++ pour afficher les avions
 import { map, planesLayer, planeIconApproach, planeIconDeparture } from "./map.js";
