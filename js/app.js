@@ -90,10 +90,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     setInterval(updateAircraftPositions, 30000);
 
     // CÔNES ILS
-    drawILS("EBCI", "25");
-    drawILS("EBCI", "07");
-    drawILS("EBLG", "23");
-    drawILS("EBLG", "05");
+    drawILS("EBCI", "24");
+    drawILS("EBCI", "06");
+    drawILS("EBLG", "22");
+    drawILS("EBLG", "04");
 
     // Charger les deux aéroports
     await Promise.all([
