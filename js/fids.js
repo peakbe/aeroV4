@@ -3,6 +3,7 @@
  ****************************************************/
 
 import { angleDiff, safeSet } from "./utils.js";
+import { computeRunway } from "./app.js";
 
 /****************************************************
  * HUD Piste active
