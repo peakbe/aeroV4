@@ -42,9 +42,8 @@ async function processAirport(airportKey) {
 
   // METAR
   const metar = await fetchMetar(ap.icao);
-ap.lastMetar = metar;
-updateMetarUI(airportKey, metar);
-
+  ap.lastMetar = metar;
+  updateMetarUI(airportKey, metar);
 
   // TAF
   const taf = await fetchTaf(ap.icao);
@@ -56,14 +55,13 @@ updateMetarUI(airportKey, metar);
   // Rose des vents
   updateWindRose(metar);
 
-// Piste active
-const windDir = metar?.wind_dir;
-const activeRunway = computeRunway(ap, windDir);
+  // Piste active (AirLabs)
+  const windDir = metar?.wind_dir;
+  const activeRunway = computeRunway(ap, windDir);
 
-window.activeRunway = activeRunway;   // ⭐ AJOUT IMPORTANT ⭐
+  window.activeRunway = activeRunway;
 
-updateRunwayHUD(ap, windDir);
-
+  updateRunwayHUD(ap, windDir);
 
   // SONO
   updateSono(airportKey, activeRunway, map);
