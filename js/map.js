@@ -56,3 +56,53 @@ export const planeIconDeparture = L.icon({
   iconSize: [32, 32],
   iconAnchor: [16, 16]
 });
+
+// Fonction PRO+++ pour dessiner un cône ILS
+export function drawILS(airportKey, runwayName) {
+  const ap = airports[airportKey];
+  if (!ap) return;
+
+  const rw = ap.runways.find(r => r.name === runwayName);
+  if (!rw) return;
+
+  const lat = rw.lat;
+  const lon = rw.lon;
+  const heading = rw.heading;
+
+  const lengthKm = 15;     // longueur du cône
+  const angleDeg = 3;      // ouverture ±3°
+
+  // Convertir km → degrés approximatifs
+  const kmToDeg = lengthKm / 111;
+
+  // Calcul du point central du cône
+  const rad = heading * Math.PI / 180;
+  const endLat = lat + kmToDeg * Math.cos(rad);
+  const endLon = lon + kmToDeg * Math.sin(rad);
+
+  // Calcul des bords du cône
+  const leftRad = (heading - angleDeg) * Math.PI / 180;
+  const rightRad = (heading + angleDeg) * Math.PI / 180;
+
+  const leftLat = lat + kmToDeg * Math.cos(leftRad);
+  const leftLon = lon + kmToDeg * Math.sin(leftRad);
+
+  const rightLat = lat + kmToDeg * Math.cos(rightRad);
+  const rightLon = lon + kmToDeg * Math.sin(rightRad);
+
+  // Polygone du cône ILS
+  const ilsCone = L.polygon([
+    [lat, lon],        // seuil piste
+    [leftLat, leftLon],
+    [endLat, endLon],
+    [rightLat, rightLon]
+  ], {
+    color: "cyan",
+    weight: 2,
+    opacity: 0.8,
+    fillOpacity: 0.1
+  });
+
+  ilsCone.addTo(map);
+  return ilsCone;
+}
