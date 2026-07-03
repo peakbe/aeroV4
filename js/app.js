@@ -12,10 +12,7 @@ import { initTabs } from "./tabs.js";
 import { angleDiff } from "./utils.js";
 import { updateAircraftPositions } from "./fids.js";
 
-map.whenReady(() => {
-  updateAircraftPositions();
-  setInterval(updateAircraftPositions, 30000);
-});
+
 
 
 /****************************************************
@@ -87,12 +84,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   initMetarSwitch();
 
   // Attendre que la carte soit prête
-  map.whenReady(async () => {
-    await Promise.all([
-      processAirport("EBCI"),
-      processAirport("EBLG")
-    ]);
-  });
+  map.whenReady(() => {
+  updateAircraftPositions();
+  setInterval(updateAircraftPositions, 30000);
+
+  await Promise.all([
+    processAirport("EBCI"),
+    processAirport("EBLG")
+  ]);
+});
+
 
   /****************************************************
    * Bouton SONO ON/OFF
