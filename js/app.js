@@ -34,43 +34,53 @@ export function computeRunway(airport, windDirDeg) {
 }
 
 /****************************************************
- * Processus principal par aéroport
+ * Processus principal par aéroport — Version optimisée
  ****************************************************/
-async function processAirport(airportKey) {
+export async function processAirport(airportKey) {
   window.currentAirportKey = airportKey;
 
   const ap = airports[airportKey];
 
-  // METAR
+  /***********************
+   * 1) METAR (AirLabs)
+   ***********************/
   const metar = await fetchMetar(ap.icao);
   ap.lastMetar = metar;
   updateMetarUI(airportKey, metar);
 
-  // TAF
+  /***********************
+   * 2) TAF (AirLabs)
+   ***********************/
   const taf = await fetchTaf(ap.icao);
   updateTafUI(airportKey, taf);
 
-  // Embed METAR-TAF.com
-  injectMetarEmbed(airportKey);
-
-  // Rose des vents
+  /***********************
+   * 3) Rose des vents
+   ***********************/
   updateWindRose(metar);
 
-  // Piste active (AirLabs)
-  const windDir = metar?.wind_dir;
+  /***********************
+   * 4) Piste active (AirLabs)
+   ***********************/
+  const windDir = metar?.wind_dir;     // ⭐ AirLabs correct
   const activeRunway = computeRunway(ap, windDir);
 
-  window.activeRunway = activeRunway;
+  window.activeRunway = activeRunway;  // ⭐ utilisé par ILS dynamique + SONO
 
   updateRunwayHUD(ap, windDir);
 
-  // SONO
+  /***********************
+   * 5) SONO
+   ***********************/
   updateSono(airportKey, activeRunway, map);
 
-  // FIDS
+  /***********************
+   * 6) FIDS avionique
+   ***********************/
   updateFidsFlights(airportKey);
   updateFidsList(airportKey);
 }
+
 
 /****************************************************
  * Initialisation cockpit IFR
