@@ -54,11 +54,14 @@ async function processAirport(airportKey) {
   // Rose des vents
   updateWindRose(metar);
 
-  // Piste active
-  const windDir = metar?.wind_direction?.value;
-  const activeRunway = computeRunway(ap, windDir);
+// Piste active
+const windDir = metar?.wind_direction?.value;
+const activeRunway = computeRunway(ap, windDir);
 
-  updateRunwayHUD(ap, windDir);
+window.activeRunway = activeRunway;   // ⭐ AJOUT IMPORTANT ⭐
+
+updateRunwayHUD(ap, windDir);
+
 
   // SONO
   updateSono(airportKey, activeRunway, map);
