@@ -102,12 +102,13 @@ export function drawILS(airportKey, runwayName) {
     opacity: 0.8,
     fillOpacity: 0.1
   });
-
-  ilsCone.addTo(map);
-  return ilsCone;
-}
-
+  
 // couleur dynamique selon vent / piste active
 if (runwayName === activeRunway) {
   ilsCone.setStyle({ color: "lime", weight: 3 });
+}
+
+  
+  ilsCone.addTo(map);
+  return ilsCone;
 }
