@@ -42,7 +42,9 @@ async function processAirport(airportKey) {
 
   // METAR
   const metar = await fetchMetar(ap.icao);
-  updateMetarUI(airportKey, metar);
+ap.lastMetar = metar;
+updateMetarUI(airportKey, metar);
+
 
   // TAF
   const taf = await fetchTaf(ap.icao);
