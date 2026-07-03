@@ -82,16 +82,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   initMap();
   initMetarSwitch();
 
-  // Attendre que la carte soit prête
-  map.whenReady(() => {
+ // Attendre que la carte soit prête
+map.whenReady(async () => {
+
+  // Radar avion
   updateAircraftPositions();
   setInterval(updateAircraftPositions, 30000);
 
+  // Charger les deux aéroports
   await Promise.all([
     processAirport("EBCI"),
     processAirport("EBLG")
   ]);
 });
+
 
 
   /****************************************************
