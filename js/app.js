@@ -15,7 +15,8 @@ import { updateAircraftPositions } from "./fids.js";
 /****************************************************
  * Détection piste active (computeRunway)
  ****************************************************/
-function computeRunway(airport, windDirDeg) {
+export function computeRunway(airport, windDirDeg) {
+
   if (!windDirDeg) return null;
 
   let best = null;
