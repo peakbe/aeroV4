@@ -1,13 +1,21 @@
-import { AVWX_API_KEY } from "./config.js";
+import { AIRLABS_API_KEY } from "./config.js";
 
 /****************************************************
- * 1) FETCH METAR
+ * 1) FETCH METAR — AirLabs
  ****************************************************/
 export async function fetchMetar(icao) {
-  const url = `https://avwx.rest/api/metar/${icao}?token=${AVWX_API_KEY}&format=json`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("METAR error " + icao);
-  return res.json();
+  try {
+    const url = `https://airlabs.co/api/v9/metar?iata=${icao}&api_key=${AIRLABS_API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // AirLabs renvoie un tableau dans response[]
+    return data?.response?.[0] || null;
+
+  } catch (e) {
+    console.error("Erreur METAR:", e);
+    return null;
+  }
 }
 
 /****************************************************
@@ -16,8 +24,8 @@ export async function fetchMetar(icao) {
 function classifyMetar(metar) {
   if (!metar) return "red";
 
-  const wind = metar.wind_speed?.value || 0;
-  const vis = metar.visibility?.value || 0;
+  const wind = metar.wind_speed || 0;
+  const vis = metar.visibility || 0;
 
   if (wind <= 8 && vis >= 8000) return "green";
   if (wind <= 15 && vis >= 4000) return "orange";
@@ -31,29 +39,41 @@ export function updateMetarUI(airportKey, metar) {
   const el = document.getElementById(`metar-${airportKey}`);
   if (!el) return;
 
+  if (!metar) {
+    el.innerHTML = `<div class="metar-line red">METAR indisponible</div>`;
+    return;
+  }
+
   const color = classifyMetar(metar);
 
-  const windDir = metar?.wind_direction?.value ?? "n/a";
-  const windSpd = metar?.wind_speed?.value ?? "n/a";
-  const temp = metar?.temperature?.value ?? "n/a";
-  const qnh = metar?.altimeter?.value ?? "n/a";
+  const windDir = metar.wind_dir || "n/a";
+  const windSpd = metar.wind_speed || "n/a";
+  const temp = metar.temp || "n/a";
+  const qnh = metar.pressure || "n/a";
 
   el.innerHTML = `
     <div class="metar-line ${color}">
       Vent: ${windDir}° / ${windSpd} kt — T: ${temp}°C — QNH: ${qnh} hPa
     </div>
-    <div class="metar-raw">${metar?.raw_text || "n/a"}</div>
+    <div class="metar-raw">${metar.raw_text || "n/a"}</div>
   `;
 }
 
 /****************************************************
- * 4) FETCH TAF
+ * 4) FETCH TAF — AirLabs
  ****************************************************/
 export async function fetchTaf(icao) {
-  const url = `https://avwx.rest/api/taf/${icao}?token=${AVWX_API_KEY}&format=json`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("TAF error " + icao);
-  return res.json();
+  try {
+    const url = `https://airlabs.co/api/v9/taf?iata=${icao}&api_key=${AIRLABS_API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    return data?.response?.[0] || null;
+
+  } catch (e) {
+    console.error("Erreur TAF:", e);
+    return null;
+  }
 }
 
 /****************************************************
@@ -92,7 +112,7 @@ export function initMetarSwitch() {
 }
 
 /****************************************************
- * 7) EMBED METAR-TAF.COM
+ * 7) EMBED METAR-TAF.COM (inchangé)
  ****************************************************/
 export function injectMetarEmbed(airportKey) {
   let targetId, url, linkText;
@@ -144,8 +164,8 @@ export function updateWindRose(metar) {
   const container = document.getElementById("wind-rose");
   if (!container) return;
 
-  const windDir = metar?.wind_direction?.value;
-  const windSpd = metar?.wind_speed?.value;
+  const windDir = metar?.wind_dir;
+  const windSpd = metar?.wind_speed;
 
   if (!windDir || !windSpd) {
     container.innerHTML = "<div style='color:#888'>Vent: n/a</div>";
