@@ -2,7 +2,7 @@
  * SONO MODULE PRO+++ — Cockpit IFR
  ****************************************************/
 /* global L */
-
+import { airports } from "./config.js";
 import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
 
 window.sonoEnabled = true;
