@@ -2,7 +2,7 @@
  * CONFIG — Cockpit IFR PRO+++
  ****************************************************/
 
-export const AIRLABS_KEY = "04cb1c09-8abb-468a-95fa-ee90c3c2b651";
+export const AIRLABS_API_KEY = "04cb1c09-8abb-468a-95fa-ee90c3c2b651";
 
 export const airports = {
   EBCI: {
