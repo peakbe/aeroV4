@@ -4,7 +4,7 @@ import { airports } from "./config.js";
 export let map;
 export let planesLayer;
 export let ilsLayer;
-
+export let ilsLabelsLayer;
 
 /****************************************************
  * INIT MAP
@@ -13,20 +13,18 @@ export function initMap() {
   map = L.map("map").setView([50.5, 4.7], 10);
 
   ilsLayer = L.layerGroup().addTo(map);
+  ilsLabelsLayer = L.layerGroup().addTo(map);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18
   }).addTo(map);
 
-  // Layer avions
   planesLayer = L.layerGroup().addTo(map);
 
-  // Carte prête
   map.whenReady(() => {
     window._mapReady = true;
   });
 
-  // Markers aéroports
   Object.values(airports).forEach(ap => {
     L.marker([ap.lat, ap.lon])
       .addTo(map)
@@ -39,11 +37,8 @@ export function initMap() {
  ****************************************************/
 export function resetMapView(airportKey) {
   if (!map) return;
-
   const ap = airports[airportKey];
-  if (ap) {
-    map.setView([ap.lat, ap.lon], 13); // zoom IFR
-  }
+  if (ap) map.setView([ap.lat, ap.lon], 13);
 }
 
 /****************************************************
@@ -61,7 +56,9 @@ export const planeIconDeparture = L.icon({
   iconAnchor: [16, 16]
 });
 
-// Fonction PRO+++ pour dessiner un cône ILS
+/****************************************************
+ * ILS — LOC + Glidepath + OM/MM/IM + Label
+ ****************************************************/
 export function drawILS(airportKey, runwayName) {
   const ap = airports[airportKey];
   if (!ap) return;
@@ -74,15 +71,15 @@ export function drawILS(airportKey, runwayName) {
   const heading = rw.heading;
 
   const lengthKm = 15;
-  const angleDeg = 3;
   const kmToDeg = lengthKm / 111;
 
   const rad = heading * Math.PI / 180;
+
   const endLat = lat + kmToDeg * Math.cos(rad);
   const endLon = lon + kmToDeg * Math.sin(rad);
 
-  const leftRad = (heading - angleDeg) * Math.PI / 180;
-  const rightRad = (heading + angleDeg) * Math.PI / 180;
+  const leftRad = (heading - 3) * Math.PI / 180;
+  const rightRad = (heading + 3) * Math.PI / 180;
 
   const leftLat = lat + kmToDeg * Math.cos(leftRad);
   const leftLon = lon + kmToDeg * Math.sin(leftRad);
@@ -90,7 +87,10 @@ export function drawILS(airportKey, runwayName) {
   const rightLat = lat + kmToDeg * Math.cos(rightRad);
   const rightLon = lon + kmToDeg * Math.sin(rightRad);
 
-  const ilsCone = L.polygon([
+  /****************************************************
+   * 1) LOC — Cône horizontal
+   ****************************************************/
+  const locCone = L.polygon([
     [lat, lon],
     [leftLat, leftLon],
     [endLat, endLon],
@@ -102,23 +102,98 @@ export function drawILS(airportKey, runwayName) {
     fillOpacity: 0.1
   });
 
+  /****************************************************
+   * 2) Glidepath 3° — Ligne verticale
+   ****************************************************/
+  const glideLengthKm = 10;
+  const glideKmToDeg = glideLengthKm / 111;
+
+  const glideEndLat = lat + glideKmToDeg * Math.cos(rad);
+  const glideEndLon = lon + glideKmToDeg * Math.sin(rad);
+
+  const glidePath = L.polyline([
+    [lat, lon],
+    [glideEndLat, glideEndLon]
+  ], {
+    color: "orange",
+    weight: 3,
+    dashArray: "6,6"
+  });
+
+  /****************************************************
+   * 3) OM / MM / IM — Markers IFR
+   ****************************************************/
+  const markers = [];
+
+  const OMdist = 7 / 111;
+  const MMdist = 1 / 111;
+  const IMdist = 0.5 / 111;
+
+  const OMlat = lat + OMdist * Math.cos(rad);
+  const OMlon = lon + OMdist * Math.sin(rad);
+
+  const MMlat = lat + MMdist * Math.cos(rad);
+  const MMlon = lon + MMdist * Math.sin(rad);
+
+  const IMlat = lat + IMdist * Math.cos(rad);
+  const IMlon = lon + IMdist * Math.sin(rad);
+
+  markers.push(L.circleMarker([OMlat, OMlon], {
+    radius: 6,
+    color: "blue",
+    fillColor: "blue",
+    fillOpacity: 0.9
+  }).bindPopup("OM — Outer Marker"));
+
+  markers.push(L.circleMarker([MMlat, MMlon], {
+    radius: 6,
+    color: "yellow",
+    fillColor: "yellow",
+    fillOpacity: 0.9
+  }).bindPopup("MM — Middle Marker"));
+
+  markers.push(L.circleMarker([IMlat, IMlon], {
+    radius: 6,
+    color: "white",
+    fillColor: "white",
+    fillOpacity: 0.9
+  }).bindPopup("IM — Inner Marker"));
+
+  /****************************************************
+   * 4) Label piste active
+   ****************************************************/
   const activeRunway = window.activeRunway;
+
   if (runwayName === activeRunway) {
-    ilsCone.setStyle({ color: "lime", weight: 3 });
+    locCone.setStyle({ color: "lime", weight: 3 });
+    glidePath.setStyle({ color: "lime", weight: 4 });
+
+    const label = L.marker([lat, lon], {
+      icon: L.divIcon({
+        className: "ils-label",
+        html: `<div style="color:lime; font-weight:bold; font-size:18px;">RWY ${runwayName} ACTIVE</div>`
+      }),
+      interactive: false
+    });
+
+    ilsLabelsLayer.addLayer(label);
   }
 
-  ilsLayer.addLayer(ilsCone);
-  return ilsCone;
+  ilsLayer.addLayer(locCone);
+  ilsLayer.addLayer(glidePath);
+  markers.forEach(m => ilsLayer.addLayer(m));
 }
 
-//  fonction pour redessiner tous les ILS
+/****************************************************
+ * Redessiner tous les ILS
+ ****************************************************/
 export function refreshILS() {
   if (!ilsLayer) return;
   ilsLayer.clearLayers();
+  ilsLabelsLayer.clearLayers();
 
   drawILS("EBCI", "24");
   drawILS("EBCI", "06");
   drawILS("EBLG", "22");
   drawILS("EBLG", "04");
 }
-
