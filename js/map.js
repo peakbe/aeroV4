@@ -111,3 +111,14 @@ export function drawILS(airportKey, runwayName) {
   return ilsCone;
 }
 
+//  fonction pour redessiner tous les ILS
+export function refreshILS() {
+  if (!ilsLayer) return;
+  ilsLayer.clearLayers();
+
+  drawILS("EBCI", "24");
+  drawILS("EBCI", "06");
+  drawILS("EBLG", "22");
+  drawILS("EBLG", "04");
+}
+
