@@ -62,12 +62,14 @@ export async function processAirport(airportKey) {
   /***********************
    * 4) Piste active (AirLabs)
    ***********************/
-  const windDir = metar?.wind_dir;     // ⭐ AirLabs correct
+  const windDir = metar?.wind_dir;
+  const windSpd = metar?.wind_speed;
+
   const activeRunway = computeRunway(ap, windDir);
 
   window.activeRunway = activeRunway;  // ⭐ utilisé par ILS dynamique + SONO
 
-  updateRunwayHUD(ap, windDir);
+  updateRunwayHUD(ap, windDir, windSpd);
 
   /***********************
    * 5) SONO
