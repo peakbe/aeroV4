@@ -8,20 +8,21 @@ import { computeRunway } from "./app.js";
 /****************************************************
  * HUD Piste active
  ****************************************************/
-export function updateRunwayHUD(airport, windDir) {
+export function updateRunwayHUD(airport, windDir, windSpd) {
   const hud = document.getElementById("runway-hud");
   if (!hud) return;
 
-  if (!windDir) {
+  if (!windDir || !windSpd) {
     hud.innerHTML = "<div class='hud-line'>Piste active: n/a</div>";
     return;
   }
 
+  // Piste active calculée via computeRunway
   const active = computeRunway(airport, windDir);
 
   hud.innerHTML = `
     <div class="hud-line">
-      Vent: ${windDir}° — Piste active: <strong>${active}</strong>
+      Vent ${windDir}° / ${windSpd} kt — Piste active: <strong>${active}</strong>
     </div>
   `;
 }
