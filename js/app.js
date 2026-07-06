@@ -40,6 +40,9 @@ export async function processAirport(airportKey) {
   window.currentAirportKey = airportKey;
 
   const ap = airports[airportKey];
+ 
+  refreshILS();
+window.activeRunway = activeRunway;
 
   /***********************
    * 1) METAR (AirLabs)
