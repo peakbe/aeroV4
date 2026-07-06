@@ -3,12 +3,16 @@ import { airports } from "./config.js";
 
 export let map;
 export let planesLayer;
+export let ilsLayer;
+
 
 /****************************************************
  * INIT MAP
  ****************************************************/
 export function initMap() {
   map = L.map("map").setView([50.5, 4.7], 10);
+
+  ilsLayer = L.layerGroup().addTo(map);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18
@@ -69,18 +73,14 @@ export function drawILS(airportKey, runwayName) {
   const lon = rw.lon;
   const heading = rw.heading;
 
-  const lengthKm = 15;     // longueur du cône
-  const angleDeg = 3;      // ouverture ±3°
+  const lengthKm = 15;
+  const angleDeg = 3;
+  const kmToDeg = lengthKm / 111;
 
-  // Convertir km → degrés approximatifs
-   const kmToDeg = lengthKm / 111;
-
-  // Calcul du point central du cône
   const rad = heading * Math.PI / 180;
   const endLat = lat + kmToDeg * Math.cos(rad);
   const endLon = lon + kmToDeg * Math.sin(rad);
 
-  // Calcul des bords du cône
   const leftRad = (heading - angleDeg) * Math.PI / 180;
   const rightRad = (heading + angleDeg) * Math.PI / 180;
 
@@ -90,8 +90,7 @@ export function drawILS(airportKey, runwayName) {
   const rightLat = lat + kmToDeg * Math.cos(rightRad);
   const rightLon = lon + kmToDeg * Math.sin(rightRad);
 
-  // Polygone du cône ILS
-   const ilsCone = L.polygon([
+  const ilsCone = L.polygon([
     [lat, lon],
     [leftLat, leftLon],
     [endLat, endLon],
@@ -102,16 +101,13 @@ export function drawILS(airportKey, runwayName) {
     opacity: 0.8,
     fillOpacity: 0.1
   });
-  
-// couleur dynamique selon vent / piste active
-const activeRunway = window.activeRunway;
 
-if (runwayName === activeRunway) {
-  ilsCone.setStyle({ color: "lime", weight: 3 });
-}
+  const activeRunway = window.activeRunway;
+  if (runwayName === activeRunway) {
+    ilsCone.setStyle({ color: "lime", weight: 3 });
+  }
 
-
-  
-  ilsCone.addTo(map);
+  ilsLayer.addLayer(ilsCone);
   return ilsCone;
 }
+
