@@ -16,7 +16,7 @@ export async function fetchMetar(icao) {
 }
 
 /****************************************************
- * 2) CLASSIFICATION METAR
+ * 2) CLASSIFICATION METAR (vert/orange/rouge)
  ****************************************************/
 function classifyMetar(metar) {
   if (!metar) return "red";
@@ -30,14 +30,22 @@ function classifyMetar(metar) {
 }
 
 /****************************************************
- * 3) AFFICHAGE METAR
+ * 3) AFFICHAGE METAR — Compatible avec TON HTML
  ****************************************************/
 export function updateMetarUI(airportKey, metar) {
-  const el = document.getElementById(`metar-${airportKey}`);
-  if (!el) return;
+  const key = airportKey.toLowerCase();
+
+  const summary = document.getElementById(`meteo-${key}-summary`);
+  const raw = document.getElementById(`meteo-${key}-raw`);
+
+  if (!summary || !raw) {
+    console.warn("IDs METAR manquants pour", airportKey);
+    return;
+  }
 
   if (!metar) {
-    el.innerHTML = `<div class="metar-line red">METAR indisponible</div>`;
+    summary.textContent = "METAR indisponible";
+    raw.textContent = "n/a";
     return;
   }
 
@@ -46,14 +54,15 @@ export function updateMetarUI(airportKey, metar) {
   const windDir = metar.wind_dir || "n/a";
   const windSpd = metar.wind_speed || "n/a";
   const temp = metar.temp || "n/a";
-  const qnh = metar.pressure_hpa || "n/a";   // ⭐ correction
+  const qnh = metar.pressure_hpa || "n/a";
 
-  el.innerHTML = `
-    <div class="metar-line ${color}">
-      Vent: ${windDir}° / ${windSpd} kt — T: ${temp}°C — QNH: ${qnh} hPa
-    </div>
-    <div class="metar-raw">${metar.raw_text || "n/a"}</div>
+  summary.innerHTML = `
+    <span class="${color}">
+      Vent ${windDir}° / ${windSpd} kt — T: ${temp}°C — QNH: ${qnh} hPa
+    </span>
   `;
+
+  raw.textContent = metar.raw_text || "n/a";
 }
 
 /****************************************************
@@ -72,7 +81,7 @@ export async function fetchTaf(icao) {
 }
 
 /****************************************************
- * 5) AFFICHAGE TAF
+ * 5) AFFICHAGE TAF — Compatible avec TON HTML
  ****************************************************/
 export function updateTafUI(airportKey, taf) {
   const el = document.getElementById("taf-content");
@@ -107,10 +116,43 @@ export function initMetarSwitch() {
 }
 
 /****************************************************
- * 7) EMBED METAR-TAF.COM
+ * 7) EMBED METAR-TAF.COM (inchangé)
  ****************************************************/
 export function injectMetarEmbed(airportKey) {
-  // inchangé
+  let targetId, url, linkText;
+
+  if (airportKey === "EBCI") {
+    targetId = "metar-embed-ebci";
+    url = "https://metar-taf.com/fr/embed-js/EBCI?qnh=hPa&rh=rh&target=GrcWAfkb";
+    linkText = "METAR Brussels South Charleroi Airport";
+  } else if (airportKey === "EBLG") {
+    targetId = "metar-embed-eblg";
+    url = "https://metar-taf.com/fr/embed-js/EBLG?qnh=hPa&rh=rh&target=J0YHElLt";
+    linkText = "METAR Liège Airport";
+  } else {
+    return;
+  }
+
+  const container = document.getElementById(targetId);
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const a = document.createElement("a");
+  a.href = `https://metar-taf.com/fr/metar/${airportKey}`;
+  a.id = airportKey === "EBCI" ? "metartaf-GrcWAfkb" : "metartaf-J0YHElLt";
+  a.style = "font-size:18px; font-weight:500; color:#000; width:300px; height:435px; display:block";
+  a.textContent = linkText;
+
+  container.appendChild(a);
+
+  const script = document.createElement("script");
+  script.src = url;
+  script.async = true;
+  script.defer = true;
+  script.crossOrigin = "anonymous";
+
+  container.appendChild(script);
 }
 
 /****************************************************
