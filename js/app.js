@@ -92,25 +92,20 @@ export async function processAirport(airportKey) {
 document.addEventListener("DOMContentLoaded", async () => {
 
   initTabs();
-  initMap();
+  initMap();          // ⭐ protégé dans map.js
   initMetarSwitch();
 
   map.whenReady(async () => {
 
-    // Radar avion
     updateAircraftPositions();
     setInterval(updateAircraftPositions, 30000);
 
-    // Charger les deux aéroports
     await Promise.all([
       processAirport("EBCI"),
       processAirport("EBLG")
     ]);
   });
 
-  /****************************************************
-   * Bouton SONO ON/OFF
-   ****************************************************/
   const toggle = document.getElementById("toggle-sono");
   if (toggle) {
     toggle.checked = true;
@@ -121,9 +116,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  /****************************************************
-   * Bouton RESET MAP
-   ****************************************************/
   const resetBtn = document.getElementById("reset-map");
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
@@ -134,3 +126,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 });
+
