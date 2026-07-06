@@ -252,6 +252,6 @@ export async function updateAircraftPositions() {
     weight: 2
   }).addTo(planesLayer);
 });
-
+}
 
 
