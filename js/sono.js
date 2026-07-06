@@ -8,16 +8,16 @@ import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
 window.sonoEnabled = true;
 
 /* -------------------------------------------------
-   0) Markers Leaflet — création dynamique
+   0) Markers Leaflet — création dynamique (optimisée)
 --------------------------------------------------*/
 let sonoLayerEBCI = null;
 let sonoLayerEBLG = null;
 
+let sonoRenderedEBCI = false;
+let sonoRenderedEBLG = false;
+
 function renderSonoMarkers(airportKey, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
-
-  if (airportKey === "EBCI" && sonoLayerEBCI) map.removeLayer(sonoLayerEBCI);
-  if (airportKey === "EBLG" && sonoLayerEBLG) map.removeLayer(sonoLayerEBLG);
 
   const group = L.layerGroup();
 
@@ -36,15 +36,21 @@ function renderSonoMarkers(airportKey, map) {
     group.addLayer(marker);
   });
 
-  if (airportKey === "EBCI") sonoLayerEBCI = group;
-  if (airportKey === "EBLG") sonoLayerEBLG = group;
+  if (airportKey === "EBCI") {
+    sonoLayerEBCI = group;
+  } else {
+    sonoLayerEBLG = group;
+  }
 
   group.addTo(map);
 }
 
 /* -------------------------------------------------
-   1) Rendu UI MCDU
+   1) Rendu UI MCDU (optimisé)
 --------------------------------------------------*/
+let sonoListRenderedEBCI = false;
+let sonoListRenderedEBLG = false;
+
 export function updateSonoListUI(airportKey) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
   const id = airportKey === "EBCI" ? "sono-list-ebci" : "sono-list-eblg";
@@ -71,7 +77,7 @@ const RULES_EBLG = {
 };
 
 /* -------------------------------------------------
-   3) Application des règles
+   3) Application des règles (sécurisée)
 --------------------------------------------------*/
 export function applySonoRules(airportKey, activeRunway, map) {
   const rules = airportKey === "EBCI" ? RULES_EBCI : RULES_EBLG;
@@ -80,6 +86,8 @@ export function applySonoRules(airportKey, activeRunway, map) {
   const { green, red } = rules[activeRunway];
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
   const layer = airportKey === "EBCI" ? sonoLayerEBCI : sonoLayerEBLG;
+
+  if (!layer) return; // ⭐ protection anti-crash
 
   // Reset
   list.forEach(s => {
@@ -133,7 +141,7 @@ function hideSono(airportKey, map) {
 }
 
 /* -------------------------------------------------
-   5) Fonction principale
+   5) Fonction principale — Optimisée PRO+++
 --------------------------------------------------*/
 export function updateSono(airportKey, activeRunway, map) {
   const ap = airports[airportKey];
@@ -164,8 +172,26 @@ export function updateSono(airportKey, activeRunway, map) {
     </div>
   `;
 
-  // ⭐ Appels corrects (à l’intérieur de la fonction)
-  updateSonoListUI(airportKey);
-  renderSonoMarkers(airportKey, map);
+  // ⭐ Génération liste SONO une seule fois
+  if (airportKey === "EBCI" && !sonoListRenderedEBCI) {
+    updateSonoListUI("EBCI");
+    sonoListRenderedEBCI = true;
+  }
+  if (airportKey === "EBLG" && !sonoListRenderedEBLG) {
+    updateSonoListUI("EBLG");
+    sonoListRenderedEBLG = true;
+  }
+
+  // ⭐ Génération markers SONO une seule fois
+  if (airportKey === "EBCI" && !sonoRenderedEBCI) {
+    renderSonoMarkers("EBCI", map);
+    sonoRenderedEBCI = true;
+  }
+  if (airportKey === "EBLG" && !sonoRenderedEBLG) {
+    renderSonoMarkers("EBLG", map);
+    sonoRenderedEBLG = true;
+  }
+
+  // ⭐ Application des règles (toujours)
   applySonoRules(airportKey, activeRunway, map);
 }
