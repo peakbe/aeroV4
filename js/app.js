@@ -12,6 +12,7 @@ import { updateRunwayHUD } from "./fids.js";
 import { initTabs } from "./tabs.js";
 import { angleDiff } from "./utils.js";
 import { updateAircraftPositions } from "./fids.js";
+import { fetchStationInfo } from "./station.js";
 
 /****************************************************
  * Détection piste active (computeRunway)
@@ -86,6 +87,12 @@ export async function processAirport(airportKey) {
   updateFidsFlights(airportKey);
   updateFidsList(airportKey);
 }
+ /***********************
+   *8) Station météo
+   ***********************/
+
+const station = await fetchStationInfo(ap.icao);
+updateStationUI(airportKey, station);
 
 /****************************************************
  * Initialisation cockpit IFR
