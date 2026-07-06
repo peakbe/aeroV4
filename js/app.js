@@ -1,6 +1,7 @@
 /****************************************************
  * APP.JS — Orchestrateur Cockpit IFR PRO+++
  ****************************************************/
+import { AVWX_API_KEY } from "./config.js";
 
 import { airports } from "./config.js";
 import { initMap, map, resetMapView, refreshILS } from "./map.js";
