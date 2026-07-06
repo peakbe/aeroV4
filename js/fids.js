@@ -17,7 +17,6 @@ export function updateRunwayHUD(airport, windDir, windSpd) {
     return;
   }
 
-  // Piste active calculée via computeRunway
   const active = computeRunway(airport, windDir);
 
   hud.innerHTML = `
@@ -27,14 +26,13 @@ export function updateRunwayHUD(airport, windDir, windSpd) {
   `;
 }
 
-
 /****************************************************
  * Format HH:MM cockpit IFR
  ****************************************************/
 function formatTime(t) {
   if (!t) return "n/a";
   try {
-    return t.split("T")[1].replace("Z", "").slice(0, 5); // HH:MM
+    return t.split("T")[1].replace("Z", "").slice(0, 5);
   } catch {
     return "n/a";
   }
@@ -56,7 +54,7 @@ function statusClass(status) {
  * Fusion Arrivées + Départs AirLabs
  ****************************************************/
 async function fetchAirlabsFlights(icao) {
-  const key = "04cb1c09-8abb-468a-95fa-ee90c3c2b651"; // ← Mets ta clé ici
+  const key = "04cb1c09-8abb-468a-95fa-ee90c3c2b651";
 
   const urls = [
     `https://airlabs.co/api/v9/flights?arr_icao=${icao}&api_key=${key}`,
@@ -95,14 +93,12 @@ export async function updateFidsFlights(airportKey) {
     return;
   }
 
-  // Tri par heure
   flights.sort((a, b) => {
     const ta = a.arr_time || a.dep_time || "";
     const tb = b.arr_time || b.dep_time || "";
     return ta.localeCompare(tb);
   });
 
-  // 15 prochains vols
   const upcoming = flights.slice(0, 15);
 
   tbody.innerHTML = "";
@@ -118,7 +114,6 @@ export async function updateFidsFlights(airportKey) {
     const dest = f.arr_iata || f.arr_icao || "n/a";
     const status = f.status || "n/a";
 
-    // Highlight vols en approche
     const isApproach =
       status === "active" ||
       status === "en-route" ||
@@ -142,8 +137,6 @@ export async function updateFidsFlights(airportKey) {
   });
 }
 
-
-
 /****************************************************
  * Sonomètres (optionnel)
  ****************************************************/
@@ -163,9 +156,9 @@ export async function updateFidsList(airportKey) {
   }
 }
 
-
-
-// Fonction PRO+++ pour afficher les avions
+/****************************************************
+ * Radar avion — AirLabs
+ ****************************************************/
 import { map, planesLayer, planeIconApproach, planeIconDeparture } from "./map.js";
 
 export async function updateAircraftPositions() {
@@ -196,62 +189,28 @@ export async function updateAircraftPositions() {
 
   aircraft.forEach(f => {
 
-  const isApproach =
-    f.arr_icao === "EBLG" || f.arr_icao === "EBCI";
+    const isApproach =
+      f.arr_icao === "EBLG" || f.arr_icao === "EBCI";
 
-  const icon = isApproach ? planeIconApproach : planeIconDeparture;
+    const icon = isApproach ? planeIconApproach : planeIconDeparture;
 
-  // Couleur vitesse
-  let speedColor = "cyan";
-  if (f.speed) {
-    if (f.speed < 180) speedColor = "lime";
-    else if (f.speed < 350) speedColor = "orange";
-    else speedColor = "red";
-  }
+    const marker = L.marker([f.lat, f.lng], {
+      icon: icon,
+      rotationAngle: f.dir || 0,
+      rotationOrigin: "center"
+    });
 
-  // Couleur altitude
-  let altColor = "blue";
-  if (f.alt) {
-    if (f.alt < 3000) altColor = "lime";
-    else if (f.alt < 10000) altColor = "orange";
-  }
+    marker.bindPopup(`
+      <b>${f.flight_iata || f.flight_icao || "?"}</b><br>
+      ${f.airline_iata || f.airline_icao || ""}<br>
+      ${f.dep_iata || "?"} → ${f.arr_iata || "?"}<br>
+      <b>${f.status}</b><br>
+      Alt: ${f.alt ? f.alt + " ft" : "n/a"}<br>
+      Vitesse: ${f.speed ? f.speed + " kt" : "n/a"}<br>
+      Cap: ${f.dir ? f.dir + "°" : "n/a"}
+    `);
 
-  // Marker avion
-  const marker = L.marker([f.lat, f.lng], {
-    icon: icon,
-    rotationAngle: f.dir || 0,
-    rotationOrigin: "center"
-  });
+    planesLayer.addLayer(marker);
+  });   // ← FERMETURE forEach
 
-  marker.bindPopup(`
-    <b>${f.flight_iata || f.flight_icao || "?"}</b><br>
-    ${f.airline_iata || f.airline_icao || ""}<br>
-    ${f.dep_iata || "?"} → ${f.arr_iata || "?"}<br>
-    <b>${f.status}</b><br>
-    Alt: ${f.alt ? f.alt + " ft" : "n/a"}<br>
-    Vitesse: ${f.speed ? f.speed + " kt" : "n/a"}<br>
-    Cap: ${f.dir ? f.dir + "°" : "n/a"}
-  `);
-
-  planesLayer.addLayer(marker);
-
-  // Halo altitude
-  L.circleMarker([f.lat, f.lng], {
-    radius: 12,
-    color: altColor,
-    fillOpacity: 0,
-    weight: 2
-  }).addTo(planesLayer);
-
-  // Point vitesse
-  L.circleMarker([f.lat, f.lng], {
-    radius: 6,
-    color: speedColor,
-    fillColor: speedColor,
-    fillOpacity: 0.9,
-    weight: 2
-  }).addTo(planesLayer);
-});
-}
-
-
+}       // ← FERMETURE updateAircraftPositions
