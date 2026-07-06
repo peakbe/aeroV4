@@ -10,6 +10,8 @@ export let ilsLabelsLayer;
  * INIT MAP
  ****************************************************/
 export function initMap() {
+  if (map) return;  // ⭐ Empêche double initialisation
+
   map = L.map("map").setView([50.5, 4.7], 10);
 
   ilsLayer = L.layerGroup().addTo(map);
@@ -31,6 +33,7 @@ export function initMap() {
       .bindPopup(ap.name);
   });
 }
+
 
 /****************************************************
  * RESET MAP VIEW
