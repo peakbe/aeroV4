@@ -1,20 +1,20 @@
 import { AIRLABS_API_KEY } from "./config.js";
 
 /****************************************************
- * 1) FETCH METAR — AirLabs (ICAO correct)
+ * 1) FETCH METAR — AirLabs (ICAO + fallback EBBR)
  ****************************************************/
 export async function fetchMetar(icao) {
   try {
+    // Requête principale
     const urlPrimary = `https://airlabs.co/api/v9/metar?icao=${icao}&api_key=${AIRLABS_API_KEY}`;
     const res1 = await fetch(urlPrimary);
     const data1 = await res1.json();
 
-    // Si METAR existe → on le renvoie
     if (data1?.response?.length) {
       return data1.response[0];
     }
 
-    // Sinon fallback vers EBBR (Brussels)
+    // Fallback vers EBBR si EBCI/EBLG ne renvoient rien
     const urlFallback = `https://airlabs.co/api/v9/metar?icao=EBBR&api_key=${AIRLABS_API_KEY}`;
     const res2 = await fetch(urlFallback);
     const data2 = await res2.json();
@@ -26,7 +26,6 @@ export async function fetchMetar(icao) {
     return null;
   }
 }
-
 
 /****************************************************
  * 2) CLASSIFICATION METAR (vert/orange/rouge)
