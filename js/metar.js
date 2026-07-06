@@ -30,23 +30,7 @@ export async function fetchMetar(icao) {
   }
 }
 
-export async function fetchTaf(icao) {
-  try {
-    const url = `https://avwx.rest/api/taf/${icao}?format=json`;
-    const r = await fetch(url);
-    if (!r.ok) return null;
 
-    const data = await r.json();
-
-    return {
-      raw: data.raw || null,
-      forecast: data.forecast || []
-    };
-  } catch (e) {
-    console.error("TAF AVWX error:", e);
-    return null;
-  }
-}
 
 
 /****************************************************
@@ -104,12 +88,18 @@ export function updateMetarUI(airportKey, metar) {
  ****************************************************/
 export async function fetchTaf(icao) {
   try {
-    const url = `https://airlabs.co/api/v9/taf?icao=${icao}&api_key=${AIRLABS_API_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    return data?.response?.[0] || null;
+    const url = `https://avwx.rest/api/taf/${icao}?format=json`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
+
+    const data = await r.json();
+
+    return {
+      raw: data.raw || null,
+      forecast: data.forecast || []
+    };
   } catch (e) {
-    console.error("Erreur TAF:", e);
+    console.error("TAF AVWX error:", e);
     return null;
   }
 }
