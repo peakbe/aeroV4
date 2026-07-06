@@ -3,8 +3,8 @@
  ****************************************************/
 
 import { airports } from "./config.js";
-import { initMap, map, resetMapView, drawILS } from "./map.js";
-import { fetchMetar, updateMetarUI, fetchTaf, updateTafUI, injectMetarEmbed, updateWindRose, initMetarSwitch } from "./metar.js";
+import { initMap, map, resetMapView, refreshILS } from "./map.js";
+import { fetchMetar, updateMetarUI, fetchTaf, updateTafUI, updateWindRose, initMetarSwitch } from "./metar.js";
 import { updateSono } from "./sono.js";
 import { updateFidsList, updateFidsFlights } from "./fids.js";
 import { updateRunwayHUD } from "./fids.js";
@@ -16,7 +16,6 @@ import { updateAircraftPositions } from "./fids.js";
  * Détection piste active (computeRunway)
  ****************************************************/
 export function computeRunway(airport, windDirDeg) {
-
   if (!windDirDeg) return null;
 
   let best = null;
@@ -40,9 +39,6 @@ export async function processAirport(airportKey) {
   window.currentAirportKey = airportKey;
 
   const ap = airports[airportKey];
- 
-  refreshILS();
-window.activeRunway = activeRunway;
 
   /***********************
    * 1) METAR (AirLabs)
@@ -69,23 +65,26 @@ window.activeRunway = activeRunway;
   const windSpd = metar?.wind_speed;
 
   const activeRunway = computeRunway(ap, windDir);
-
-  window.activeRunway = activeRunway;  // ⭐ utilisé par ILS dynamique + SONO
+  window.activeRunway = activeRunway;   // ⭐ utilisé par ILS dynamique + SONO
 
   updateRunwayHUD(ap, windDir, windSpd);
 
   /***********************
-   * 5) SONO
+   * 5) ILS dynamique
+   ***********************/
+  refreshILS();   // ⭐ maintenant au bon endroit
+
+  /***********************
+   * 6) SONO
    ***********************/
   updateSono(airportKey, activeRunway, map);
 
   /***********************
-   * 6) FIDS avionique
+   * 7) FIDS avionique
    ***********************/
   updateFidsFlights(airportKey);
   updateFidsList(airportKey);
 }
-
 
 /****************************************************
  * Initialisation cockpit IFR
@@ -96,18 +95,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   initMap();
   initMetarSwitch();
 
-  // Attendre que la carte soit prête
   map.whenReady(async () => {
 
     // Radar avion
     updateAircraftPositions();
     setInterval(updateAircraftPositions, 30000);
-
-    // CÔNES ILS
-    drawILS("EBCI", "24");
-    drawILS("EBCI", "06");
-    drawILS("EBLG", "22");
-    drawILS("EBLG", "04");
 
     // Charger les deux aéroports
     await Promise.all([
@@ -141,4 +133,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-}); // ← FERMETURE FINALE OK
+});
