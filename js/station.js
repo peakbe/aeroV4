@@ -1,10 +1,6 @@
-/****************************************************
- * STATION INFO — AVWX Version PRO+++
- ****************************************************/
-
 export async function fetchStationInfo(icao) {
   try {
-    const url = `https://avwx.rest/api/station/${icao}?format=json`;
+    const url = `https://avwx.rest/api/station/${icao}?format=json&token=${AVWX_API_KEY}`;
     const r = await fetch(url);
     if (!r.ok) return null;
 
