@@ -3,29 +3,51 @@ import { AIRLABS_API_KEY } from "./config.js";
 /****************************************************
  * 1) FETCH METAR — AirLabs (ICAO + fallback EBBR)
  ****************************************************/
+/****************************************************
+ * METAR / TAF — AVWX Version PRO+++
+ ****************************************************/
+
 export async function fetchMetar(icao) {
   try {
-    // Requête principale
-    const urlPrimary = `https://airlabs.co/api/v9/metar?icao=${icao}&api_key=${AIRLABS_API_KEY}`;
-    const res1 = await fetch(urlPrimary);
-    const data1 = await res1.json();
+    const url = `https://avwx.rest/api/metar/${icao}?format=json`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
 
-    if (data1?.response?.length) {
-      return data1.response[0];
-    }
+    const data = await r.json();
 
-    // Fallback vers EBBR si EBCI/EBLG ne renvoient rien
-    const urlFallback = `https://airlabs.co/api/v9/metar?icao=EBBR&api_key=${AIRLABS_API_KEY}`;
-    const res2 = await fetch(urlFallback);
-    const data2 = await res2.json();
-
-    return data2?.response?.[0] || null;
-
+    return {
+      raw: data.raw || null,
+      wind_dir: data.wind_direction?.value || null,
+      wind_speed: data.wind_speed?.value || null,
+      temperature: data.temperature?.value || null,
+      dewpoint: data.dewpoint?.value || null,
+      visibility: data.visibility?.value || null,
+      qnh: data.altimeter?.value || null
+    };
   } catch (e) {
-    console.error("Erreur METAR:", e);
+    console.error("METAR AVWX error:", e);
     return null;
   }
 }
+
+export async function fetchTaf(icao) {
+  try {
+    const url = `https://avwx.rest/api/taf/${icao}?format=json`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
+
+    const data = await r.json();
+
+    return {
+      raw: data.raw || null,
+      forecast: data.forecast || []
+    };
+  } catch (e) {
+    console.error("TAF AVWX error:", e);
+    return null;
+  }
+}
+
 
 /****************************************************
  * 2) CLASSIFICATION METAR (vert/orange/rouge)
