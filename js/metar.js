@@ -5,15 +5,28 @@ import { AIRLABS_API_KEY } from "./config.js";
  ****************************************************/
 export async function fetchMetar(icao) {
   try {
-    const url = `https://airlabs.co/api/v9/metar?icao=${icao}&api_key=${AIRLABS_API_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    return data?.response?.[0] || null;
+    const urlPrimary = `https://airlabs.co/api/v9/metar?icao=${icao}&api_key=${AIRLABS_API_KEY}`;
+    const res1 = await fetch(urlPrimary);
+    const data1 = await res1.json();
+
+    // Si METAR existe → on le renvoie
+    if (data1?.response?.length) {
+      return data1.response[0];
+    }
+
+    // Sinon fallback vers EBBR (Brussels)
+    const urlFallback = `https://airlabs.co/api/v9/metar?icao=EBBR&api_key=${AIRLABS_API_KEY}`;
+    const res2 = await fetch(urlFallback);
+    const data2 = await res2.json();
+
+    return data2?.response?.[0] || null;
+
   } catch (e) {
     console.error("Erreur METAR:", e);
     return null;
   }
 }
+
 
 /****************************************************
  * 2) CLASSIFICATION METAR (vert/orange/rouge)
