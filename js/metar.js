@@ -9,7 +9,7 @@ import { AIRLABS_API_KEY } from "./config.js";
 
 export async function fetchMetar(icao) {
   try {
-    const url = `https://avwx.rest/api/metar/${icao}?format=json`;
+    const url = `https://avwx.rest/api/metar/${icao}?format=json&token=${AVWX_API_KEY}`;
     const r = await fetch(url);
     if (!r.ok) return null;
 
@@ -29,6 +29,7 @@ export async function fetchMetar(icao) {
     return null;
   }
 }
+
 
 
 
@@ -88,7 +89,7 @@ export function updateMetarUI(airportKey, metar) {
  ****************************************************/
 export async function fetchTaf(icao) {
   try {
-    const url = `https://avwx.rest/api/taf/${icao}?format=json`;
+    const url = `https://avwx.rest/api/taf/${icao}?format=json&token=${AVWX_API_KEY}`;
     const r = await fetch(url);
     if (!r.ok) return null;
 
@@ -103,6 +104,7 @@ export async function fetchTaf(icao) {
     return null;
   }
 }
+
 
 /****************************************************
  * 5) AFFICHAGE TAF — Compatible avec TON HTML
