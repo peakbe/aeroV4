@@ -1,5 +1,3 @@
-import { AIRLABS_API_KEY } from "./config.js";
-
 /****************************************************
  * 1) FETCH METAR — AirLabs (ICAO + fallback EBBR)
  ****************************************************/
