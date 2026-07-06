@@ -2,6 +2,7 @@
  * APP.JS — Orchestrateur Cockpit IFR PRO+++
  ****************************************************/
 
+import { AIRLABS_API_KEY } from "./config.js";
 import { airports } from "./config.js";
 import { initMap, map, resetMapView, refreshILS } from "./map.js";
 import { fetchMetar, updateMetarUI, fetchTaf, updateTafUI, updateWindRose, initMetarSwitch } from "./metar.js";
