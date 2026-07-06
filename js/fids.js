@@ -196,31 +196,62 @@ export async function updateAircraftPositions() {
 
   aircraft.forEach(f => {
 
-    // Déterminer si approche ou départ
-    const isApproach =
-      f.arr_icao === "EBLG" || f.arr_icao === "EBCI";
+  const isApproach =
+    f.arr_icao === "EBLG" || f.arr_icao === "EBCI";
 
-    const isDeparture =
-      f.dep_icao === "EBLG" || f.dep_icao === "EBCI";
+  const icon = isApproach ? planeIconApproach : planeIconDeparture;
 
-    // Choix de l’icône
-    const icon = isApproach ? planeIconApproach : planeIconDeparture;
+  // Couleur vitesse
+  let speedColor = "cyan";
+  if (f.speed) {
+    if (f.speed < 180) speedColor = "lime";
+    else if (f.speed < 350) speedColor = "orange";
+    else speedColor = "red";
+  }
 
-    const marker = L.marker([f.lat, f.lng], {
-      icon: icon,
-      rotationAngle: f.dir || 0,
-      rotationOrigin: "center"
-    });
+  // Couleur altitude
+  let altColor = "blue";
+  if (f.alt) {
+    if (f.alt < 3000) altColor = "lime";
+    else if (f.alt < 10000) altColor = "orange";
+  }
 
-    marker.bindPopup(`
-      <b>${f.flight_iata || f.flight_icao || "?"}</b><br>
-      ${f.airline_iata || f.airline_icao || ""}<br>
-      ${f.dep_iata || "?"} → ${f.arr_iata || "?"}<br>
-      <b>${f.status}</b>
-    `);
-
-    planesLayer.addLayer(marker);
+  // Marker avion
+  const marker = L.marker([f.lat, f.lng], {
+    icon: icon,
+    rotationAngle: f.dir || 0,
+    rotationOrigin: "center"
   });
-}
+
+  marker.bindPopup(`
+    <b>${f.flight_iata || f.flight_icao || "?"}</b><br>
+    ${f.airline_iata || f.airline_icao || ""}<br>
+    ${f.dep_iata || "?"} → ${f.arr_iata || "?"}<br>
+    <b>${f.status}</b><br>
+    Alt: ${f.alt ? f.alt + " ft" : "n/a"}<br>
+    Vitesse: ${f.speed ? f.speed + " kt" : "n/a"}<br>
+    Cap: ${f.dir ? f.dir + "°" : "n/a"}
+  `);
+
+  planesLayer.addLayer(marker);
+
+  // Halo altitude
+  L.circleMarker([f.lat, f.lng], {
+    radius: 12,
+    color: altColor,
+    fillOpacity: 0,
+    weight: 2
+  }).addTo(planesLayer);
+
+  // Point vitesse
+  L.circleMarker([f.lat, f.lng], {
+    radius: 6,
+    color: speedColor,
+    fillColor: speedColor,
+    fillOpacity: 0.9,
+    weight: 2
+  }).addTo(planesLayer);
+});
+
 
 
