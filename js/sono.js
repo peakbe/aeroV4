@@ -176,6 +176,32 @@ export function updateSono(airportKey, activeRunway, map) {
     </div>
   `;
 
+   /***********************
+ * Indicateur de vent dans le header collapsible
+ ***********************/
+const indicatorId = airportKey === "EBCI"
+  ? "wind-indicator-ebci"
+  : "wind-indicator-eblg";
+
+const indicator = document.getElementById(indicatorId);
+
+if (indicator) {
+  indicator.textContent = `${windDir}° / ${windMs} m/s — RWY ${activeRunway}`;
+
+  // Classification IFR selon l’angle vent/piste
+  const runwayHeading = parseInt(activeRunway) * 10; // RWY 24 → 240°
+  const diff = Math.abs(runwayHeading - windDir);
+
+  if (diff < 30) {
+    indicator.className = "wind-indicator lime";   // vent de face
+  } else if (diff < 90) {
+    indicator.className = "wind-indicator orange"; // vent travers
+  } else {
+    indicator.className = "wind-indicator red";    // vent arrière
+  }
+}
+
+   
   // ⭐ Génération liste SONO une seule fois
   if (airportKey === "EBCI" && !sonoListRenderedEBCI) {
     updateSonoListUI("EBCI");
