@@ -302,3 +302,20 @@ main {
   opacity: 0.9;
 }
 
+.metar-icon {
+  width: 18px;
+  height: 18px;
+  fill: #0af;
+  opacity: 0.9;
+  vertical-align: middle;
+}
+
+.metar-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 14px;
+  color: #eee;
+  margin: 4px 0;
+}
