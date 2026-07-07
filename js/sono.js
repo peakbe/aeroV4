@@ -159,11 +159,6 @@ export function updateSono(airportKey, activeRunway, map) {
 
   if (!sono) return;
 
-  if (!windDir || !windSpd) {
-    sono.innerHTML = "<div class='sono-line'>SONO: n/a</div>";
-    return;
-  }
-
   const color =
     windSpd <= 8 ? "lime" :
     windSpd <= 15 ? "orange" :
