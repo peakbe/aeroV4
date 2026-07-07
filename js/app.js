@@ -52,71 +52,64 @@ export async function processAirport(airportKey) {
   const ap = airports[airportKey];
 
   /***********************
- * 1) METAR
- ***********************/
-const metar = await fetchMetar(ap.icao);
-ap.lastMetar = metar;
-metar.icao = airportKey;
+   * 1) METAR
+   ***********************/
+  const metar = await fetchMetar(ap.icao);
+  ap.lastMetar = metar;
 
-// Ajout indispensable pour la rose des vents
-updateWindRose(metar);
+  // ICAO indispensable pour la rose des vents
+  metar.icao = airportKey;
 
-updateMetarUI(
-  airportKey,
-  metar,
-  airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
-);
+  // Affichage METAR
+  updateMetarUI(
+    airportKey,
+    metar,
+    airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
+  );
 
+  // Affichage rose des vents (une seule fois)
+  updateWindRose(metar);
 
   /***********************
-   * 2) TAF
+   * 2) TAF (désactivé)
    ***********************/
   // const taf = await fetchTaf(ap.icao);
   // updateTafUI(airportKey, taf);
 
   /***********************
-   * 3) Rose des vents
-   ***********************/
-  updateWindRose(metar);
-
-  /***********************
-   * 4) Piste active
+   * 3) Piste active
    ***********************/
   const windDir = metar?.wind_dir;
   const windSpd = metar?.wind_speed;
 
   const activeRunway = computeRunway(ap, windDir);
 
-  // ⭐ Piste active globale (ancienne logique)
   window.activeRunway = activeRunway;
-
-  // ⭐ Piste active PAR AÉROPORT (nouvelle logique)
   ap.activeRunway = activeRunway;
 
   updateRunwayHUD(ap, windDir, windSpd);
 
   /***********************
-   * 5) ILS dynamique
+   * 4) ILS dynamique
    ***********************/
   refreshILS();
 
   /***********************
-   * 6) SONO
+   * 5) SONO
    ***********************/
   updateSono(airportKey, ap.activeRunway, map);
 
   /***********************
-   * 7) FIDS avionique
+   * 6) FIDS avionique
    ***********************/
   updateFidsFlights(airportKey);
 
   /***********************
-   * 8) Station météo
+   * 7) Station météo
    ***********************/
   const station = await fetchStationInfo(ap.icao);
   updateStationUI(airportKey, station);
 }
-
 
 /****************************************************
  * Initialisation cockpit IFR
