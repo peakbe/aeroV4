@@ -21,7 +21,7 @@ function renderSonoMarkers(airportKey, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
 
   
-const group = sonoLayer;
+const group = L.layerGroup();
 
 
   list.forEach(s => {
@@ -180,14 +180,6 @@ sono.innerHTML = `
     ${sonoText}
   </div>
 `;
-
-
-sono.innerHTML = `
-  <div class="sono-line" style="color:${color}">
-    ${sonoText}
-  </div>
-`;
-
 
   // ⭐ Génération liste SONO une seule fois
   if (airportKey === "EBCI" && !sonoListRenderedEBCI) {
