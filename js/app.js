@@ -162,4 +162,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  document.addEventListener("DOMContentLoaded", () => {
+
+  const ebci = document.getElementById("sidebar-ebci");
+  const eblg = document.getElementById("sidebar-eblg");
+
+    /***********************
+   * Logique d’affichage dynamique IFR
+   ***********************/
+  document.querySelectorAll(".sidebar-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.target;
+
+      if (target === "EBCI") {
+        ebci.style.display = "block";
+        eblg.style.display = "none";
+      }
+
+      else if (target === "EBLG") {
+        ebci.style.display = "none";
+        eblg.style.display = "block";
+      }
+
+      else {
+        ebci.style.display = "block";
+        eblg.style.display = "block";
+      }
+    });
+  });
+
+});
+
+
 });
