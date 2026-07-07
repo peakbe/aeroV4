@@ -172,7 +172,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const eblgSection = document.getElementById("sidebar-eblg");
 
   document.querySelectorAll(".sidebar-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
+  btn.classList.remove("active");
+});
+btn.classList.add("active");
+
 
       const target = btn.dataset.target;
 
