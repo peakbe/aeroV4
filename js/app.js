@@ -72,22 +72,18 @@ export async function processAirport(airportKey) {
   /***********************
    * 4) Piste active
    ***********************/
- /***********************
- * 4) Piste active
- ***********************/
-const windDir = metar?.wind_dir;
-const windSpd = metar?.wind_speed;
+  const windDir = metar?.wind_dir;
+  const windSpd = metar?.wind_speed;
 
-const activeRunway = computeRunway(ap, windDir);
+  const activeRunway = computeRunway(ap, windDir);
 
-// ⭐ Piste active globale (ancienne logique)
-window.activeRunway = activeRunway;
+  // ⭐ Piste active globale (ancienne logique)
+  window.activeRunway = activeRunway;
 
-// ⭐ Piste active PAR AÉROPORT (nouvelle logique)
-ap.activeRunway = activeRunway;
+  // ⭐ Piste active PAR AÉROPORT (nouvelle logique)
+  ap.activeRunway = activeRunway;
 
-updateRunwayHUD(ap, windDir, windSpd);
-
+  updateRunwayHUD(ap, windDir, windSpd);
 
   /***********************
    * 5) ILS dynamique
@@ -97,15 +93,13 @@ updateRunwayHUD(ap, windDir, windSpd);
   /***********************
    * 6) SONO
    ***********************/
-  updateSono("EBCI", airports.EBCI.activeRunway, map);
-  updateSono("EBLG", airports.EBLG.activeRunway, map);
-
+  updateSono(airportKey, ap.activeRunway, map);
 
   /***********************
    * 7) FIDS avionique
    ***********************/
   updateFidsFlights(airportKey);
-  
+
   /***********************
    * 8) Station météo
    ***********************/
@@ -137,8 +131,8 @@ document.addEventListener("DOMContentLoaded", async () => {
      * Rafraîchissement SONO toutes les 30 sec
      ********************************************/
     setInterval(() => {
-      updateSono("EBCI", window.activeRunway, map);
-      updateSono("EBLG", window.activeRunway, map);
+      updateSono("EBCI", airports.EBCI.activeRunway, map);
+      updateSono("EBLG", airports.EBLG.activeRunway, map);
     }, 30000);
   });
 
