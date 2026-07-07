@@ -5,7 +5,6 @@ export let map;
 export let planesLayer;
 export let ilsLayer;
 export let ilsLabelsLayer;
-export let sonoLayer;
 
 /****************************************************
  * INIT MAP
@@ -19,10 +18,7 @@ export function initMap() {
   ilsLabelsLayer = L.layerGroup().addTo(map);
   planesLayer = L.layerGroup().addTo(map);
 
-  // ⭐ AJOUT CRITIQUE
-  sonoLayer = L.layerGroup().addTo(map);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18
   }).addTo(map);
 
