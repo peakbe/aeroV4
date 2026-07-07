@@ -10,18 +10,20 @@ export let ilsLabelsLayer;
  * INIT MAP
  ****************************************************/
 export function initMap() {
-  if (map) return;  // ⭐ Empêche double initialisation
+  if (map) return;
 
   map = L.map("map").setView([50.5, 4.7], 10);
 
   ilsLayer = L.layerGroup().addTo(map);
   ilsLabelsLayer = L.layerGroup().addTo(map);
+  planesLayer = L.layerGroup().addTo(map);
+
+  // ⭐ AJOUT CRITIQUE
+  sonoLayer = L.layerGroup().addTo(map);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18
   }).addTo(map);
-
-  planesLayer = L.layerGroup().addTo(map);
 
   map.whenReady(() => {
     window._mapReady = true;
@@ -33,7 +35,6 @@ export function initMap() {
       .bindPopup(ap.name);
   });
 }
-
 
 /****************************************************
  * RESET MAP VIEW
