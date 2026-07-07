@@ -31,29 +31,19 @@ export async function fetchStationInfo(icao) {
  * AFFICHAGE STATION — Compatible cockpit IFR
  ****************************************************/
 export function updateStationUI(airportKey, station) {
-  const key = airportKey.toLowerCase();
-  const el = document.getElementById(`station-${key}`);
-
+  const targetId = airportKey === "EBCI" ? "station-ebci" : "station-eblg";
+  const el = document.getElementById(targetId);
   if (!el) return;
-
-  if (!station) {
-    el.innerHTML = "<div class='station-error'>Station indisponible</div>";
-    return;
-  }
 
   el.innerHTML = `
     <div class="station-block">
-      <div class="station-title">
-  <svg class="station-icon"><use href="#icon-station"></use></svg>
-  ${station.name ?? station.icao}
-</div>
-
-<div class="station-line">${station.city ?? "n/a"}, ${station.country ?? "n/a"}</div>
-<div class="station-line">Altitude : ${station.elevation ?? "n/a"} ft</div>
-<div class="station-line">Lat/Lon : ${station.latitude ?? "n/a"}, ${station.longitude ?? "n/a"}</div>
-<div class="station-line">Type : ${station.type ?? "n/a"}</div>
-
+      ✈ ${station.name}<br>
+      ${station.city}, ${station.country}<br>
+      Altitude : ${station.altitude} ft<br>
+      Lat/Lon : ${station.lat}, ${station.lon}<br>
+      Type : ${station.type}
     </div>
   `;
 }
+
 
