@@ -1,12 +1,11 @@
 /****************************************************
- * 1) FETCH METAR — avwx (ICAO + fallback EBBR)
+ * AVWX API KEY
  ****************************************************/
 import { AVWX_API_KEY } from "./config.js";
 
 /****************************************************
- * METAR / TAF — AVWX Version PRO+++
+ * 1) FETCH METAR — AVWX
  ****************************************************/
-
 export async function fetchMetar(icao) {
   try {
     const url = `https://avwx.rest/api/metar/${icao}?format=json&token=${AVWX_API_KEY}`;
@@ -30,12 +29,8 @@ export async function fetchMetar(icao) {
   }
 }
 
-
-
-
-
 /****************************************************
- * 2) CLASSIFICATION METAR (vert/orange/rouge)
+ * 2) CLASSIFICATION METAR
  ****************************************************/
 function classifyMetar(metar) {
   if (!metar) return "red";
@@ -49,7 +44,7 @@ function classifyMetar(metar) {
 }
 
 /****************************************************
- * 3) AFFICHAGE METAR — Compatible avec TON HTML
+ * 3) AFFICHAGE METAR — AVWX harmonisé
  ****************************************************/
 export function updateMetarUI(airportKey, metar) {
   const key = airportKey.toLowerCase();
@@ -70,10 +65,10 @@ export function updateMetarUI(airportKey, metar) {
 
   const color = classifyMetar(metar);
 
-  const windDir = metar.wind_dir || "n/a";
-  const windSpd = metar.wind_speed || "n/a";
-  const temp = metar.temp || "n/a";
-  const qnh = metar.pressure_hpa || "n/a";
+  const windDir = metar.wind_dir ?? "n/a";
+  const windSpd = metar.wind_speed ?? "n/a";
+  const temp = metar.temperature ?? "n/a";
+  const qnh = metar.qnh ?? "n/a";
 
   summary.innerHTML = `
     <span class="${color}">
@@ -81,11 +76,11 @@ export function updateMetarUI(airportKey, metar) {
     </span>
   `;
 
-  raw.textContent = metar.raw_text || "n/a";
+  raw.textContent = metar.raw || "n/a";
 }
 
 /****************************************************
- * 4) FETCH TAF — avwx (ICAO correct)
+ * 4) FETCH TAF — AVWX
  ****************************************************/
 export async function fetchTaf(icao) {
   try {
@@ -105,9 +100,8 @@ export async function fetchTaf(icao) {
   }
 }
 
-
 /****************************************************
- * 5) AFFICHAGE TAF — Compatible avec TON HTML
+ * 5) AFFICHAGE TAF — AVWX harmonisé
  ****************************************************/
 export function updateTafUI(airportKey, taf) {
   const el = document.getElementById("taf-content");
@@ -115,7 +109,7 @@ export function updateTafUI(airportKey, taf) {
 
   el.innerHTML = `
     <div class="taf-title">TAF ${airportKey}</div>
-    <div class="taf-raw">${taf?.raw_text || "n/a"}</div>
+    <div class="taf-raw">${taf?.raw || "n/a"}</div>
   `;
 }
 
@@ -142,47 +136,7 @@ export function initMetarSwitch() {
 }
 
 /****************************************************
- * 7) EMBED METAR-TAF.COM (inchangé)
- ****************************************************/
-export function injectMetarEmbed(airportKey) {
-  let targetId, url, linkText;
-
-  if (airportKey === "EBCI") {
-    targetId = "metar-embed-ebci";
-    url = "https://metar-taf.com/fr/embed-js/EBCI?qnh=hPa&rh=rh&target=GrcWAfkb";
-    linkText = "METAR Brussels South Charleroi Airport";
-  } else if (airportKey === "EBLG") {
-    targetId = "metar-embed-eblg";
-    url = "https://metar-taf.com/fr/embed-js/EBLG?qnh=hPa&rh=rh&target=J0YHElLt";
-    linkText = "METAR Liège Airport";
-  } else {
-    return;
-  }
-
-  const container = document.getElementById(targetId);
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  const a = document.createElement("a");
-  a.href = `https://metar-taf.com/fr/metar/${airportKey}`;
-  a.id = airportKey === "EBCI" ? "metartaf-GrcWAfkb" : "metartaf-J0YHElLt";
-  a.style = "font-size:18px; font-weight:500; color:#000; width:300px; height:435px; display:block";
-  a.textContent = linkText;
-
-  container.appendChild(a);
-
-  const script = document.createElement("script");
-  script.src = url;
-  script.async = true;
-  script.defer = true;
-  script.crossOrigin = "anonymous";
-
-  container.appendChild(script);
-}
-
-/****************************************************
- * 8) ROSE DES VENTS
+ * 7) ROSE DES VENTS
  ****************************************************/
 function classifyWind(speed) {
   if (speed <= 8) return "lime";
