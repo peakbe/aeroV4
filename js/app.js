@@ -227,6 +227,16 @@ document.querySelectorAll(".sidebar-btn").forEach(btn => {
     }
   });
 });
+  
+/***********************
+ * Collapse SONO IFR
+ ***********************/
+document.querySelectorAll(".sono-collapse-header").forEach(header => {
+  header.addEventListener("click", () => {
+    const parent = header.parentElement;
+    parent.classList.toggle("collapsed");
+  });
+});
 
 
 });
