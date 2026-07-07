@@ -21,8 +21,7 @@ import { initTabs } from "./tabs.js";
 
 import { angleDiff } from "./utils.js";
 
-import { fetchStationInfo } from "./station.js";
-
+import { fetchStationInfo, updateStationUI } from "./station.js";
 
 /****************************************************
  * Détection piste active (computeRunway)
@@ -111,12 +110,12 @@ export async function processAirport(airportKey) {
 document.addEventListener("DOMContentLoaded", async () => {
 
   initTabs();
-  initMap();          // ⭐ protégé dans map.js
+  initMap();
   initMetarSwitch();
 
   map.whenReady(async () => {
 
-       setInterval(updateAircraftPositions, 30000);
+    // ❌ updateAircraftPositions supprimé
 
     await Promise.all([
       processAirport("EBCI"),
@@ -144,4 +143,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 });
+
 
