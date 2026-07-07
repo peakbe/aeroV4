@@ -344,3 +344,7 @@ main {
   border-radius: 4px;
   margin-top: 10px;
 }
+/* Suppression de l’affichage TAF */
+#taf-container {
+  display: none !important;
+}
