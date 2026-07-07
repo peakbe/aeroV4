@@ -113,21 +113,28 @@ document.addEventListener("DOMContentLoaded", async () => {
   initMap();
   initMetarSwitch();
 
-map.whenReady(async () => {
+  map.whenReady(async () => {
 
+    /********************************************
+     * IMPORTANT : processAirport AVANT SONO LOOP
+     ********************************************/
     await Promise.all([
       processAirport("EBCI"),
       processAirport("EBLG")
     ]);
 
-    // ⭐ Maintenant que METAR/TAF/Runway sont prêts, SONO peut tourner
+    /********************************************
+     * Rafraîchissement SONO toutes les 30 sec
+     ********************************************/
     setInterval(() => {
       updateSono("EBCI", window.activeRunway, map);
       updateSono("EBLG", window.activeRunway, map);
     }, 30000);
-});
+  });
 
-
+  /***********************
+   * Toggle SONO
+   ***********************/
   const toggle = document.getElementById("toggle-sono");
   if (toggle) {
     toggle.checked = true;
@@ -138,6 +145,9 @@ map.whenReady(async () => {
     });
   }
 
+  /***********************
+   * Reset MAP
+   ***********************/
   const resetBtn = document.getElementById("reset-map");
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
@@ -148,5 +158,3 @@ map.whenReady(async () => {
   }
 
 });
-
-
