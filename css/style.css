@@ -431,3 +431,27 @@ main {
   color: #cbd5e1;
 }
 
+#sidebar-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sidebar-btn {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sidebar-btn:hover {
+  background-color: #334155;
+}
+
+.sidebar-section {
+  display: block;
+}
