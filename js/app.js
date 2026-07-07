@@ -56,7 +56,8 @@ export async function processAirport(airportKey) {
    ***********************/
   const metar = await fetchMetar(ap.icao);
   ap.lastMetar = metar;
-  updateMetarUI(airportKey, metar);
+  updateMetarUI(airportKey, metar, airportKey === "EBCI" ? "metar-ebci" : "metar-eblg");
+
 
   /***********************
    * 2) TAF
