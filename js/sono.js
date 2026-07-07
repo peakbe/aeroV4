@@ -7,6 +7,13 @@ import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
 
 window.sonoEnabled = true;
 
+/****************************************************
+ * Utilitaire IFR — Conversion RWY → Heading
+ ****************************************************/
+function runwayHeading(rwy) {
+  return parseInt(rwy) * 10; // RWY 24 → 240°
+}
+
 /* -------------------------------------------------
    0) Markers Leaflet — création dynamique (optimisée)
 --------------------------------------------------*/
