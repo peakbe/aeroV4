@@ -249,4 +249,40 @@ main {
   color: #fff !important;
   font-weight: bold;
 }
+/****************************************************
+ * STATION INFO — IFR STYLE PRO+++
+ ****************************************************/
+.station-block {
+  background: #111;
+  border: 1px solid #333;
+  padding: 10px 12px;
+  margin: 8px 0;
+  border-radius: 4px;
+  font-family: monospace;
+  color: #eee;
+  line-height: 1.4;
+}
+
+.station-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0af; /* bleu IFR */
+  margin-bottom: 4px;
+}
+
+.station-line {
+  font-size: 13px;
+  color: #ccc;
+  padding-left: 4px;
+}
+
+.station-error {
+  background: #300;
+  border: 1px solid #600;
+  padding: 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  color: #f88;
+  margin: 8px 0;
+}
 
