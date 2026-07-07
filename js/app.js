@@ -52,11 +52,19 @@ export async function processAirport(airportKey) {
   const ap = airports[airportKey];
 
   /***********************
-   * 1) METAR
-   ***********************/
-  const metar = await fetchMetar(ap.icao);
-  ap.lastMetar = metar;
-  updateMetarUI(airportKey, metar, airportKey === "EBCI" ? "metar-ebci" : "metar-eblg");
+ * 1) METAR
+ ***********************/
+const metar = await fetchMetar(ap.icao);
+ap.lastMetar = metar;
+
+// Ajout indispensable pour la rose des vents
+updateWindRose(metar);
+
+updateMetarUI(
+  airportKey,
+  metar,
+  airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
+);
 
 
   /***********************
