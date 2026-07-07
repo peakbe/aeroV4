@@ -116,8 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   map.whenReady(async () => {
 
-    updateAircraftPositions();
-    setInterval(updateAircraftPositions, 30000);
+       setInterval(updateAircraftPositions, 30000);
 
     await Promise.all([
       processAirport("EBCI"),
