@@ -46,7 +46,8 @@ function classifyMetar(metar) {
 /****************************************************
  * 3) AFFICHAGE METAR — AVWX harmonisé
  ****************************************************/
-export function updateMetarUI(airportKey, metar, targetId) {
+export function updateMetarUI(airportKey, metar) {
+  const targetId = airportKey === "EBCI" ? "metar-ebci" : "metar-eblg";
   const el = document.getElementById(targetId);
   if (!el) return;
 
@@ -60,4 +61,4 @@ export function updateMetarUI(airportKey, metar, targetId) {
     </div>
   `;
 }
-   // ⭐⭐⭐ FERMETURE DE LA FONCTION — CRITIQUE
+
