@@ -544,3 +544,20 @@ main {
 .sono-collapse.collapsed .collapse-toggle {
   transform: rotate(-90deg);
 }
+.wind-indicator {
+  font-family: monospace;
+  color: #0ff;
+  margin-right: 10px;
+}
+
+.wind-indicator.lime {
+  color: lime;
+}
+
+.wind-indicator.orange {
+  color: orange;
+}
+
+.wind-indicator.red {
+  color: red;
+}
