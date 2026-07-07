@@ -163,36 +163,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-
-  const ebci = document.getElementById("sidebar-ebci");
-  const eblg = document.getElementById("sidebar-eblg");
-
-    /***********************
-   * Logique d’affichage dynamique IFR
+   /***********************
+   * Affichage EBCI-EBLG dans la side-bar
    ***********************/
+ document.addEventListener("DOMContentLoaded", () => {
+
+  const ebciSection = document.getElementById("sidebar-ebci");
+  const eblgSection = document.getElementById("sidebar-eblg");
+
   document.querySelectorAll(".sidebar-btn").forEach(btn => {
     btn.addEventListener("click", () => {
+
       const target = btn.dataset.target;
 
       if (target === "EBCI") {
-        ebci.style.display = "block";
-        eblg.style.display = "none";
+        ebciSection.style.display = "block";
+        eblgSection.style.display = "none";
       }
 
       else if (target === "EBLG") {
-        ebci.style.display = "none";
-        eblg.style.display = "block";
+        ebciSection.style.display = "none";
+        eblgSection.style.display = "block";
       }
 
       else {
-        ebci.style.display = "block";
-        eblg.style.display = "block";
+        ebciSection.style.display = "block";
+        eblgSection.style.display = "block";
       }
     });
   });
-
-});
-
 
 });
