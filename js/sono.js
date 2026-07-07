@@ -4,7 +4,6 @@
 /* global L */
 import { airports } from "./config.js";
 import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
-import { sonoLayer } from "./map.js";
 
 window.sonoEnabled = true;
 
@@ -20,9 +19,7 @@ let sonoRenderedEBLG = false;
 function renderSonoMarkers(airportKey, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
 
-  
-const group = L.layerGroup();
-
+  const group = L.layerGroup();
 
   list.forEach(s => {
     const marker = L.circleMarker([s.lat, s.lon], {
@@ -90,7 +87,7 @@ export function applySonoRules(airportKey, activeRunway, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
   const layer = airportKey === "EBCI" ? sonoLayerEBCI : sonoLayerEBLG;
 
-  if (!layer) return; // ⭐ protection anti-crash
+  if (!layer) return;
 
   // Reset
   list.forEach(s => {
@@ -157,8 +154,8 @@ export function updateSono(airportKey, activeRunway, map) {
   const windSpd = metar.wind_speed;
 
   const sono = document.getElementById(
-  airportKey === "EBCI" ? "sono-status-ebci" : "sono-status-eblg"
-);
+    airportKey === "EBCI" ? "sono-status-ebci" : "sono-status-eblg"
+  );
 
   if (!sono) return;
 
@@ -173,16 +170,16 @@ export function updateSono(airportKey, activeRunway, map) {
     "red";
 
   // Conversion kt → m/s
-const windMs = (windSpd * 0.514444).toFixed(1);
+  const windMs = (windSpd * 0.514444).toFixed(1);
 
-// Affichage unique pour EBCI + EBLG
-const sonoText = `Vent ${windDir}° / ${windMs} m/s — Piste ${activeRunway}`;
+  // Affichage unique pour EBCI + EBLG
+  const sonoText = `Vent ${windDir}° / ${windMs} m/s — Piste ${activeRunway}`;
 
-sono.innerHTML = `
-  <div class="sono-line" style="color:${color}">
-    ${sonoText}
-  </div>
-`;
+  sono.innerHTML = `
+    <div class="sono-line" style="color:${color}">
+      ${sonoText}
+    </div>
+  `;
 
   // ⭐ Génération liste SONO une seule fois
   if (airportKey === "EBCI" && !sonoListRenderedEBCI) {
