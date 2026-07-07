@@ -164,11 +164,6 @@ main {
   border-color: lime;
   color: lime;
 }
-.metar-switch {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
 
 .mcd-btn {
   background: #111;
