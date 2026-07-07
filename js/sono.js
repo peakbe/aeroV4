@@ -4,6 +4,7 @@
 /* global L */
 import { airports } from "./config.js";
 import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
+import { sonoLayer } from "./map.js";
 
 window.sonoEnabled = true;
 
@@ -19,7 +20,7 @@ let sonoRenderedEBLG = false;
 function renderSonoMarkers(airportKey, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
 
-  import { sonoLayer } from "./map.js";
+  
 const group = sonoLayer;
 
 
