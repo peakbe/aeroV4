@@ -505,3 +505,42 @@ main {
   border-color: lime;
   color: lime;
 }
+
+/* CSS IFR — Style cockpit Airbus/Boeing */
+.sono-collapse {
+  border: 2px solid #0ff;
+  margin: 10px 0;
+  border-radius: 6px;
+  background: #111;
+}
+
+.sono-collapse-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  font-family: monospace;
+  color: #0ff;
+  cursor: pointer;
+}
+
+.collapse-toggle {
+  background: none;
+  border: none;
+  color: #0ff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.sono-collapse-body {
+  padding: 10px;
+  display: block;
+}
+
+.sono-collapse.collapsed .sono-collapse-body {
+  display: none;
+}
+
+.sono-collapse.collapsed .collapse-toggle {
+  transform: rotate(-90deg);
+}
