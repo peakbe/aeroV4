@@ -46,56 +46,18 @@ function classifyMetar(metar) {
 /****************************************************
  * 3) AFFICHAGE METAR — AVWX harmonisé
  ****************************************************/
-export function updateMetarUI(airportKey, metar) {
-  const key = airportKey.toLowerCase();
+export function updateMetarUI(airportKey, metar, targetId) {
+  const el = document.getElementById(targetId);
+  if (!el) return;
 
-  const summary = document.getElementById(`meteo-${key}-summary`);
-  const raw = document.getElementById(`meteo-${key}-raw`);
-
-  if (!summary || !raw) {
-    console.warn("IDs METAR manquants pour", airportKey);
-    return;
-  }
-
-  if (!metar) {
-    summary.textContent = "METAR indisponible";
-    raw.textContent = "n/a";
-    return;
-  }
-
-  const color = classifyMetar(metar);
-
-  const windDir = metar.wind_dir ?? "n/a";
-  const windSpd = metar.wind_speed ?? "n/a";
-  const temp = metar.temperature ?? "n/a";
-  const qnh = metar.qnh ?? "n/a";
-
-  summary.innerHTML = `
-    <div class="metar-line">
-      <svg class="metar-icon"><use href="#icon-wind"></use></svg>
-      Vent ${windDir}° / ${windSpd} kt
-    </div>
-
-    <div class="metar-line">
-      <svg class="metar-icon"><use href="#icon-temp"></use></svg>
-      Température : ${temp}°C
-    </div>
-
-    <div class="metar-line">
-      <svg class="metar-icon"><use href="#icon-qnh"></use></svg>
-      QNH : ${qnh} hPa
-    </div>
-
-    <div class="metar-line">
-      <svg class="metar-icon"><use href="#icon-vis"></use></svg>
-      Visibilité : ${metar.visibility ?? "n/a"} m
+  el.innerHTML = `
+    <div class="metar-block">
+      💨 Vent ${metar.wind_dir}° / ${metar.wind_speed} kt<br>
+      🌡 Température : ${metar.temperature}°C<br>
+      🧭 QNH : ${metar.qnh} hPa<br>
+      👁 Visibilité : ${metar.visibility} m<br>
+      <pre>${metar.raw}</pre>
     </div>
   `;
-
-  raw.innerHTML = `
-    <div class="metar-line">
-      <svg class="metar-icon"><use href="#icon-metar"></use></svg>
-      ${metar.raw}
-    </div>
-  `;
-}   // ⭐⭐⭐ FERMETURE DE LA FONCTION — CRITIQUE
+}
+   // ⭐⭐⭐ FERMETURE DE LA FONCTION — CRITIQUE
