@@ -67,10 +67,7 @@ export async function processAirport(airportKey) {
     airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
   );
 
-  // Affichage rose des vents (une seule fois)
-  updateWindRose(metar);
-
-  /***********************
+   /***********************
    * 2) TAF (désactivé)
    ***********************/
   // const taf = await fetchTaf(ap.icao);
@@ -87,7 +84,11 @@ export async function processAirport(airportKey) {
   window.activeRunway = activeRunway;
   ap.activeRunway = activeRunway;
 
+  // HUD
   updateRunwayHUD(ap, windDir, windSpd);
+
+   // Rose des vents (APRES la piste active)
+  updateWindRose(metar);
 
   /***********************
    * 4) ILS dynamique
