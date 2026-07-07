@@ -56,6 +56,7 @@ export async function processAirport(airportKey) {
  ***********************/
 const metar = await fetchMetar(ap.icao);
 ap.lastMetar = metar;
+metar.icao = airportKey;
 
 // Ajout indispensable pour la rose des vents
 updateWindRose(metar);
