@@ -207,6 +207,32 @@ if (indicator) {
     indicator.className = "wind-indicator red";    // vent arrière
   }
 }
+  
+/***********************
+ * Flèche de vent animée IFR
+ ***********************/
+const arrowId = airportKey === "EBCI"
+  ? "wind-arrow-ebci"
+  : "wind-arrow-eblg";
+
+const arrow = document.getElementById(arrowId);
+
+if (arrow) {
+  // Rotation : le vent vient de windDir → flèche pointe vers windDir
+  arrow.style.transform = `rotate(${windDir}deg)`;
+
+  // Classification IFR selon angle vent/piste
+  const runwayHeading = parseInt(activeRunway) * 10; // RWY 24 → 240°
+  const diff = Math.abs(runwayHeading - windDir);
+
+  if (diff < 30) {
+    arrow.className = "wind-arrow lime";   // vent de face
+  } else if (diff < 90) {
+    arrow.className = "wind-arrow orange"; // vent travers
+  } else {
+    arrow.className = "wind-arrow red";    // vent arrière
+  }
+}
 
    
   // ⭐ Génération liste SONO une seule fois
