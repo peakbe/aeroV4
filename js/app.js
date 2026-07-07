@@ -195,6 +195,38 @@ document.querySelectorAll(".sidebar-btn").forEach(btn => {
     }
   });
 });
+  
+/***********************
+ * Boutons SONO : EBCI / EBLG / Tous
+ ***********************/
+const sonoEBCI = document.getElementById("sono-ebci");
+const sonoEBLG = document.getElementById("sono-eblg");
+
+document.querySelectorAll(".sidebar-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+
+    // Highlight bouton actif
+    document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const target = btn.dataset.target;
+
+    if (target === "EBCI") {
+      sonoEBCI.style.display = "block";
+      sonoEBLG.style.display = "none";
+    }
+
+    else if (target === "EBLG") {
+      sonoEBCI.style.display = "none";
+      sonoEBLG.style.display = "block";
+    }
+
+    else {
+      sonoEBCI.style.display = "block";
+      sonoEBLG.style.display = "block";
+    }
+  });
+});
 
 
 });
