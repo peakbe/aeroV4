@@ -1,18 +1,28 @@
 /****************************************************
  * APP.JS — Orchestrateur Cockpit IFR PRO+++
  ****************************************************/
-import { AVWX_API_KEY } from "./config.js";
 
 import { airports } from "./config.js";
-import { initMap, map, resetMapView, refreshILS } from "./map.js";
-import { fetchMetar, updateMetarUI, fetchTaf, updateTafUI, updateWindRose, initMetarSwitch } from "./metar.js";
+
+import { initMap, map, resetMapView } from "./map.js";
+
+import { fetchMetar, updateMetarUI } from "./metar.js";
+import { fetchTaf, updateTafUI, initMetarSwitch } from "./taf.js";
+
+import { updateWindRose } from "./windrose.js";
+
+import { updateRunwayHUD, refreshILS } from "./ils.js";
+
 import { updateSono } from "./sono.js";
+
 import { updateFidsList, updateFidsFlights } from "./fids.js";
-import { updateRunwayHUD } from "./fids.js";
+
 import { initTabs } from "./tabs.js";
+
 import { angleDiff } from "./utils.js";
-import { updateAircraftPositions } from "./fids.js";
+
 import { fetchStationInfo } from "./station.js";
+
 
 /****************************************************
  * Détection piste active (computeRunway)
