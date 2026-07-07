@@ -115,7 +115,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   map.whenReady(async () => {
 
-    // ❌ updateAircraftPositions supprimé
+    setInterval(() => {
+  updateSono("EBCI", window.activeRunway, map);
+  updateSono("EBLG", window.activeRunway, map);
+}, 30000);
+
 
     await Promise.all([
       processAirport("EBCI"),
