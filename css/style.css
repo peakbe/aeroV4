@@ -319,3 +319,28 @@ main {
   color: #eee;
   margin: 4px 0;
 }
+.taf-icon {
+  width: 18px;
+  height: 18px;
+  fill: #0af;
+  opacity: 0.9;
+  vertical-align: middle;
+}
+
+.taf-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 14px;
+  color: #eee;
+  margin: 4px 0;
+}
+
+.taf-block {
+  background: #111;
+  border: 1px solid #333;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
