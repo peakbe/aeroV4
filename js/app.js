@@ -72,13 +72,22 @@ export async function processAirport(airportKey) {
   /***********************
    * 4) Piste active
    ***********************/
-  const windDir = metar?.wind_dir;
-  const windSpd = metar?.wind_speed;
+ /***********************
+ * 4) Piste active
+ ***********************/
+const windDir = metar?.wind_dir;
+const windSpd = metar?.wind_speed;
 
-  const activeRunway = computeRunway(ap, windDir);
-  window.activeRunway = activeRunway;
+const activeRunway = computeRunway(ap, windDir);
 
-  updateRunwayHUD(ap, windDir, windSpd);
+// ⭐ Piste active globale (ancienne logique)
+window.activeRunway = activeRunway;
+
+// ⭐ Piste active PAR AÉROPORT (nouvelle logique)
+ap.activeRunway = activeRunway;
+
+updateRunwayHUD(ap, windDir, windSpd);
+
 
   /***********************
    * 5) ILS dynamique
@@ -88,7 +97,9 @@ export async function processAirport(airportKey) {
   /***********************
    * 6) SONO
    ***********************/
-  updateSono(airportKey, activeRunway, map);
+  updateSono("EBCI", airports.EBCI.activeRunway, map);
+  updateSono("EBLG", airports.EBLG.activeRunway, map);
+
 
   /***********************
    * 7) FIDS avionique
