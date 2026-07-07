@@ -166,31 +166,31 @@ document.addEventListener("DOMContentLoaded", async () => {
    /***********************
    * Affichage EBCI-EBLG dans la side-bar
    ***********************/
- document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
 
-  const ebciSection = document.getElementById("sidebar-ebci");
-  const eblgSection = document.getElementById("sidebar-eblg");
+  const ebci = document.getElementById("sidebar-ebci");
+  const eblg = document.getElementById("sidebar-eblg");
 
   document.querySelectorAll(".sidebar-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-
       const target = btn.dataset.target;
 
       if (target === "EBCI") {
-        ebciSection.style.display = "block";
-        eblgSection.style.display = "none";
+        ebci.style.display = "block";
+        eblg.style.display = "none";
       }
 
       else if (target === "EBLG") {
-        ebciSection.style.display = "none";
-        eblgSection.style.display = "block";
+        ebci.style.display = "none";
+        eblg.style.display = "block";
       }
 
       else {
-        ebciSection.style.display = "block";
-        eblgSection.style.display = "block";
+        ebci.style.display = "block";
+        eblg.style.display = "block";
       }
     });
   });
 
 });
+
