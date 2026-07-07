@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
- /***********************
+/***********************
  * Affichage EBCI-EBLG dans la side-bar
  ***********************/
 const ebciSection = document.getElementById("sidebar-ebci");
@@ -172,7 +172,7 @@ const eblgSection = document.getElementById("sidebar-eblg");
 document.querySelectorAll(".sidebar-btn").forEach(btn => {
   btn.addEventListener("click", () => {
 
-    // Reset highlight
+    // Highlight bouton actif
     document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
@@ -194,5 +194,6 @@ document.querySelectorAll(".sidebar-btn").forEach(btn => {
     }
   });
 });
+
 
 });
