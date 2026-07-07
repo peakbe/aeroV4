@@ -19,7 +19,9 @@ let sonoRenderedEBLG = false;
 function renderSonoMarkers(airportKey, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
 
-  const group = L.layerGroup();
+  import { sonoLayer } from "./map.js";
+const group = sonoLayer;
+
 
   list.forEach(s => {
     const marker = L.circleMarker([s.lat, s.lon], {
