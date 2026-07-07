@@ -5,6 +5,7 @@ export let map;
 export let planesLayer;
 export let ilsLayer;
 export let ilsLabelsLayer;
+export let sonoLayer;
 
 /****************************************************
  * INIT MAP
