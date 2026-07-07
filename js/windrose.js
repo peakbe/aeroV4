@@ -15,25 +15,14 @@ function classifyWind(speed) {
  * 2) AFFICHAGE ROSE DES VENTS
  ****************************************************/
 export function updateWindRose(metar) {
-  const container = document.getElementById("wind-rose");
-  if (!container) return;
+  const targetId = metar.icao === "EBCI" ? "wind-rose-ebci" : "wind-rose-eblg";
+  const el = document.getElementById(targetId);
+  if (!el) return;
 
-  const windDir = metar?.wind_dir;
-  const windSpd = metar?.wind_speed;
-
-  if (!windDir || !windSpd) {
-    container.innerHTML = "<div style='color:#888'>Vent: n/a</div>";
-    return;
-  }
-
-  const color = classifyWind(windSpd);
-
-  container.innerHTML = `
-    <div class="wind-rose">
-      <div class="wind-arrow" style="border-bottom-color:${color}; transform: rotate(${windDir}deg);"></div>
-    </div>
-    <div style="text-align:center; color:${color}; font-family:monospace;">
-      ${windDir}° / ${windSpd} kt
+  el.innerHTML = `
+    <div class="wind-rose-value">
+      ${metar.wind_dir}° / ${metar.wind_speed} kt
     </div>
   `;
 }
+
