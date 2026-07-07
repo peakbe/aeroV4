@@ -15,7 +15,7 @@ import { updateRunwayHUD, refreshILS } from "./ils.js";
 
 import { updateSono } from "./sono.js";
 
-import { updateFidsList, updateFidsFlights } from "./fids.js";
+import { updateFidsFlights } from "./fids.js";
 
 import { initTabs } from "./tabs.js";
 
@@ -94,8 +94,7 @@ export async function processAirport(airportKey) {
    * 7) FIDS avionique
    ***********************/
   updateFidsFlights(airportKey);
-  updateFidsList(airportKey);
-
+  
   /***********************
    * 8) Station météo
    ***********************/
