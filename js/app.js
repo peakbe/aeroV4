@@ -194,5 +194,3 @@ document.querySelectorAll(".sidebar-btn").forEach(btn => {
     }
   });
 });
-
-});
