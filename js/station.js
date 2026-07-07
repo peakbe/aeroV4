@@ -1,3 +1,6 @@
+/****************************************************
+ * STATION INFO — AVWX Version PRO+++
+ ****************************************************/
 import { AVWX_API_KEY } from "./config.js";
 
 export async function fetchStationInfo(icao) {
@@ -22,4 +25,32 @@ export async function fetchStationInfo(icao) {
     console.error("Station AVWX error:", e);
     return null;
   }
+}
+
+/****************************************************
+ * AFFICHAGE STATION — Compatible cockpit IFR
+ ****************************************************/
+export function updateStationUI(airportKey, station) {
+  const key = airportKey.toLowerCase();
+  const el = document.getElementById(`station-${key}`);
+
+  if (!el) {
+    console.warn("ID station manquant pour", airportKey);
+    return;
+  }
+
+  if (!station) {
+    el.innerHTML = "<div class='station-error'>Station indisponible</div>";
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="station-block">
+      <div class="station-title">${station.name}</div>
+      <div class="station-line">${station.city}, ${station.country}</div>
+      <div class="station-line">Altitude : ${station.elevation} ft</div>
+      <div class="station-line">Lat/Lon : ${station.latitude}, ${station.longitude}</div>
+      <div class="station-line">Type : ${station.type}</div>
+    </div>
+  `;
 }
