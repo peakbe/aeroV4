@@ -172,17 +172,15 @@ export function updateSono(airportKey, activeRunway, map) {
   // Conversion kt → m/s
 const windMs = (windSpd * 0.514444).toFixed(1);
 
-// Affichage différent selon l'aéroport
-let sonoText = "";
+// Affichage unique pour EBCI + EBLG
+const sonoText = `Vent ${windDir}° / ${windMs} m/s — Piste ${activeRunway}`;
 
-if (airportKey === "EBLG") {
-  // EBLG : direction + m/s + piste
-  sonoText = `Vent ${windDir}° / ${windMs} m/s — Piste ${activeRunway}`;
-   
-} else if (airportKey === "EBCI") {
-  // EBCI : seulement vitesse en m/s
-  sonoText = `Vent ${windDir}° / ${windMs} m/s — Piste ${activeRunway}`;
-}
+sono.innerHTML = `
+  <div class="sono-line" style="color:${color}">
+    ${sonoText}
+  </div>
+`;
+
 
 sono.innerHTML = `
   <div class="sono-line" style="color:${color}">
