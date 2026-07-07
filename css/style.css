@@ -486,3 +486,13 @@ main {
   font-weight: 600;
   color: #e2e8f0;
 }
+
+/* ajout de la couleur piste active */
+.wind-runway-label {
+  text-align: center;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--runway-color, #e2e8f0);
+}
+
