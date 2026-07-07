@@ -156,7 +156,10 @@ export function updateSono(airportKey, activeRunway, map) {
   const windDir = metar.wind_dir;
   const windSpd = metar.wind_speed;
 
-  const sono = document.getElementById("sono-status");
+  const sono = document.getElementById(
+  airportKey === "EBCI" ? "sono-status-ebci" : "sono-status-eblg"
+);
+
   if (!sono) return;
 
   if (!windDir || !windSpd) {
