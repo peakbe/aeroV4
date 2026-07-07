@@ -12,7 +12,21 @@ function classifyWind(speed) {
 }
 
 /****************************************************
- * 2) AFFICHAGE ROSE DES VENTS
+ * 2) PISTE ACTIVE
+ ****************************************************/
+
+function classifyRunway(runway, windDir) {
+  // Exemple : RWY 25 → direction 250°
+  const rwyDir = parseInt(runway) * 10;
+
+  const diff = Math.abs(rwyDir - windDir);
+
+  if (diff <= 30) return "lime";     // vent de face
+  if (diff <= 90) return "orange";   // vent travers
+  return "red";                      // vent arrière
+}
+/****************************************************
+ * 3) AFFICHAGE ROSE DES VENTS
  ****************************************************/
 export function updateWindRose(metar) {
 
@@ -25,9 +39,16 @@ export function updateWindRose(metar) {
 
   const windColor = classifyWind(metar.wind_speed);
 
+  // Récupération piste active depuis airports[]
+  const ap = airports[metar.icao];
+  const runway = ap?.activeRunway || "??";
+
+  const runwayColor = classifyRunway(runway, metar.wind_dir);
+
   el.innerHTML = `
     <div class="wind-rose-container">
       <div class="wind-rose-circle"></div>
+
       <div class="wind-rose-arrow"
            style="transform: rotate(${metar.wind_dir}deg);
                   background-color: ${windColor};">
@@ -36,6 +57,11 @@ export function updateWindRose(metar) {
 
     <div class="wind-rose-value">
       ${metar.wind_dir}° / ${metar.wind_speed} kt
+    </div>
+
+    <div class="wind-runway-label"
+         style="color:${runwayColor}">
+      Piste active : ${runway}
     </div>
   `;
 }
