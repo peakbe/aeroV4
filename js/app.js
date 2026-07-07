@@ -163,39 +163,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-   /***********************
-   * Affichage EBCI-EBLG dans la side-bar
-   ***********************/
-document.addEventListener("DOMContentLoaded", () => {
+ /***********************
+ * Affichage EBCI-EBLG dans la side-bar
+ ***********************/
+const ebciSection = document.getElementById("sidebar-ebci");
+const eblgSection = document.getElementById("sidebar-eblg");
 
-  const ebciSection = document.getElementById("sidebar-ebci");
-  const eblgSection = document.getElementById("sidebar-eblg");
+document.querySelectorAll(".sidebar-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
 
-  document.querySelectorAll(".sidebar-btn").forEach(btn => {
-  btn.classList.remove("active");
-});
-btn.classList.add("active");
+    // Reset highlight
+    document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
 
+    const target = btn.dataset.target;
 
-      const target = btn.dataset.target;
+    if (target === "EBCI") {
+      ebciSection.style.display = "block";
+      eblgSection.style.display = "none";
+    }
 
-      if (target === "EBCI") {
-        ebciSection.style.display = "block";
-        eblgSection.style.display = "none";
-      }
+    else if (target === "EBLG") {
+      ebciSection.style.display = "none";
+      eblgSection.style.display = "block";
+    }
 
-      else if (target === "EBLG") {
-        ebciSection.style.display = "none";
-        eblgSection.style.display = "block";
-      }
-
-      else {
-        ebciSection.style.display = "block";
-        eblgSection.style.display = "block";
-      }
-    });
+    else {
+      ebciSection.style.display = "block";
+      eblgSection.style.display = "block";
+    }
   });
-
 });
 
-
+});
