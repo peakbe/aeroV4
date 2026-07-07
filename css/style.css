@@ -387,3 +387,31 @@ main {
   border-radius: 6px;
   margin-bottom: 10px;
 }
+#sidebar {
+  background-color: #0b1120;
+  color: #e2e8f0;
+  padding: 12px;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.sidebar-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #facc15; /* jaune IFR */
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.sidebar-subtitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #22d3ee; /* cyan IFR */
+  margin-bottom: 6px;
+}
+
+.sidebar-block {
+  background-color: #1e293b;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
