@@ -61,8 +61,8 @@ export async function processAirport(airportKey) {
   /***********************
    * 2) TAF
    ***********************/
-  const taf = await fetchTaf(ap.icao);
-  updateTafUI(airportKey, taf);
+  // const taf = await fetchTaf(ap.icao);
+  // updateTafUI(airportKey, taf);
 
   /***********************
    * 3) Rose des vents
