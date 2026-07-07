@@ -450,3 +450,37 @@ main {
 .sidebar-section {
   display: block;
 }
+.wind-rose-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: auto;
+}
+
+.wind-rose-circle {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #334155;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.wind-rose-arrow {
+  width: 2px;
+  height: 45px;
+  background-color: var(--wind-color, lime);
+  position: absolute;
+  top: 15px;
+  left: 59px;
+  transform-origin: bottom center;
+}
+
+.wind-rose-value {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
