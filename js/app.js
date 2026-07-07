@@ -43,14 +43,14 @@ export async function processAirport(airportKey) {
   const ap = airports[airportKey];
 
   /***********************
-   * 1) METAR (AirLabs)
+   * 1) METAR
    ***********************/
   const metar = await fetchMetar(ap.icao);
   ap.lastMetar = metar;
   updateMetarUI(airportKey, metar);
 
   /***********************
-   * 2) TAF (AirLabs)
+   * 2) TAF
    ***********************/
   const taf = await fetchTaf(ap.icao);
   updateTafUI(airportKey, taf);
@@ -61,20 +61,20 @@ export async function processAirport(airportKey) {
   updateWindRose(metar);
 
   /***********************
-   * 4) Piste active (AirLabs)
+   * 4) Piste active
    ***********************/
   const windDir = metar?.wind_dir;
   const windSpd = metar?.wind_speed;
 
   const activeRunway = computeRunway(ap, windDir);
-  window.activeRunway = activeRunway;   // ⭐ utilisé par ILS dynamique + SONO
+  window.activeRunway = activeRunway;
 
   updateRunwayHUD(ap, windDir, windSpd);
 
   /***********************
    * 5) ILS dynamique
    ***********************/
-  refreshILS();   // ⭐ maintenant au bon endroit
+  refreshILS();
 
   /***********************
    * 6) SONO
@@ -86,13 +86,14 @@ export async function processAirport(airportKey) {
    ***********************/
   updateFidsFlights(airportKey);
   updateFidsList(airportKey);
-}
- /***********************
-   *8) Station météo
-   ***********************/
 
-const station = await fetchStationInfo(ap.icao);
-updateStationUI(airportKey, station);
+  /***********************
+   * 8) Station météo
+   ***********************/
+  const station = await fetchStationInfo(ap.icao);
+  updateStationUI(airportKey, station);
+}
+
 
 /****************************************************
  * Initialisation cockpit IFR
