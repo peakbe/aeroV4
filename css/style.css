@@ -387,11 +387,18 @@ main {
   border-radius: 6px;
   margin-bottom: 10px;
 }
+
+/****************************************************
+ * SIDE-BAR IFR PRO+++
+ ****************************************************/
+
 #sidebar {
   background-color: #0b1120;
   color: #e2e8f0;
-  padding: 12px;
+  padding: 14px;
+  width: 320px;
   font-family: "Segoe UI", system-ui, sans-serif;
+  overflow-y: auto;
 }
 
 .sidebar-title {
@@ -400,6 +407,7 @@ main {
   color: #facc15; /* jaune IFR */
   margin-top: 20px;
   margin-bottom: 10px;
+  text-transform: uppercase;
 }
 
 .sidebar-subtitle {
@@ -413,5 +421,13 @@ main {
   background-color: #1e293b;
   padding: 10px;
   border-radius: 6px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.4);
 }
+
+#sidebar pre {
+  white-space: pre-wrap;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
