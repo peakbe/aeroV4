@@ -129,11 +129,74 @@ export function updateTafUI(airportKey, taf) {
   const el = document.getElementById("taf-content");
   if (!el) return;
 
-  el.innerHTML = `
+  if (!taf) {
+    el.innerHTML = "<div class='taf-line'>TAF indisponible</div>";
+    return;
+  }
+
+  let html = `
     <div class="taf-title">TAF ${airportKey}</div>
-    <div class="taf-raw">${taf?.raw || "n/a"}</div>
+    <div class="taf-block">
+      <div class="taf-line">
+        <svg class="taf-icon"><use href="#icon-clouds"></use></svg>
+        ${taf.raw}
+      </div>
   `;
+
+  taf.forecast.forEach(f => {
+    html += `
+      <div class="taf-line">
+        <svg class="taf-icon"><use href="#icon-wind-taf"></use></svg>
+        Vent : ${f.wind_direction?.value ?? "n/a"}° / ${f.wind_speed?.value ?? "n/a"} kt
+      </div>
+
+      <div class="taf-line">
+        <svg class="taf-icon"><use href="#icon-vis-taf"></use></svg>
+        Visibilité : ${f.visibility?.value ?? "n/a"} m
+      </div>
+    `;
+
+    if (f.type === "TEMPO") {
+      html += `
+        <div class="taf-line">
+          <svg class="taf-icon"><use href="#icon-tempo"></use></svg>
+          TEMPO ${f.start_time?.repr ?? ""} → ${f.end_time?.repr ?? ""}
+        </div>
+      `;
+    }
+
+    if (f.type === "BECMG") {
+      html += `
+        <div class="taf-line">
+          <svg class="taf-icon"><use href="#icon-becmg"></use></svg>
+          BECMG ${f.start_time?.repr ?? ""} → ${f.end_time?.repr ?? ""}
+        </div>
+      `;
+    }
+
+    if (f.probability) {
+      html += `
+        <div class="taf-line">
+          <svg class="taf-icon"><use href="#icon-prob"></use></svg>
+          PROB ${f.probability}%
+        </div>
+      `;
+    }
+
+    if (f.type === "FM") {
+      html += `
+        <div class="taf-line">
+          <svg class="taf-icon"><use href="#icon-fm"></use></svg>
+          FM ${f.start_time?.repr ?? ""}
+        </div>
+      `;
+    }
+  });
+
+  html += `</div>`;
+  el.innerHTML = html;
 }
+
 
 /****************************************************
  * 6) SWITCH METAR / TAF
