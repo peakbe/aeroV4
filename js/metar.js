@@ -71,10 +71,31 @@ export function updateMetarUI(airportKey, metar) {
   const qnh = metar.qnh ?? "n/a";
 
   summary.innerHTML = `
-    <span class="${color}">
-      Vent ${windDir}° / ${windSpd} kt — T: ${temp}°C — QNH: ${qnh} hPa
-    </span>
+    <div class="metar-line">
+      <svg class="metar-icon"><use href="#icon-wind"></use></svg>
+      Vent ${windDir}° / ${windSpd} kt
+    </div>
+
+    <div class="metar-line">
+      <svg class="metar-icon"><use href="#icon-temp"></use></svg>
+      Température : ${temp}°C
+    </div>
+
+    <div class="metar-line">
+      <svg class="metar-icon"><use href="#icon-qnh"></use></svg>
+      QNH : ${qnh} hPa
+    </div>
+
+    <div class="metar-line">
+      <svg class="metar-icon"><use href="#icon-vis"></use></svg>
+      Visibilité : ${metar.visibility ?? "n/a"} m
+    </div>
   `;
 
-  raw.textContent = metar.raw || "n/a";
-}
+  raw.innerHTML = `
+    <div class="metar-line">
+      <svg class="metar-icon"><use href="#icon-metar"></use></svg>
+      ${metar.raw}
+    </div>
+  `;
+}   // ⭐⭐⭐ FERMETURE DE LA FONCTION — CRITIQUE
