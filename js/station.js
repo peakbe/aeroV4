@@ -34,10 +34,7 @@ export function updateStationUI(airportKey, station) {
   const key = airportKey.toLowerCase();
   const el = document.getElementById(`station-${key}`);
 
-  if (!el) {
-    console.warn("ID station manquant pour", airportKey);
-    return;
-  }
+  if (!el) return;
 
   if (!station) {
     el.innerHTML = "<div class='station-error'>Station indisponible</div>";
@@ -46,7 +43,13 @@ export function updateStationUI(airportKey, station) {
 
   el.innerHTML = `
     <div class="station-block">
-      <div class="station-title">${station.name}</div>
+      <div class="station-title">
+        <svg class="station-icon">
+          <use href="#icon-station"></use>
+        </svg>
+        ${station.name}
+      </div>
+
       <div class="station-line">${station.city}, ${station.country}</div>
       <div class="station-line">Altitude : ${station.elevation} ft</div>
       <div class="station-line">Lat/Lon : ${station.latitude}, ${station.longitude}</div>
@@ -54,3 +57,4 @@ export function updateStationUI(airportKey, station) {
     </div>
   `;
 }
+
