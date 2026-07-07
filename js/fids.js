@@ -114,3 +114,21 @@ export async function updateFidsFlights(airportKey) {
     tbody.appendChild(tr);
   });
 }
+/****************************************************
+ * Sonomètres (FIDS) — OPTION 2
+ ****************************************************/
+export async function updateFidsList(airportKey) {
+  const id = airportKey === "EBCI" ? "sonos-ebci" : "sonos-eblg";
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.textContent = "Chargement...";
+
+  try {
+    const res = await fetch(`/api/fids/${airportKey}/sonos.json`);
+    const data = await res.json();
+    el.innerHTML = data.map(s => `${s.name} — ${s.value} dB`).join("<br>");
+  } catch (e) {
+    el.textContent = "Sonomètres indisponibles";
+  }
+}
