@@ -1,32 +1,39 @@
 /****************************************************
- * ILS / RUNWAY HUD — IFR
+ * ILS.js — Cockpit IFR PRO+++ (HUD + ILS dynamique)
  ****************************************************/
+
+import { drawILS, ilsLayer, ilsLabelsLayer } from "./map.js";
 
 /****************************************************
- * 1) MISE À JOUR HUD PISTE
+ * 1) HUD Piste active — IFR
  ****************************************************/
 export function updateRunwayHUD(ap, windDir, windSpd) {
-  if (!ap) return;
-
-  const id = ap.icao.toLowerCase() === "ebci" ? "runway-ebci" : "runway-eblg";
-  const el = document.getElementById(id);
-  if (!el) return;
+  const hud = document.getElementById("runway-hud");
+  if (!hud) return;
 
   const rwy = window.activeRunway || "n/a";
   const dir = windDir ?? "n/a";
   const spd = windSpd ?? "n/a";
 
-  el.textContent = `Piste active ${rwy} — Vent ${dir}° / ${spd} kt`;
+  hud.innerHTML = `
+    <div class="hud-line">
+      Piste active ${rwy} — Vent ${dir}° / ${spd} kt
+    </div>
+  `;
 }
 
 /****************************************************
- * 2) ILS DYNAMIQUE (placeholder)
+ * 2) ILS dynamique — redessine les cônes LOC + glide
  ****************************************************/
 export function refreshILS() {
-  // Ici tu peux ajouter ton dessin ILS (glide, localizer, etc.)
-  // Par exemple mettre à jour un canvas ou un SVG dans un div #ils-display
-  const el = document.getElementById("ils-display");
-  if (!el) return;
+  if (!ilsLayer || !ilsLabelsLayer) return;
 
-  el.textContent = `ILS actif sur piste ${window.activeRunway || "n/a"}`;
+  ilsLayer.clearLayers();
+  ilsLabelsLayer.clearLayers();
+
+  // Redessine les ILS des deux aéroports
+  drawILS("EBCI", "24");
+  drawILS("EBCI", "06");
+  drawILS("EBLG", "22");
+  drawILS("EBLG", "04");
 }
