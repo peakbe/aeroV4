@@ -450,6 +450,8 @@ main {
 .sidebar-section {
   display: block;
 }
+
+/* WINDROSE */
 .wind-rose-container {
   position: relative;
   width: 120px;
