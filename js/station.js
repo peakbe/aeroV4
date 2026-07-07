@@ -44,16 +44,15 @@ export function updateStationUI(airportKey, station) {
   el.innerHTML = `
     <div class="station-block">
       <div class="station-title">
-        <svg class="station-icon">
-          <use href="#icon-station"></use>
-        </svg>
-        ${station.name}
-      </div>
+  <svg class="station-icon"><use href="#icon-station"></use></svg>
+  ${station.name ?? station.icao}
+</div>
 
-      <div class="station-line">${station.city}, ${station.country}</div>
-      <div class="station-line">Altitude : ${station.elevation} ft</div>
-      <div class="station-line">Lat/Lon : ${station.latitude}, ${station.longitude}</div>
-      <div class="station-line">Type : ${station.type}</div>
+<div class="station-line">${station.city ?? "n/a"}, ${station.country ?? "n/a"}</div>
+<div class="station-line">Altitude : ${station.elevation ?? "n/a"} ft</div>
+<div class="station-line">Lat/Lon : ${station.latitude ?? "n/a"}, ${station.longitude ?? "n/a"}</div>
+<div class="station-line">Type : ${station.type ?? "n/a"}</div>
+
     </div>
   `;
 }
