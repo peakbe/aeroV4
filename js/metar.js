@@ -1,5 +1,5 @@
 /****************************************************
- * 1) FETCH METAR — AirLabs (ICAO + fallback EBBR)
+ * 1) FETCH METAR — avwx (ICAO + fallback EBBR)
  ****************************************************/
 /****************************************************
  * METAR / TAF — AVWX Version PRO+++
@@ -83,7 +83,7 @@ export function updateMetarUI(airportKey, metar) {
 }
 
 /****************************************************
- * 4) FETCH TAF — AirLabs (ICAO correct)
+ * 4) FETCH TAF — avwx (ICAO correct)
  ****************************************************/
 export async function fetchTaf(icao) {
   try {
