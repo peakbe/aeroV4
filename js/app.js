@@ -7,7 +7,7 @@ import { airports } from "./config.js";
 import { initMap, map, resetMapView } from "./map.js";
 
 import { fetchMetar, updateMetarUI } from "./metar.js";
-import { fetchTaf, updateTafUI, initMetarSwitch } from "./taf.js";
+import { fetchTaf, updateTafUI, } from "./taf.js";
 
 import { updateWindRose } from "./windrose.js";
 
@@ -116,8 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initTabs();
   initMap();
-  initMetarSwitch();
-
+  
   map.whenReady(async () => {
 
     /********************************************
