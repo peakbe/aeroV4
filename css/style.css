@@ -561,3 +561,28 @@ main {
 .wind-indicator.red {
   color: red;
 }
+
+/*  Style cockpit + animation flèche vent */
+.wind-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 14px solid #0ff; /* couleur par défaut */
+  margin-right: 10px;
+  transform: rotate(0deg);
+  transition: transform 0.6s ease-in-out; /* animation smooth */
+}
+
+.wind-arrow.lime {
+  border-bottom-color: lime;
+}
+
+.wind-arrow.orange {
+  border-bottom-color: orange;
+}
+
+.wind-arrow.red {
+  border-bottom-color: red;
+}
