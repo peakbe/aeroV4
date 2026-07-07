@@ -1,3 +1,5 @@
+import { AVWX_API_KEY } from "./config.js";
+
 export async function fetchStationInfo(icao) {
   try {
     const url = `https://avwx.rest/api/station/${icao}?format=json&token=${AVWX_API_KEY}`;
