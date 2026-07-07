@@ -2,29 +2,7 @@
  * FIDS.js — Tableau avionique PRO+++ (AirLabs)
  ****************************************************/
 
-import { angleDiff, safeSet } from "./utils.js";
-import { computeRunway } from "./app.js";
-
-/****************************************************
- * HUD Piste active
- ****************************************************/
-export function updateRunwayHUD(airport, windDir, windSpd) {
-  const hud = document.getElementById("runway-hud");
-  if (!hud) return;
-
-  if (!windDir || !windSpd) {
-    hud.innerHTML = "<div class='hud-line'>Piste active: n/a</div>";
-    return;
-  }
-
-  const active = computeRunway(airport, windDir);
-
-  hud.innerHTML = `
-    <div class="hud-line">
-      Vent ${windDir}° / ${windSpd} kt — Piste active: <strong>${active}</strong>
-    </div>
-  `;
-}
+import { angleDiff } from "./utils.js";
 
 /****************************************************
  * Format HH:MM cockpit IFR
@@ -136,81 +114,3 @@ export async function updateFidsFlights(airportKey) {
     tbody.appendChild(tr);
   });
 }
-
-/****************************************************
- * Sonomètres (optionnel)
- ****************************************************/
-export async function updateFidsList(airportKey) {
-  const id = airportKey === "EBCI" ? "sonos-ebci" : "sonos-eblg";
-  const el = document.getElementById(id);
-  if (!el) return;
-
-  el.textContent = "Chargement...";
-
-  try {
-    const res = await fetch(`/api/fids/${airportKey}/sonos.json`);
-    const data = await res.json();
-    el.innerHTML = data.map(s => `${s.name} — ${s.value} dB`).join("<br>");
-  } catch (e) {
-    el.textContent = "Sonomètres indisponibles";
-  }
-}
-
-/****************************************************
- * Radar avion — AirLabs
- ****************************************************/
-import { map, planesLayer, planeIconApproach, planeIconDeparture } from "./map.js";
-
-export async function updateAircraftPositions() {
-  planesLayer.clearLayers();
-
-  const key = "04cb1c09-8abb-468a-95fa-ee90c3c2b651";
-
-  const urls = [
-    `https://airlabs.co/api/v9/flights?arr_icao=EBLG&api_key=${key}`,
-    `https://airlabs.co/api/v9/flights?dep_icao=EBLG&api_key=${key}`,
-    `https://airlabs.co/api/v9/flights?arr_icao=EBCI&api_key=${key}`,
-    `https://airlabs.co/api/v9/flights?dep_icao=EBCI&api_key=${key}`
-  ];
-
-  let all = [];
-
-  for (const url of urls) {
-    try {
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.response) all = all.concat(json.response);
-    } catch (e) {
-      console.warn("AirLabs error:", e);
-    }
-  }
-
-  const aircraft = all.filter(f => f.lat && f.lng);
-
-  aircraft.forEach(f => {
-
-    const isApproach =
-      f.arr_icao === "EBLG" || f.arr_icao === "EBCI";
-
-    const icon = isApproach ? planeIconApproach : planeIconDeparture;
-
-    const marker = L.marker([f.lat, f.lng], {
-      icon: icon,
-      rotationAngle: f.dir || 0,
-      rotationOrigin: "center"
-    });
-
-    marker.bindPopup(`
-      <b>${f.flight_iata || f.flight_icao || "?"}</b><br>
-      ${f.airline_iata || f.airline_icao || ""}<br>
-      ${f.dep_iata || "?"} → ${f.arr_iata || "?"}<br>
-      <b>${f.status}</b><br>
-      Alt: ${f.alt ? f.alt + " ft" : "n/a"}<br>
-      Vitesse: ${f.speed ? f.speed + " kt" : "n/a"}<br>
-      Cap: ${f.dir ? f.dir + "°" : "n/a"}
-    `);
-
-    planesLayer.addLayer(marker);
-  });   // ← FERMETURE forEach
-
-}       // ← FERMETURE updateAircraftPositions
