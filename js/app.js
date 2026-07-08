@@ -24,6 +24,14 @@ import { angleDiff } from "./utils.js";
 import { fetchStationInfo, updateStationUI } from "./station.js";
 
 /****************************************************
+ * Règle IFR — Détection de l’onglet SONO
+ ****************************************************/
+function isSonoTab() {
+  const activeTab = document.querySelector(".mcdu-tab.active")?.dataset.tab;
+  return activeTab === "tab-sono";
+}
+
+/****************************************************
  * Détection piste active (computeRunway)
  ****************************************************/
 export function computeRunway(airport, windDirDeg) {
