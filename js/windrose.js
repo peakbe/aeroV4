@@ -37,7 +37,7 @@ export function updateWindRose(metar) {
   if (!metar || !metar.icao) return;
 
   // 2) Règle IFR : ne rien afficher dans l’onglet SONO
-  if (isSonoTab()) return;
+  if (window.isSonoTab()) return;
 
   // 3) Détermination du conteneur
   const targetId = metar.icao === "EBCI"
