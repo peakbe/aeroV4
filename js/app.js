@@ -55,78 +55,67 @@ export function computeRunway(airport, windDirDeg) {
  * Processus principal par aéroport — Version PRO+++
  ****************************************************/
 export async function processAirport(airportKey) {
-  window.currentAirportKey = airportKey;
 
+  window.currentAirportKey = airportKey;
   const ap = airports[airportKey];
 
   /***********************
-   * Détection onglet actif
+   * Détection onglet actif (IFR)
    ***********************/
-  const activeTab = document.querySelector(".mcdu-tab.active")?.dataset.tab;
-  const isSonoTab = activeTab === "tab-sono";
+  const isSonoTab = isSonoTab(); // Fonction globale dans app.js
 
   /***********************
-   * 1) METAR
+   * 1) METAR (toujours fetché, affiché seulement hors SONO)
    ***********************/
   const metar = await fetchMetar(ap.icao);
   ap.lastMetar = metar;
-
   metar.icao = airportKey;
 
-  // 👉 METAR uniquement si on n’est PAS dans SONO
+  /***********************
+   * 2) Piste active (toujours calculée)
+   ***********************/
+  const windDir = Number(metar?.wind_dir) || 0;
+  const windSpd = Number(metar?.wind_speed) || 0;
+
+  const activeRunway = computeRunway(ap, windDir);
+  ap.activeRunway = activeRunway;
+  window.activeRunway = activeRunway;
+
+  /***********************
+   * 3) Affichages METAR / HUD / Rose / Station
+   *    👉 uniquement si on n’est PAS dans SONO
+   ***********************/
   if (!isSonoTab) {
+
     updateMetarUI(
       airportKey,
       metar,
       airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
     );
-  }
 
-  /***********************
-   * 2) Piste active
-   ***********************/
-  const windDir = metar?.wind_dir;
-  const windSpd = metar?.wind_speed;
-
-  const activeRunway = computeRunway(ap, windDir);
-
-  window.activeRunway = activeRunway;
-  ap.activeRunway = activeRunway;
-
-  // 👉 HUD uniquement si on n’est PAS dans SONO
-  if (!isSonoTab) {
     updateRunwayHUD(ap, windDir, windSpd);
-  }
 
-  // 👉 Rose des vents uniquement si on n’est PAS dans SONO
-  if (!isSonoTab) {
     updateWindRose(metar);
+
+    const station = await fetchStationInfo(ap.icao);
+    updateStationUI(airportKey, station);
   }
 
   /***********************
-   * 3) ILS dynamique
+   * 4) ILS dynamique (toujours)
    ***********************/
   refreshILS();
 
   /***********************
-   * 4) SONO (toujours)
+   * 5) SONO (toujours)
    ***********************/
-  updateSono(airportKey, ap.activeRunway, map);
+  updateSono(airportKey, activeRunway, map);
 
   /***********************
-   * 5) FIDS avionique
+   * 6) FIDS avionique (toujours)
    ***********************/
   updateFidsFlights(airportKey);
-
-  /***********************
-   * 6) Station météo
-   ***********************/
-  if (!isSonoTab) {
-    const station = await fetchStationInfo(ap.icao);
-    updateStationUI(airportKey, station);
-  }
 }
-
 
 /****************************************************
  * Initialisation cockpit IFR
