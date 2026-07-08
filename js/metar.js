@@ -46,19 +46,18 @@ function classifyMetar(metar) {
 /****************************************************
  * 3) AFFICHAGE METAR — AVWX harmonisé
  ****************************************************/
-export function updateMetarUI(airportKey, metar) {
-  const targetId = airportKey === "EBCI" ? "metar-ebci" : "metar-eblg";
+export function updateMetarUI(airportKey, metar, targetId) {
+  if (isSonoTab()) return; // ❌ Ne rien afficher dans SONO
+
   const el = document.getElementById(targetId);
   if (!el) return;
 
   el.innerHTML = `
-    <div class="metar-block">
-      💨 Vent ${metar.wind_dir}° / ${metar.wind_speed} kt<br>
-      🌡 Température : ${metar.temperature}°C<br>
-      🧭 QNH : ${metar.qnh} hPa<br>
-      👁 Visibilité : ${metar.visibility} m<br>
-      <pre>${metar.raw}</pre>
-    </div>
+    <div class="metar-line">Vent ${metar.wind_dir}° / ${metar.wind_speed} kt</div>
+    <div class="metar-line">Température : ${metar.temp}°C</div>
+    <div class="metar-line">QNH : ${metar.qnh} hPa</div>
+    <div class="metar-line">Visibilité : ${metar.visib} m</div>
+    <div class="metar-raw">${metar.raw}</div>
   `;
 }
 
