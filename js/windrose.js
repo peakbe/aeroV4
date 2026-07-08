@@ -29,37 +29,52 @@ function classifyRunway(runway, windDir) {
   return "red";                      // vent arrière
 }
 /****************************************************
- * 3) AFFICHAGE ROSE DES VENTS
+ * 3) AFFICHAGE ROSE DES VENTS — Version PRO+++
  ****************************************************/
 export function updateWindRose(metar) {
 
+  // 1) Sécurité : METAR valide ?
+  if (!metar || !metar.icao) return;
+
+  // 2) Règle IFR : ne rien afficher dans l’onglet SONO
+  if (isSonoTab()) return;
+
+  // 3) Détermination du conteneur
   const targetId = metar.icao === "EBCI"
     ? "wind-rose-ebci"
     : "wind-rose-eblg";
 
   const el = document.getElementById(targetId);
-  if (!el) return;
+  if (!el) return; // Sécurité DOM
 
-  const windColor = classifyWind(metar.wind_speed);
-
-  // Récupération piste active depuis airports[]
+  // 4) Sécurité : aéroport valide ?
   const ap = airports[metar.icao];
-  const runway = ap?.activeRunway || "??";
+  if (!ap) return;
 
-  const runwayColor = classifyRunway(runway, metar.wind_dir);
+  // 5) Piste active sécurisée
+  const runway = ap.activeRunway || "??";
 
+  // 6) Sécurité : valeurs METAR
+  const windDir = Number(metar.wind_dir) || 0;
+  const windSpd = Number(metar.wind_speed) || 0;
+
+  // 7) Classification cockpit IFR
+  const windColor = classifyWind(windSpd);
+  const runwayColor = classifyRunway(runway, windDir);
+
+  // 8) Affichage cockpit IFR
   el.innerHTML = `
     <div class="wind-rose-container">
       <div class="wind-rose-circle"></div>
 
       <div class="wind-rose-arrow"
-           style="transform: rotate(${metar.wind_dir}deg);
+           style="transform: rotate(${windDir}deg);
                   background-color: ${windColor};">
       </div>
     </div>
 
     <div class="wind-rose-value">
-      ${metar.wind_dir}° / ${metar.wind_speed} kt
+      ${windDir}° / ${windSpd} kt
     </div>
 
     <div class="wind-runway-label"
