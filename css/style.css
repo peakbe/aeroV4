@@ -586,3 +586,12 @@ main {
 .wind-arrow.red {
   border-bottom-color: red;
 }
+
+#tab-sono #wind-rose-ebci,
+#tab-sono #wind-rose-eblg,
+#tab-sono #metar-ebci,
+#tab-sono #metar-eblg,
+#tab-sono #station-ebci,
+#tab-sono #station-eblg {
+  display: none !important;
+}
