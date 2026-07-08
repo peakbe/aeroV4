@@ -47,7 +47,8 @@ function classifyMetar(metar) {
  * 3) AFFICHAGE METAR — AVWX harmonisé
  ****************************************************/
 export function updateMetarUI(airportKey, metar, targetId) {
-  if (isSonoTab()) return; // ❌ Ne rien afficher dans SONO
+  if (window.isSonoTab()) return;
+ // ❌ Ne rien afficher dans SONO
 
   const el = document.getElementById(targetId);
   if (!el) return;
