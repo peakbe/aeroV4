@@ -31,19 +31,18 @@ export async function fetchStationInfo(icao) {
  * AFFICHAGE STATION — Compatible cockpit IFR
  ****************************************************/
 export function updateStationUI(airportKey, station) {
-  const targetId = airportKey === "EBCI" ? "station-ebci" : "station-eblg";
-  const el = document.getElementById(targetId);
+  if (isSonoTab()) return; // ❌ Ne rien afficher dans SONO
+
+  const id = airportKey === "EBCI" ? "station-ebci" : "station-eblg";
+  const el = document.getElementById(id);
   if (!el) return;
 
   el.innerHTML = `
-    <div class="station-block">
-      ✈ ${station.name}<br>
-      ${station.city}, ${station.country}<br>
-      Altitude : ${station.altitude} ft<br>
-      Lat/Lon : ${station.lat}, ${station.lon}<br>
-      Type : ${station.type}
-    </div>
+    <div class="station-line">Température : ${station.temp}°C</div>
+    <div class="station-line">Humidité : ${station.humidity}%</div>
+    <div class="station-line">Pression : ${station.pressure} hPa</div>
   `;
 }
+
 
 
