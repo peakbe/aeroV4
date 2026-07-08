@@ -31,7 +31,8 @@ export async function fetchStationInfo(icao) {
  * AFFICHAGE STATION — Compatible cockpit IFR
  ****************************************************/
 export function updateStationUI(airportKey, station) {
-  if (isSonoTab()) return; // ❌ Ne rien afficher dans SONO
+ if (window.isSonoTab()) return;
+ // ❌ Ne rien afficher dans SONO
 
   const id = airportKey === "EBCI" ? "station-ebci" : "station-eblg";
   const el = document.getElementById(id);
