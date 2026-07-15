@@ -40,120 +40,99 @@
    
     <div id="sidebar">
       
- <!-- Ajout des boutons IFR dans la side‑bar -->
+<div id="tab-metar" class="tab-panel active">
+
   <div id="sidebar-controls">
-  <button class="sidebar-btn" data-target="EBCI">EBCI</button>
-  <button class="sidebar-btn" data-target="EBLG">EBLG</button>
-  <button class="sidebar-btn" data-target="ALL">Tous</button>
-</div>
-      
-  <!-- ========================= -->
-  <!--        EBCI SECTION       -->
-  <!-- ========================= -->
- <div id="sidebar-ebci">
-
-  <h2 class="sidebar-title">EBCI</h2>
-
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">Rose des vents</h3>
-    <div id="wind-rose-ebci"></div>
+    <button class="sidebar-btn" data-target="EBCI">EBCI</button>
+    <button class="sidebar-btn" data-target="EBLG">EBLG</button>
+    <button class="sidebar-btn" data-target="ALL">Tous</button>
   </div>
 
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">METAR</h3>
-    <div id="metar-ebci"></div>
+  <!-- EBCI -->
+  <div id="sidebar-ebci">
+    <h2 class="sidebar-title">EBCI</h2>
+
+    <div class="sidebar-block">
+      <h3 class="sidebar-subtitle">Rose des vents</h3>
+      <div id="wind-rose-ebci"></div>
+    </div>
+
+    <div class="sidebar-block">
+      <h3 class="sidebar-subtitle">METAR</h3>
+      <div id="metar-ebci"></div>
+    </div>
+
+    <div class="sidebar-block">
+      <h3 class="sidebar-subtitle">Station</h3>
+      <div id="station-ebci"></div>
+    </div>
   </div>
 
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">Station</h3>
-    <div id="station-ebci"></div>
-  </div>
+  <!-- EBLG -->
+  <div id="sidebar-eblg">
+    <h2 class="sidebar-title">EBLG</h2>
 
-</div>
+    <div class="sidebar-block">
+      <h3 class="sidebar-subtitle">Rose des vents</h3>
+      <div id="wind-rose-eblg"></div>
+    </div>
 
+    <div class="sidebar-block">
+      <h3 class="sidebar-subtitle">METAR</h3>
+      <div id="metar-eblg"></div>
+    </div>
 
-  <!-- ========================= -->
-  <!--        EBLG SECTION       -->
-  <!-- ========================= -->
- <div id="sidebar-eblg">
-
-  <h2 class="sidebar-title">EBLG</h2>
-
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">Rose des vents</h3>
-    <div id="wind-rose-eblg"></div>
-  </div>
-
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">METAR</h3>
-    <div id="metar-eblg"></div>
-  </div>
-
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">Station</h3>
-    <div id="station-eblg"></div>
+    <div class="sidebar-block">
+      <h3 class="sidebar-subtitle">Station</h3>
+      <div id="station-eblg"></div>
+    </div>
   </div>
 
 </div>
 
 
 
- 
-  <!-- CONTENU METAR / TAF -->
-  <div id="metar-content"></div>
-  <div id="taf-content" style="display:none;"></div>
-
-  <!-- EMBED METAR-TAF.COM -->
-  <div id="metar-embed-ebci"></div>
-  <div id="metar-embed-eblg"></div>
-</div>
 
 
-
-
-      <!-- PANEL SONO -->
      <div id="tab-sono" class="tab-panel">
-  <div class="sidebar-title">Sonomètres</div>
 
+  <div class="sidebar-title">Sonomètres</div>
   <div id="sono-status" class="mcdu-line">SONO: n/a</div>
 
-       <!-- PANEL SONO - EBCI -->
-   <div id="sono-ebci" class="sono-collapse">
-  <div class="sono-collapse-header">
-    <span>Sonomètres EBCI</span>
-
-    <!-- Indicateur de vent IFR -->
-    <span id="wind-indicator-ebci" class="wind-indicator"></span>
-<span id="wind-arrow-ebci" class="wind-arrow"></span>
-
-    <button class="collapse-toggle">▼</button>
+  <!-- SONO EBCI -->
+  <div id="sono-ebci" class="sono-collapse">
+    <div class="sono-collapse-header">
+      <span>Sonomètres EBCI</span>
+      <span id="wind-indicator-ebci" class="wind-indicator"></span>
+      <span id="wind-arrow-ebci" class="wind-arrow"></span>
+      <button class="collapse-toggle">▼</button>
+    </div>
+    <div class="sono-collapse-body">
+      <div id="sono-status-ebci" class="sono-header"></div>
+      <div id="sono-list-ebci" class="mcdu-list">Chargement...</div>
+    </div>
   </div>
 
-  <div class="sono-collapse-body">
-    <div id="sono-status-ebci" class="sono-header"></div>
-    <div id="sono-list-ebci" class="mcdu-list">Chargement...</div>
+  <!-- SONO EBLG -->
+  <div id="sono-eblg" class="sono-collapse">
+    <div class="sono-collapse-header">
+      <span>Sonomètres EBLG</span>
+      <span id="wind-indicator-eblg" class="wind-indicator"></span>
+      <span id="wind-arrow-eblg" class="wind-arrow"></span>
+      <button class="collapse-toggle">▼</button>
+    </div>
+    <div class="sono-collapse-body">
+      <div id="sono-status-eblg" class="sono-header"></div>
+      <div id="sono-list-eblg" class="mcdu-list">Chargement...</div>
+    </div>
   </div>
+
+  <div class="mcd-switch">
+    <button id="reset-map" class="mcd-btn">RESET MAP</button>
+  </div>
+
 </div>
 
-
-
-  <!-- PANEL SONO - EBLG -->
-      <div id="sono-eblg" class="sono-collapse">
-  <div class="sono-collapse-header">
-    <span>Sonomètres EBLG</span>
-
-    <!-- Indicateur de vent IFR -->
-    <span id="wind-indicator-eblg" class="wind-indicator"></span>
-<span id="wind-arrow-eblg" class="wind-arrow"></span>
-
-    <button class="collapse-toggle">▼</button>
-  </div>
-
-  <div class="sono-collapse-body">
-    <div id="sono-status-eblg" class="sono-header"></div>
-    <div id="sono-list-eblg" class="mcdu-list">Chargement...</div>
-  </div>
-</div>
 
 
 
