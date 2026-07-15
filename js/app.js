@@ -1,6 +1,13 @@
 /****************************************************
  * APP.JS — Orchestrateur Cockpit IFR PRO+++
  ****************************************************/
+/****************************************************
+ * Règle IFR — Détection de l’onglet SONO
+ ****************************************************/
+function isSonoTab() {
+  const activeTab = document.querySelector(".mcdu-tab.active")?.dataset.tab;
+  return activeTab === "tab-sono";
+}
 
 import { airports } from "./config.js";
 
@@ -22,14 +29,6 @@ import { initTabs } from "./tabs.js";
 import { angleDiff } from "./utils.js";
 
 import { fetchStationInfo, updateStationUI } from "./station.js";
-
-/****************************************************
- * Règle IFR — Détection de l’onglet SONO
- ****************************************************/
-function isSonoTab() {
-  const activeTab = document.querySelector(".mcdu-tab.active")?.dataset.tab;
-  return activeTab === "tab-sono";
-}
 
 /****************************************************
  * Détection piste active (computeRunway)
