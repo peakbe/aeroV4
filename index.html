@@ -22,269 +22,176 @@
 
   <!-- CARTE LEAFLET -->
   <div id="map"></div>
-<div id="sidebar">
-
-  <!-- Onglets -->
-  <div class="sidebar-tabs">
-    <button class="mcdu-tab active" data-tab="tab-metar">METAR</button>
-    <button class="mcdu-tab" data-tab="tab-sono">SONO</button>
-    <button class="mcdu-tab" data-tab="tab-fids">FIDS</button>
-    <button class="mcdu-tab" data-tab="tab-logs">LOGS</button>
-  </div>
 
   <!-- ========================= -->
-  <!-- PANEL METAR (EBCI + EBLG) -->
+  <!-- SIDEBAR MCDU (UNIQUE)     -->
   <!-- ========================= -->
-  <div id="tab-metar" class="tab-panel active">
+  <div id="sidebar">
 
-    <div id="sidebar-controls">
-      <button class="sidebar-btn" data-target="EBCI">EBCI</button>
-      <button class="sidebar-btn" data-target="EBLG">EBLG</button>
-      <button class="sidebar-btn" data-target="ALL">Tous</button>
+    <!-- Onglets -->
+    <div class="sidebar-tabs">
+      <button class="mcdu-tab active" data-tab="tab-metar">METAR</button>
+      <button class="mcdu-tab" data-tab="tab-sono">SONO</button>
+      <button class="mcdu-tab" data-tab="tab-fids">FIDS</button>
+      <button class="mcdu-tab" data-tab="tab-logs">LOGS</button>
     </div>
 
-<!-- ========================= -->
-  <!--        EBCI SECTION       -->
-  <!-- ========================= -->
- <div id="sidebar-ebci">
+    <!-- ========================= -->
+    <!-- PANEL METAR               -->
+    <!-- ========================= -->
+    <div id="tab-metar" class="tab-panel active">
 
-  <h2 class="sidebar-title">EBCI</h2>
+      <div id="sidebar-controls">
+        <button class="sidebar-btn" data-target="EBCI">EBCI</button>
+        <button class="sidebar-btn" data-target="EBLG">EBLG</button>
+        <button class="sidebar-btn" data-target="ALL">Tous</button>
+      </div>
 
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">Rose des vents</h3>
-    <div id="wind-rose-ebci"></div>
-  </div>
+      <!-- EBCI -->
+      <div id="sidebar-ebci">
+        <h2 class="sidebar-title">EBCI</h2>
 
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">METAR</h3>
-    <div id="metar-ebci"></div>
-  </div>
+        <div class="sidebar-block">
+          <h3 class="sidebar-subtitle">Rose des vents</h3>
+          <div id="wind-rose-ebci"></div>
+        </div>
 
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">Station</h3>
-    <div id="station-ebci"></div>
-  </div>
+        <div class="sidebar-block">
+          <h3 class="sidebar-subtitle">METAR</h3>
+          <div id="metar-ebci"></div>
+        </div>
 
-</div>
+        <div class="sidebar-block">
+          <h3 class="sidebar-subtitle">Station</h3>
+          <div id="station-ebci"></div>
+        </div>
+      </div>
 
+      <!-- EBLG -->
+      <div id="sidebar-eblg">
+        <h2 class="sidebar-title">EBLG</h2>
 
-  <!-- ========================= -->
-  <!--        EBLG SECTION       -->
-  <!-- ========================= -->
- <div id="sidebar-eblg">
+        <div class="sidebar-block">
+          <h3 class="sidebar-subtitle">Rose des vents</h3>
+          <div id="wind-rose-eblg"></div>
+        </div>
 
-  <h2 class="sidebar-title">EBLG</h2>
+        <div class="sidebar-block">
+          <h3 class="sidebar-subtitle">METAR</h3>
+          <div id="metar-eblg"></div>
+        </div>
 
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">Rose des vents</h3>
-    <div id="wind-rose-eblg"></div>
-  </div>
-
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">METAR</h3>
-    <div id="metar-eblg"></div>
-  </div>
-
-  <div class="sidebar-block">
-    <h3 class="sidebar-subtitle">Station</h3>
-    <div id="station-eblg"></div>
-  </div>
-
-</div>
-
-  <!-- ========================= -->
-  <!-- PANEL SONO -->
-  <!-- ========================= -->
-   <!-- PANEL SONO -->
-     <div id="tab-sono" class="tab-panel">
-  <div class="sidebar-title">Sonomètres</div>
-
-  <div id="sono-status" class="mcdu-line">SONO: n/a</div>
-
-       <!-- PANEL SONO - EBCI -->
-   <div id="sono-ebci" class="sono-collapse">
-  <div class="sono-collapse-header">
-    <span>Sonomètres EBCI</span>
-
-    <!-- Indicateur de vent IFR -->
-    <span id="wind-indicator-ebci" class="wind-indicator"></span>
-<span id="wind-arrow-ebci" class="wind-arrow"></span>
-
-    <button class="collapse-toggle">▼</button>
-  </div>
-
-  <div class="sono-collapse-body">
-    <div id="sono-status-ebci" class="sono-header"></div>
-    <div id="sono-list-ebci" class="mcdu-list">Chargement...</div>
-  </div>
-</div>
-
-
-
-  <!-- PANEL SONO - EBLG -->
-      <div id="sono-eblg" class="sono-collapse">
-  <div class="sono-collapse-header">
-    <span>Sonomètres EBLG</span>
-
-    <!-- Indicateur de vent IFR -->
-    <span id="wind-indicator-eblg" class="wind-indicator"></span>
-<span id="wind-arrow-eblg" class="wind-arrow"></span>
-
-    <button class="collapse-toggle">▼</button>
-  </div>
-
-  <div class="sono-collapse-body">
-    <div id="sono-status-eblg" class="sono-header"></div>
-    <div id="sono-list-eblg" class="mcdu-list">Chargement...</div>
-  </div>
-</div>
-
-  <!-- ========================= -->
-  <!-- PANEL FIDS -->
-  <!-- ========================= -->
-   <div id="tab-fids" class="tab-panel">
-  <div class="sidebar-title">FIDS — Vols & Pistes</div>
-<div class="mcdu-section-title">Sonomètres EBCI (FIDS)</div>
-<div id="sonos-ebci" class="mcdu-line">Chargement...</div>
-
-<div class="mcdu-section-title">Sonomètres EBLG (FIDS)</div>
-<div id="sonos-eblg" class="mcdu-line">Chargement...</div>
-
-  <!-- PISTE ACTIVE EBCI -->
-  <div class="mcdu-section-title">PISTE ACTIVE EBCI</div>
-  <div id="runway-ebci" class="mcdu-line">Chargement...</div>
-
-  <!-- VOLS EBCI -->
-  <div class="mcdu-section-title">Vols EBCI</div>
-  <table class="fids-table">
-    <thead>
-      <tr>
-        <th>Heure</th><th>Vol</th><th>Compagnie</th><th>Type</th>
-        <th>Origine</th><th>Destination</th><th>Statut</th>
-      </tr>
-    </thead>
-    <tbody id="fids-ebci"></tbody>
-  </table>
-
-  <hr class="mcdu-sep">
-
-  <!-- PISTE ACTIVE EBLG -->
-  <div class="mcdu-section-title">PISTE ACTIVE EBLG</div>
-  <div id="runway-eblg" class="mcdu-line">Chargement...</div>
-
-  <!-- VOLS EBLG -->
-  <div class="mcdu-section-title">Vols EBLG</div>
-  <table class="fids-table">
-    <thead>
-      <tr>
-        <th>Heure</th><th>Vol</th><th>Compagnie</th><th>Type</th>
-        <th>Origine</th><th>Destination</th><th>Statut</th>
-      </tr>
-    </thead>
-    <tbody id="fids-eblg"></tbody>
-  </table>
-
-  <hr class="mcdu-sep">
-  </div>
-
-  <!-- ========================= -->
-  <!-- PANEL LOGS -->
-  <!-- ========================= -->
-  <!-- PANEL LOGS -->
-      <div id="tab-logs" class="tab-panel">
-        <div class="sidebar-title">Logs Cockpit IFR</div>
-        <div id="logs-console" class="mcdu-logs">En attente de données…</div>
+        <div class="sidebar-block">
+          <h3 class="sidebar-subtitle">Station</h3>
+          <div id="station-eblg"></div>
+        </div>
       </div>
 
     </div>
+
+    <!-- ========================= -->
+    <!-- PANEL SONO                -->
+    <!-- ========================= -->
+    <div id="tab-sono" class="tab-panel">
+
+      <div class="sidebar-title">Sonomètres</div>
+      <div id="sono-status" class="mcdu-line">SONO: n/a</div>
+
+      <!-- SONO EBCI -->
+      <div id="sono-ebci" class="sono-collapse">
+        <div class="sono-collapse-header">
+          <span>Sonomètres EBCI</span>
+          <span id="wind-indicator-ebci" class="wind-indicator"></span>
+          <span id="wind-arrow-ebci" class="wind-arrow"></span>
+          <button class="collapse-toggle">▼</button>
+        </div>
+        <div class="sono-collapse-body">
+          <div id="sono-status-ebci" class="sono-header"></div>
+          <div id="sono-list-ebci" class="mcdu-list">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- SONO EBLG -->
+      <div id="sono-eblg" class="sono-collapse">
+        <div class="sono-collapse-header">
+          <span>Sonomètres EBLG</span>
+          <span id="wind-indicator-eblg" class="wind-indicator"></span>
+          <span id="wind-arrow-eblg" class="wind-arrow"></span>
+          <button class="collapse-toggle">▼</button>
+        </div>
+        <div class="sono-collapse-body">
+          <div id="sono-status-eblg" class="sono-header"></div>
+          <div id="sono-list-eblg" class="mcdu-list">Chargement...</div>
+        </div>
+      </div>
+
+      <div class="mcd-switch">
+        <button id="reset-map" class="mcd-btn">RESET MAP</button>
+      </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- PANEL FIDS                -->
+    <!-- ========================= -->
+    <div id="tab-fids" class="tab-panel">
+
+      <div class="sidebar-title">FIDS — Vols & Pistes</div>
+
+      <div class="mcdu-section-title">Sonomètres EBCI (FIDS)</div>
+      <div id="sonos-ebci" class="mcdu-line">Chargement...</div>
+
+      <div class="mcdu-section-title">Sonomètres EBLG (FIDS)</div>
+      <div id="sonos-eblg" class="mcdu-line">Chargement...</div>
+
+      <div class="mcdu-section-title">PISTE ACTIVE EBCI</div>
+      <div id="runway-ebci" class="mcdu-line">Chargement...</div>
+
+      <div class="mcdu-section-title">Vols EBCI</div>
+      <table class="fids-table">
+        <thead>
+          <tr>
+            <th>Heure</th><th>Vol</th><th>Compagnie</th><th>Type</th>
+            <th>Origine</th><th>Destination</th><th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="fids-ebci"></tbody>
+      </table>
+
+      <hr class="mcdu-sep">
+
+      <div class="mcdu-section-title">PISTE ACTIVE EBLG</div>
+      <div id="runway-eblg" class="mcdu-line">Chargement...</div>
+
+      <div class="mcdu-section-title">Vols EBLG</div>
+      <table class="fids-table">
+        <thead>
+          <tr>
+            <th>Heure</th><th>Vol</th><th>Compagnie</th><th>Type</th>
+            <th>Origine</th><th>Destination</th><th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="fids-eblg"></tbody>
+      </table>
+
+      <hr class="mcdu-sep">
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- PANEL LOGS                -->
+    <!-- ========================= -->
+    <div id="tab-logs" class="tab-panel">
+      <div class="sidebar-title">Logs Cockpit IFR</div>
+      <div id="logs-console" class="mcdu-logs">En attente de données…</div>
+    </div>
+
   </div>
 
 </main>
 
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script type="module" src="js/app.js?v=155"></script>
-<svg style="display:none;">
-  <symbol id="icon-station" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="2" fill="#0af"/>
-    <path d="M12 2v4M12 18v4M4 12h4M16 12h4" stroke="#0af" stroke-width="2" stroke-linecap="round"/>
-    <circle cx="12" cy="12" r="8" fill="none" stroke="#0af" stroke-width="1" stroke-dasharray="4 3"/>
-  </symbol>
-</svg>
-
-<svg style="display:none;">
-  <!-- Vent -->
-  <symbol id="icon-wind" viewBox="0 0 24 24">
-    <path d="M3 12h14a3 3 0 1 1-3 3" stroke="#0af" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <path d="M3 6h10a3 3 0 1 1-3 3" stroke="#0af" stroke-width="2" fill="none" stroke-linecap="round"/>
-  </symbol>
-
-  <!-- Température -->
-  <symbol id="icon-temp" viewBox="0 0 24 24">
-    <path d="M12 2v12a4 4 0 1 0 4 4" stroke="#0af" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <circle cx="12" cy="18" r="2" fill="#0af"/>
-  </symbol>
-
-  <!-- QNH -->
-  <symbol id="icon-qnh" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="8" stroke="#0af" stroke-width="2" fill="none"/>
-    <path d="M12 6v6l4 2" stroke="#0af" stroke-width="2" fill="none" stroke-linecap="round"/>
-  </symbol>
-
-  <!-- Visibilité -->
-  <symbol id="icon-vis" viewBox="0 0 24 24">
-    <path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" stroke="#0af" stroke-width="2" fill="none"/>
-    <circle cx="12" cy="12" r="3" fill="#0af"/>
-  </symbol>
-
-  <!-- METAR global -->
-  <symbol id="icon-metar" viewBox="0 0 24 24">
-    <rect x="4" y="4" width="16" height="16" rx="2" stroke="#0af" stroke-width="2" fill="none"/>
-    <path d="M7 9h10M7 13h6" stroke="#0af" stroke-width="2" stroke-linecap="round"/>
-  </symbol>
-</svg>
-  
-<svg style="display:none;">
-  <!-- Nuages -->
-  <symbol id="icon-clouds" viewBox="0 0 24 24">
-    <path d="M6 18h12a4 4 0 1 0-1-7 5 5 0 1 0-9-3" stroke="#0af" stroke-width="2" fill="none" stroke-linecap="round"/>
-  </symbol>
-
-  <!-- TEMPO -->
-  <symbol id="icon-tempo" viewBox="0 0 24 24">
-    <path d="M4 12h16" stroke="#0af" stroke-width="2" stroke-linecap="round"/>
-    <path d="M12 4v16" stroke="#0af" stroke-width="2" stroke-linecap="round"/>
-  </symbol>
-
-  <!-- BECMG -->
-  <symbol id="icon-becmg" viewBox="0 0 24 24">
-    <path d="M4 12h16" stroke="#0af" stroke-width="2" stroke-linecap="round"/>
-    <path d="M8 8l4-4 4 4" stroke="#0af" stroke-width="2" fill="none" stroke-linecap="round"/>
-  </symbol>
-
-  <!-- PROB -->
-  <symbol id="icon-prob" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="8" stroke="#0af" stroke-width="2" fill="none"/>
-    <text x="12" y="16" font-size="10" text-anchor="middle" fill="#0af">%</text>
-  </symbol>
-
-  <!-- FM -->
-  <symbol id="icon-fm" viewBox="0 0 24 24">
-    <path d="M4 12h16" stroke="#0af" stroke-width="2" stroke-linecap="round"/>
-    <path d="M12 6l4 4-4 4" stroke="#0af" stroke-width="2" fill="none" stroke-linecap="round"/>
-  </symbol>
-
-  <!-- Vent -->
-  <symbol id="icon-wind-taf" viewBox="0 0 24 24">
-    <path d="M3 12h14a3 3 0 1 1-3 3" stroke="#0af" stroke-width="2" fill="none" stroke-linecap="round"/>
-  </symbol>
-
-  <!-- Visibilité -->
-  <symbol id="icon-vis-taf" viewBox="0 0 24 24">
-    <path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" stroke="#0af" stroke-width="2" fill="none"/>
-    <circle cx="12" cy="12" r="3" fill="#0af"/>
-  </symbol>
-</svg>
 
 </body>
 </html>
