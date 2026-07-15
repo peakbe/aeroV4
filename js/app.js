@@ -1,20 +1,24 @@
 /****************************************************
  * APP.JS — Orchestrateur Cockpit IFR PRO+++
  ****************************************************/
+
 /****************************************************
- * Règle IFR — Détection de l’onglet SONO
+ * Règle IFR — Détection de l’onglet SONO (globale)
  ****************************************************/
-function isSonoTab() {
+window.isSonoTab = function () {
   const activeTab = document.querySelector(".mcdu-tab.active")?.dataset.tab;
   return activeTab === "tab-sono";
-}
+};
 
+/****************************************************
+ * IMPORTS
+ ****************************************************/
 import { airports } from "./config.js";
 
 import { initMap, map, resetMapView } from "./map.js";
 
 import { fetchMetar, updateMetarUI } from "./metar.js";
-import { fetchTaf, updateTafUI, } from "./taf.js";
+import { fetchTaf, updateTafUI } from "./taf.js";
 
 import { updateWindRose } from "./windrose.js";
 
@@ -61,10 +65,10 @@ export async function processAirport(airportKey) {
   /***********************
    * Détection onglet actif (IFR)
    ***********************/
-  const sonoMode = isSonoTab(); // ✔ pas de shadowing
+  const sonoMode = window.isSonoTab(); // ✔ pas de shadowing
 
   /***********************
-   * 1) METAR (toujours fetché, affiché seulement hors SONO)
+   * 1) METAR (toujours fetché)
    ***********************/
   const metar = await fetchMetar(ap.icao);
   ap.lastMetar = metar;
@@ -81,7 +85,7 @@ export async function processAirport(airportKey) {
   window.activeRunway = activeRunway;
 
   /***********************
-   * 3) Affichages METAR / HUD / Rose / Station
+   * 3) METAR / HUD / Rose / Station
    *    👉 uniquement si on n’est PAS dans SONO
    ***********************/
   if (!sonoMode) {
@@ -116,7 +120,6 @@ export async function processAirport(airportKey) {
   updateFidsFlights(airportKey);
 }
 
-
 /****************************************************
  * Initialisation cockpit IFR
  ****************************************************/
@@ -145,19 +148,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   /***********************
-   * Toggle SONO
-   ***********************/
-  //const toggle = document.getElementById("toggle-sono");
-  //if (toggle) {
-    //toggle.checked = true;
-    //toggle.addEventListener("change", () => {
-     // window.sonoEnabled = toggle.checked;
-      //const ind = document.querySelector(".mcd-switch-indicator");
-      //if (ind) ind.textContent = window.sonoEnabled ? "ON" : "OFF";
-   // });
- // }
-
-  /***********************
    * Reset MAP
    ***********************/
   const resetBtn = document.getElementById("reset-map");
@@ -169,79 +159,76 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-/***********************
- * Affichage EBCI-EBLG dans la side-bar
- ***********************/
-const ebciSection = document.getElementById("sidebar-ebci");
-const eblgSection = document.getElementById("sidebar-eblg");
+  /***********************
+   * Affichage EBCI-EBLG dans la side-bar
+   ***********************/
+  const ebciSection = document.getElementById("sidebar-ebci");
+  const eblgSection = document.getElementById("sidebar-eblg");
 
-document.querySelectorAll(".sidebar-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
+  document.querySelectorAll(".sidebar-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
 
-    // Highlight bouton actif
-    document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+      document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
 
-    const target = btn.dataset.target;
+      const target = btn.dataset.target;
 
-    if (target === "EBCI") {
-      ebciSection.style.display = "block";
-      eblgSection.style.display = "none";
-    }
+      if (target === "EBCI") {
+        ebciSection.style.display = "block";
+        eblgSection.style.display = "none";
+      }
 
-    else if (target === "EBLG") {
-      ebciSection.style.display = "none";
-      eblgSection.style.display = "block";
-    }
+      else if (target === "EBLG") {
+        ebciSection.style.display = "none";
+        eblgSection.style.display = "block";
+      }
 
-    else {
-      ebciSection.style.display = "block";
-      eblgSection.style.display = "block";
-    }
+      else {
+        ebciSection.style.display = "block";
+        eblgSection.style.display = "block";
+      }
+    });
   });
-});
-  
-/***********************
- * Boutons SONO : EBCI / EBLG / Tous
- ***********************/
-const sonoEBCI = document.getElementById("sono-ebci");
-const sonoEBLG = document.getElementById("sono-eblg");
 
-document.querySelectorAll(".sidebar-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
+  /***********************
+   * Boutons SONO : EBCI / EBLG / Tous
+   ***********************/
+  const sonoEBCI = document.getElementById("sono-ebci");
+  const sonoEBLG = document.getElementById("sono-eblg");
 
-    // Highlight bouton actif
-    document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+  document.querySelectorAll(".sidebar-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
 
-    const target = btn.dataset.target;
+      document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
 
-    if (target === "EBCI") {
-      sonoEBCI.style.display = "block";
-      sonoEBLG.style.display = "none";
-    }
+      const target = btn.dataset.target;
 
-    else if (target === "EBLG") {
-      sonoEBCI.style.display = "none";
-      sonoEBLG.style.display = "block";
-    }
+      if (target === "EBCI") {
+        sonoEBCI.style.display = "block";
+        sonoEBLG.style.display = "none";
+      }
 
-    else {
-      sonoEBCI.style.display = "block";
-      sonoEBLG.style.display = "block";
-    }
+      else if (target === "EBLG") {
+        sonoEBCI.style.display = "none";
+        sonoEBLG.style.display = "block";
+      }
+
+      else {
+        sonoEBCI.style.display = "block";
+        sonoEBLG.style.display = "block";
+      }
+    });
   });
-});
-  
-/***********************
- * Collapse SONO IFR
- ***********************/
-document.querySelectorAll(".sono-collapse-header").forEach(header => {
-  header.addEventListener("click", () => {
-    const parent = header.parentElement;
-    parent.classList.toggle("collapsed");
-  });
-});
 
+  /***********************
+   * Collapse SONO IFR
+   ***********************/
+  document.querySelectorAll(".sono-collapse-header").forEach(header => {
+    header.addEventListener("click", () => {
+      const parent = header.parentElement;
+      parent.classList.toggle("collapsed");
+    });
+  });
 
 });
