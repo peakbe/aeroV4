@@ -61,7 +61,7 @@ export async function processAirport(airportKey) {
   /***********************
    * Détection onglet actif (IFR)
    ***********************/
-  const isSonoTab = isSonoTab(); // Fonction globale dans app.js
+  const sonoMode = isSonoTab(); // ✔ pas de shadowing
 
   /***********************
    * 1) METAR (toujours fetché, affiché seulement hors SONO)
@@ -84,7 +84,7 @@ export async function processAirport(airportKey) {
    * 3) Affichages METAR / HUD / Rose / Station
    *    👉 uniquement si on n’est PAS dans SONO
    ***********************/
-  if (!isSonoTab) {
+  if (!sonoMode) {
 
     updateMetarUI(
       airportKey,
@@ -115,6 +115,7 @@ export async function processAirport(airportKey) {
    ***********************/
   updateFidsFlights(airportKey);
 }
+
 
 /****************************************************
  * Initialisation cockpit IFR
