@@ -1,7 +1,7 @@
 /****************************************************
  * ILS — Cockpit IFR PRO+++
- * Version sans IM / MM / OM
  * Localizer + Glide Slope + Runway HUD
+ * Sans IM / MM / OM
  ****************************************************/
 
 import { airports } from "./config.js";
@@ -21,7 +21,7 @@ function clearIlsLayers(ap) {
  * Dessine le localizer (LOC)
  ****************************************************/
 function drawLocalizer(ap) {
-  const loc = ap.ils.localizer;
+  const loc = ap.ils?.localizer;
   if (!loc) return;
 
   const line = L.polyline(
@@ -44,7 +44,7 @@ function drawLocalizer(ap) {
  * Dessine le glide slope (GS)
  ****************************************************/
 function drawGlideSlope(ap) {
-  const gs = ap.ils.glideSlope;
+  const gs = ap.ils?.glideSlope;
   if (!gs) return;
 
   const line = L.polyline(
@@ -88,24 +88,33 @@ function drawRunwayCenterline(ap) {
 }
 
 /****************************************************
+ * HUD piste active (appelé par app.js)
+ ****************************************************/
+export function updateRunwayHUD(ap, windDir, windSpd) {
+  const hud = document.getElementById(
+    ap.icao === "EBCI" ? "runway-ebci" : "runway-eblg"
+  );
+
+  if (!hud) return;
+
+  const runway = ap.activeRunway || "??";
+
+  hud.innerHTML = `
+    <div class="hud-runway">
+      <strong>Piste active :</strong> ${runway}<br>
+      <strong>Vent :</strong> ${windDir}° / ${windSpd} kt
+    </div>
+  `;
+}
+
+/****************************************************
  * Rafraîchissement complet ILS
  ****************************************************/
 export function refreshILS() {
-  const keys = Object.keys(airports);
-
-  keys.forEach(key => {
-    const ap = airports[key];
-
-    // Nettoyage
+  Object.values(airports).forEach(ap => {
     clearIlsLayers(ap);
-
-    // Localizer
     drawLocalizer(ap);
-
-    // Glide slope
     drawGlideSlope(ap);
-
-    // Piste active
     drawRunwayCenterline(ap);
   });
 }
