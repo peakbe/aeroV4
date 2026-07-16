@@ -75,6 +75,14 @@ export const airports = {
       }
     ],
 
+  // avion sur l’axe  
+    
+aircraft: {
+  lat: 50.46,
+  lon: 4.46,
+  altFt: 3000
+}
+
     /***********************
      * ILS (LOC + GS)
      ***********************/
