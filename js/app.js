@@ -13,6 +13,8 @@ window.isSonoTab = function () {
 /****************************************************
  * IMPORTS
  ****************************************************/
+import { refreshIlsNd } from "./ils-nd.js";
+
 import { airports } from "./config.js";
 
 import { initMap, map, resetMapView } from "./map.js";
@@ -107,7 +109,9 @@ export async function processAirport(airportKey) {
   /***********************
    * 4) ILS dynamique (toujours)
    ***********************/
-  refreshILS();
+  refreshILS();    // ton ILS classique
+  refreshIlsNd();  // ND Airbus PRO+++
+
 
   /***********************
    * 5) SONO (toujours)
