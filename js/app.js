@@ -13,6 +13,8 @@ window.isSonoTab = function () {
 /****************************************************
  * IMPORTS
  ****************************************************/
+import { updateNdAirbus } from "./nd-airbus.js";
+
 import { refreshIlsNd } from "./ils-nd.js";
 
 import { airports } from "./config.js";
