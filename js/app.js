@@ -142,26 +142,56 @@ document.addEventListener("DOMContentLoaded", async () => {
       processAirport("EBLG")
     ]);
     
+/********************************************
+ * Tracking AirLabs — EBCI + EBLG (ND Airbus)
+ ********************************************/
 setInterval(async () => {
+  try {
+    // EBCI — Arrivées vers CRL
+    const urlEbci = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&arr_iata=CRL`;
+    const resEbci = await fetch(urlEbci);
+    const dataEbci = await resEbci.json();
 
-    const url = `https://airlabs.co/api/v9/flights?api_key=YOUR_KEY&dep_iata=CRL`;
-    const res = await fetch(url);
-    const data = await res.json();
+    if (dataEbci.response && dataEbci.response.length > 0) {
+      const flightEbci = dataEbci.response[0];
 
-    const flight = data.response[0];
+      airports.EBCI.aircraft.lat   = flightEbci.lat;
+      airports.EBCI.aircraft.lon   = flightEbci.lng;
+      airports.EBCI.aircraft.altFt = flightEbci.alt;
+      airports.EBCI.aircraft.hdg   = flightEbci.dir;
+      airports.EBCI.aircraft.gs    = flightEbci.speed;
 
-    airports.EBCI.aircraft.lat = flight.lat;
-    airports.EBCI.aircraft.lon = flight.lng;
-    airports.EBCI.aircraft.altFt = flight.alt;
-    airports.EBCI.aircraft.hdg = flight.dir;
-    airports.EBCI.aircraft.gs = flight.speed;
+      refreshIlsNd();
+      updateNdAirbus("EBCI");
+    } else {
+      console.warn("AirLabs: aucun vol trouvé vers CRL (EBCI)");
+    }
 
-    refreshIlsNd();        // ND géométrique
-updateNdAirbus("EBCI"); // ND Airbus A320
-updateNdAirbus("EBLG");
+    // EBLG — Arrivées vers LGG
+    const urlEblg = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&arr_iata=LGG`;
+    const resEblg = await fetch(urlEblg);
+    const dataEblg = await resEblg.json();
 
+    if (dataEblg.response && dataEblg.response.length > 0) {
+      const flightEblg = dataEblg.response[0];
 
+      airports.EBLG.aircraft.lat   = flightEblg.lat;
+      airports.EBLG.aircraft.lon   = flightEblg.lng;
+      airports.EBLG.aircraft.altFt = flightEblg.alt;
+      airports.EBLG.aircraft.hdg   = flightEblg.dir;
+      airports.EBLG.aircraft.gs    = flightEblg.speed;
+
+      refreshIlsNd();
+      updateNdAirbus("EBLG");
+    } else {
+      console.warn("AirLabs: aucun vol trouvé vers LGG (EBLG)");
+    }
+
+  } catch (err) {
+    console.error("AirLabs error:", err);
+  }
 }, 5000);
+
 
 
     /********************************************
