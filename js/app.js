@@ -110,9 +110,7 @@ export async function processAirport(airportKey) {
    * 4) ILS dynamique (toujours)
    ***********************/
   refreshILS();    // ton ILS classique
-  refreshIlsNd();  // ND Airbus PRO+++
-
-
+ 
   /***********************
    * 5) SONO (toujours)
    ***********************/
@@ -141,6 +139,35 @@ document.addEventListener("DOMContentLoaded", async () => {
       processAirport("EBCI"),
       processAirport("EBLG")
     ]);
+    
+setInterval(async () => {
+
+    const url = `https://airlabs.co/api/v9/flights?api_key=YOUR_KEY&dep_iata=CRL`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const flight = data.response[0];
+
+    airports.EBCI.aircraft.lat = flight.lat;
+    airports.EBCI.aircraft.lon = flight.lng;
+    airports.EBCI.aircraft.altFt = flight.alt;
+    airports.EBCI.aircraft.hdg = flight.dir;
+    airports.EBCI.aircraft.gs = flight.speed;
+
+    refreshIlsNd();
+
+}, 5000);
+
+
+
+airports.EBCI.aircraft.lat = newLat;
+airports.EBCI.aircraft.lon = newLon;
+airports.EBCI.aircraft.altFt = newAlt;
+airports.EBCI.aircraft.hdg = newHeading;
+airports.EBCI.aircraft.gs = newGroundSpeed;
+
+// Rafraîchissement ND Airbus
+refreshIlsNd();
 
     /********************************************
      * Rafraîchissement SONO toutes les 30 sec
