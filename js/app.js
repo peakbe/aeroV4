@@ -154,20 +154,10 @@ setInterval(async () => {
     airports.EBCI.aircraft.hdg = flight.dir;
     airports.EBCI.aircraft.gs = flight.speed;
 
-    refreshIlsNd();
+    refreshIlsNd();   // ND Airbus PRO+++
 
 }, 5000);
 
-
-
-airports.EBCI.aircraft.lat = newLat;
-airports.EBCI.aircraft.lon = newLon;
-airports.EBCI.aircraft.altFt = newAlt;
-airports.EBCI.aircraft.hdg = newHeading;
-airports.EBCI.aircraft.gs = newGroundSpeed;
-
-// Rafraîchissement ND Airbus
-refreshIlsNd();
 
     /********************************************
      * Rafraîchissement SONO toutes les 30 sec
