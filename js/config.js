@@ -15,6 +15,14 @@ export const airports = {
     lat: 50.459,
     lon: 4.453,
 
+      aircraft: {
+    lat: 50.4600,
+    lon: 4.4600,
+    altFt: 3000,
+    hdg: 240,
+    gs: 140
+  },
+
     /***********************
      * Pistes (coordonnées réelles)
      ***********************/
@@ -57,6 +65,13 @@ export const airports = {
     lat: 50.637,
     lon: 5.443,
 
+     aircraft: {
+    lat: 50.6400,
+    lon: 5.4500,
+    altFt: 2800,
+    hdg: 220,
+    gs: 150
+  },
     /***********************
      * Pistes (coordonnées réelles)
      ***********************/
