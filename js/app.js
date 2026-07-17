@@ -156,7 +156,10 @@ setInterval(async () => {
     airports.EBCI.aircraft.hdg = flight.dir;
     airports.EBCI.aircraft.gs = flight.speed;
 
-    refreshIlsNd();   // ND Airbus PRO+++
+    refreshIlsNd();        // ND géométrique
+updateNdAirbus("EBCI"); // ND Airbus A320
+updateNdAirbus("EBLG");
+
 
 }, 5000);
 
