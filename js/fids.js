@@ -31,75 +31,72 @@ function statusClass(status) {
 /****************************************************
  * Fusion Arrivées + Départs AirLabs
  ****************************************************/
-async function fetchAirlabsFlights(icao) {
+async function fetchAirlabs(icao) {
   const key = AVWX_API_KEY;
 
-  const urls = [
-    `https://airlabs.co/api/v9/flights?arr_icao=${icao}&api_key=${key}`,
-    `https://airlabs.co/api/v9/flights?dep_icao=${icao}&api_key=${key}`
-  ];
+  const urlArr = `https://airlabs.co/api/v9/flights?arr_icao=${icao}&api_key=${key}`;
+  const urlDep = `https://airlabs.co/api/v9/flights?dep_icao=${icao}&api_key=${key}`;
 
-  let all = [];
+  const [arrRes, depRes] = await Promise.all([
+    fetch(urlArr),
+    fetch(urlDep)
+  ]);
 
-  for (const url of urls) {
-    try {
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.response) all = all.concat(json.response);
-    } catch (e) {
-      console.warn("AirLabs error:", e);
-    }
-  }
+  const arrData = await arrRes.json();
+  const depData = await depRes.json();
+
+  return {
+    arrivals: arrData.response || [],
+    departures: depData.response || []
+  };
+}
+
 
   return all;
 }
 
-/****************************************************
- * Tableau avionique PRO+++ (EBCI / EBLG)
- ****************************************************/
+import { updateNdAirbus } from "./nd-airbus.js";
+import { airports } from "./config.js";
+
 export async function updateFidsFlights(airportKey) {
-  const id = airportKey === "EBCI" ? "fids-ebci" : "fids-eblg";
-  const tbody = document.getElementById(id);
-  if (!tbody) return;
 
-  tbody.innerHTML = "<tr><td colspan='7'>Chargement...</td></tr>";
+  const icao = airportKey === "EBCI" ? "CRL" : "LGG";
 
-  const flights = await fetchAirlabsFlights(airportKey);
+  const arrTbody = document.getElementById(
+    airportKey === "EBCI" ? "fids-arr-ebci" : "fids-arr-eblg"
+  );
 
-  if (!flights.length) {
-    tbody.innerHTML = "<tr><td colspan='7'>Aucun vol</td></tr>";
-    return;
-  }
+  const depTbody = document.getElementById(
+    airportKey === "EBCI" ? "fids-dep-ebci" : "fids-dep-eblg"
+  );
 
-  flights.sort((a, b) => {
-    const ta = a.arr_time || a.dep_time || "";
-    const tb = b.arr_time || b.dep_time || "";
+  if (!arrTbody || !depTbody) return;
+
+  arrTbody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
+  depTbody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
+
+  const fids = await fetchAirlabs(icao);
+
+  /***************
+   * ARRIVALS
+   ***************/
+  const arrivals = [...fids.arrivals].sort((a, b) => {
+    const ta = a.arr_time || "";
+    const tb = b.arr_time || "";
     return ta.localeCompare(tb);
   });
 
-  const upcoming = flights.slice(0, 15);
+  arrTbody.innerHTML = "";
 
-  tbody.innerHTML = "";
-
-  upcoming.forEach(f => {
+  arrivals.forEach(f => {
     const tr = document.createElement("tr");
 
-    const time = formatTime(f.arr_time || f.dep_time);
+    const time = formatTime(f.arr_time);
     const flight = f.flight_iata || f.flight_icao || "n/a";
     const company = f.airline_iata || f.airline_icao || "n/a";
     const type = f.aircraft_icao || "n/a";
     const origin = f.dep_iata || f.dep_icao || "n/a";
-    const dest = f.arr_iata || f.arr_icao || "n/a";
     const status = f.status || "n/a";
-
-    const isApproach =
-      status === "active" ||
-      status === "en-route" ||
-      status === "enr" ||
-      status === "approach" ||
-      status === "on final";
-
-    if (isApproach) tr.classList.add("fids-approach");
 
     tr.innerHTML = `
       <td>${time}</td>
@@ -107,13 +104,74 @@ export async function updateFidsFlights(airportKey) {
       <td>${company}</td>
       <td>${type}</td>
       <td>${origin}</td>
+      <td>${icao}</td>
+      <td class="${statusClass(status)}">${status}</td>
+    `;
+
+    /********************************************
+     * CLICK → ND Airbus (tracking avion réel)
+     ********************************************/
+    tr.addEventListener("click", () => {
+      airports[airportKey].aircraft.lat = f.lat;
+      airports[airportKey].aircraft.lon = f.lng;
+      airports[airportKey].aircraft.altFt = f.alt;
+      airports[airportKey].aircraft.hdg = f.dir;
+      airports[airportKey].aircraft.gs = f.speed;
+
+      updateNdAirbus(airportKey);
+    });
+
+    arrTbody.appendChild(tr);
+  });
+
+  /***************
+   * DEPARTURES
+   ***************/
+  const departures = [...fids.departures].sort((a, b) => {
+    const ta = a.dep_time || "";
+    const tb = b.dep_time || "";
+    return ta.localeCompare(tb);
+  });
+
+  depTbody.innerHTML = "";
+
+  departures.forEach(f => {
+    const tr = document.createElement("tr");
+
+    const time = formatTime(f.dep_time);
+    const flight = f.flight_iata || f.flight_icao || "n/a";
+    const company = f.airline_iata || f.airline_icao || "n/a";
+    const type = f.aircraft_icao || "n/a";
+    const dest = f.arr_iata || f.arr_icao || "n/a";
+    const status = f.status || "n/a";
+
+    tr.innerHTML = `
+      <td>${time}</td>
+      <td>${flight}</td>
+      <td>${company}</td>
+      <td>${type}</td>
+      <td>${icao}</td>
       <td>${dest}</td>
       <td class="${statusClass(status)}">${status}</td>
     `;
 
-    tbody.appendChild(tr);
+    /********************************************
+     * CLICK → ND Airbus (tracking avion réel)
+     ********************************************/
+    tr.addEventListener("click", () => {
+      airports[airportKey].aircraft.lat = f.lat;
+      airports[airportKey].aircraft.lon = f.lng;
+      airports[airportKey].aircraft.altFt = f.alt;
+      airports[airportKey].aircraft.hdg = f.dir;
+      airports[airportKey].aircraft.gs = f.speed;
+
+      updateNdAirbus(airportKey);
+    });
+
+    depTbody.appendChild(tr);
   });
 }
+
 
 /****************************************************
  * Sonomètres (FIDS) — OPTION 2
