@@ -39,6 +39,69 @@ import { angleDiff } from "./utils.js";
 import { fetchStationInfo, updateStationUI } from "./station.js";
 
 /****************************************************
+ * FIDS — Cockpit IFR PRO+++ (AirLabs)
+ ****************************************************/
+
+import { AVWX_API_KEY, airports } from "./config.js";
+
+/****************************************************
+ * Fetch AirLabs (arrivals + departures)
+ ****************************************************/
+async function fetchFids(airportKey) {
+  const ap = airports[airportKey];
+  const iata = ap.icao === "EBCI" ? "CRL" : "LGG";
+
+  const urlArr = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&arr_iata=${iata}`;
+  const urlDep = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&dep_iata=${iata}`;
+
+  const [arrRes, depRes] = await Promise.all([
+    fetch(urlArr),
+    fetch(urlDep)
+  ]);
+
+  const arrData = await arrRes.json();
+  const depData = await depRes.json();
+
+  return {
+    arrivals: arrData.response || [],
+    departures: depData.response || []
+  };
+}
+
+/****************************************************
+ * Update FIDS UI
+ ****************************************************/
+export async function updateFidsFlights(airportKey) {
+  const fids = await fetchFids(airportKey);
+
+  const tbody = document.getElementById(
+    airportKey === "EBCI" ? "fids-ebci" : "fids-eblg"
+  );
+
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  const rows = [...fids.arrivals, ...fids.departures];
+
+  rows.forEach(f => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${new Date(f.updated * 1000).toLocaleTimeString()}</td>
+      <td>${f.flight_iata || "-"}</td>
+      <td>${f.airline_iata || "-"}</td>
+      <td>${f.aircraft_icao || "-"}</td>
+      <td>${f.dep_iata || "-"}</td>
+      <td>${f.arr_iata || "-"}</td>
+      <td>${f.status || "-"}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+/****************************************************
  * Détection piste active (computeRunway)
  ****************************************************/
 export function computeRunway(airport, windDirDeg) {
