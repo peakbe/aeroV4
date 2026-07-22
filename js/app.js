@@ -265,6 +265,14 @@ setInterval(async () => {
       updateSono("EBLG", airports.EBLG.activeRunway, map);
     }, 30000);
   });
+  
+  /********************************************
+   * Rafraîchissement FIDS toutes les 30 sec
+   ********************************************/
+    setInterval(() => {
+      updateFidsFlights("EBCI");
+      updateFidsFlights("EBLG");
+  }, 30000);
 
   /***********************
    * Reset MAP
