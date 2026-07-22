@@ -2,7 +2,7 @@
  * FIDS.js — Tableau avionique PRO+++ (AirLabs)
  ****************************************************/
 
-import { angleDiff } from "./utils.js";
+import { AVWX_API_KEY, airports } from "./config.js";
 
 /****************************************************
  * Format HH:MM cockpit IFR
@@ -32,7 +32,7 @@ function statusClass(status) {
  * Fusion Arrivées + Départs AirLabs
  ****************************************************/
 async function fetchAirlabsFlights(icao) {
-  const key = "04cb1c09-8abb-468a-95fa-ee90c3c2b651";
+  const key = AVWX_API_KEY;
 
   const urls = [
     `https://airlabs.co/api/v9/flights?arr_icao=${icao}&api_key=${key}`,
@@ -114,6 +114,7 @@ export async function updateFidsFlights(airportKey) {
     tbody.appendChild(tr);
   });
 }
+
 /****************************************************
  * Sonomètres (FIDS) — OPTION 2
  ****************************************************/
