@@ -39,12 +39,6 @@ import { angleDiff } from "./utils.js";
 import { fetchStationInfo, updateStationUI } from "./station.js";
 
 /****************************************************
- * FIDS — Cockpit IFR PRO+++ (AirLabs)
- ****************************************************/
-
-import { AVWX_API_KEY, airports } from "./config.js";
-
-/****************************************************
  * Fetch AirLabs (arrivals + departures)
  ****************************************************/
 async function fetchFids(airportKey) {
