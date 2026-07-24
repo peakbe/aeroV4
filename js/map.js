@@ -198,3 +198,19 @@ export function refreshILS() {
   drawILS("EBLG", "22");
   drawILS("EBLG", "04");
 }
+
+/****************************************************
+ * Trajectoire complète AirLabs — Polyline PRO+++
+ ****************************************************/
+export function showFullFlightPath(points) {
+  if (window.fullFlightPath) {
+    map.removeLayer(window.fullFlightPath);
+  }
+
+  window.fullFlightPath = L.polyline(
+    points.map(p => [p.lat, p.lng]),
+    { color: "yellow", weight: 3 }
+  ).addTo(map);
+
+  map.fitBounds(window.fullFlightPath.getBounds(), { padding: [50, 50] });
+}
