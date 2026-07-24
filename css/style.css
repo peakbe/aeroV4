@@ -595,3 +595,7 @@ main {
 #tab-sono #station-eblg {
   display: none !important;
 }
+
+.metar-green { color: #00ff00; }
+.metar-orange { color: orange; }
+.metar-red { color: red; }
