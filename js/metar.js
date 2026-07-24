@@ -2,6 +2,7 @@
  * METAR — AVWX Version PRO+++
  ****************************************************/
 import { AVWX_API_KEY } from "./config.js";
+import { airports } from "./config.js";
 
 /****************************************************
  * 1) FETCH METAR — AVWX
