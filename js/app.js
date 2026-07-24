@@ -60,6 +60,28 @@ export function computeRunway(airport, windDirDeg) {
   return best ? best.name : airport.runways[0].name;
 }
 
+// Calcul vent de face / vent de travers
+function computeWindComponents(windDirDeg, windSpeedKt, runwayHeadingDeg) {
+  if (isNaN(windDirDeg) || isNaN(windSpeedKt) || isNaN(runwayHeadingDeg)) {
+    return { headwind: 0, crosswind: 0, angle: 0 };
+  }
+
+  // Angle vent/piste
+  const angle = Math.abs(((windDirDeg - runwayHeadingDeg + 180) % 360) - 180);
+
+  const rad = angle * Math.PI / 180;
+
+  const headwind = Math.round(windSpeedKt * Math.cos(rad));
+  const crosswind = Math.round(windSpeedKt * Math.sin(rad));
+
+  return { headwind, crosswind, angle };
+}
+
+function runwayColor(crosswind) {
+  if (crosswind <= 10) return "runway-green";
+  if (crosswind <= 20) return "runway-orange";
+  return "runway-red";
+}
 
 /****************************************************
  * Processus principal par aéroport — Version PRO+++
