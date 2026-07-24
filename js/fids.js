@@ -287,3 +287,4 @@ export async function updateFidsList(airportKey) {
     el.textContent = "Sonomètres indisponibles";
   }
 }
+
