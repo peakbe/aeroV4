@@ -16,12 +16,12 @@ export async function fetchMetar(icao) {
 
     return {
       raw: data.raw || null,
-      wind_dir: data.wind_direction?.value || null,
-      wind_speed: data.wind_speed?.value || null,
-      temperature: data.temperature?.value || null,
-      dewpoint: data.dewpoint?.value || null,
-      visibility: data.visibility?.value || null,
-      qnh: data.altimeter?.value || null
+      wind_dir: data.wind_direction?.value ?? "VRB",
+      wind_speed: data.wind_speed?.value ?? 0,
+      temp: data.temperature?.value ?? null,
+      dew: data.dewpoint?.value ?? null,
+      visib: data.visibility?.value ?? null,
+      qnh: data.altimeter?.value ?? null
     };
   } catch (e) {
     console.error("METAR AVWX error:", e);
@@ -48,17 +48,17 @@ function classifyMetar(metar) {
  ****************************************************/
 export function updateMetarUI(airportKey, metar, targetId) {
   if (window.isSonoTab()) return;
- // ❌ Ne rien afficher dans SONO
 
   const el = document.getElementById(targetId);
   if (!el) return;
 
   el.innerHTML = `
     <div class="metar-line">Vent ${metar.wind_dir}° / ${metar.wind_speed} kt</div>
-    <div class="metar-line">Température : ${metar.temp}°C</div>
-    <div class="metar-line">QNH : ${metar.qnh} hPa</div>
-    <div class="metar-line">Visibilité : ${metar.visib} m</div>
+    <div class="metar-line">Température : ${metar.temp ?? "n/a"}°C</div>
+    <div class="metar-line">QNH : ${metar.qnh ?? "n/a"} hPa</div>
+    <div class="metar-line">Visibilité : ${metar.visib ?? "n/a"} m</div>
     <div class="metar-raw">${metar.raw}</div>
   `;
 }
+
 
