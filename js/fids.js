@@ -3,6 +3,22 @@
  ****************************************************/
 
 import { AVWX_API_KEY, airports } from "./config.js";
+import { AVWX_API_KEY, airports } from "./config.js";
+import { updateNdAirbus } from "./nd-airbus.js";
+import { showFullFlightPath } from "./map.js";
+
+/****************************************************
+ * Logos compagnies (Airline → Logo)
+ ****************************************************/
+const airlineLogos = {
+  "FR": "img/logos/ryanair.png",
+  "W6": "img/logos/wizz.png",
+  "TB": "img/logos/tui.png",
+  "TUI": "img/logos/tui.png",
+  "LH": "img/logos/lufthansa.png",
+  "KL": "img/logos/klm.png",
+  "SN": "img/logos/brussels.png"
+};
 
 /****************************************************
  * Format HH:MM cockpit IFR
@@ -14,6 +30,57 @@ function formatTime(t) {
   } catch {
     return "n/a";
   }
+}
+
+/****************************************************
+ * Distance NM
+ ****************************************************/
+function distanceNm(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+
+  const a =
+    Math.sin(dLat/2)**2 +
+    Math.cos(lat1 * Math.PI/180) *
+    Math.cos(lat2 * Math.PI/180) *
+    Math.sin(dLon/2)**2;
+
+  const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return (d / 1852).toFixed(1);
+}
+
+/****************************************************
+ * ETA / ETE / ETO cockpit IFR
+ ****************************************************/
+function computeEtaEte(f, airportKey) {
+  const ap = airports[airportKey];
+
+  const distNm = distanceNm(f.lat, f.lng, ap.lat, ap.lon);
+  const gs = f.speed || 140;
+
+  const eteMin = distNm / (gs / 60);
+  const eta = new Date(Date.now() + eteMin * 60000);
+
+  return {
+    distNm,
+    ete: eteMin.toFixed(0) + " min",
+    eta: eta.toLocaleTimeString().slice(0,5),
+    eto: new Date(eta.getTime() - 60000).toLocaleTimeString().slice(0,5)
+  };
+}
+
+/****************************************************
+ * Glide Ratio (ft/NM)
+ ****************************************************/
+function computeGlideRatio(f, airportKey) {
+  const ap = airports[airportKey];
+  const distNm = distanceNm(f.lat, f.lng, ap.lat, ap.lon);
+  const altFt = f.alt || 0;
+
+  if (distNm < 0.1) return "n/a";
+
+  return (altFt / distNm).toFixed(0) + " ft/NM";
 }
 
 /****************************************************
@@ -51,10 +118,22 @@ async function fetchAirlabs(icao) {
   };
 }
 
+/****************************************************
+ * Fetch trajectoire complète AirLabs
+ ****************************************************/
+async function fetchFullTrack(flightIcao) {
+  const key = AVWX_API_KEY;
+  const url = `https://airlabs.co/api/v9/flights?flight_icao=${flightIcao}&api_key=${key}`;
 
-  return all;
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
+    return json.response || [];
+  } catch (e) {
+    console.warn("AirLabs track error:", e);
+    return [];
+  }
 }
-
 import { updateNdAirbus } from "./nd-airbus.js";
 import { airports } from "./config.js";
 
@@ -77,22 +156,7 @@ export async function updateFidsFlights(airportKey) {
 
   const fids = await fetchAirlabs(icao);
   
-/****************************************************
- * Fetch trajectoire complète AirLabs
- ****************************************************/
-async function fetchFullTrack(flightIcao) {
-  const key = AVWX_API_KEY;
-  const url = `https://airlabs.co/api/v9/flights?flight_icao=${flightIcao}&api_key=${key}`;
 
-  try {
-    const res = await fetch(url);
-    const json = await res.json();
-    return json.response || [];
-  } catch (e) {
-    console.warn("AirLabs track error:", e);
-    return [];
-  }
-}
 
   /***************
    * ARRIVALS
@@ -132,20 +196,21 @@ const glide = computeGlideRatio(f, airportKey);
     /********************************************
      * CLICK → ND Airbus (tracking avion réel)
      ********************************************/
-    tr.addEventListener("click", () => {
-      airports[airportKey].aircraft.lat = f.lat;
-      airports[airportKey].aircraft.lon = f.lng;
-      airports[airportKey].aircraft.altFt = f.alt;
-      airports[airportKey].aircraft.hdg = f.dir;
-      airports[airportKey].aircraft.gs = f.speed;
-      
-const track = await fetchFullTrack(f.flight_icao);
-if (track.length > 0) {
-  showFullFlightPath(track);
-}
+ tr.addEventListener("click", async () => {
+  airports[airportKey].aircraft.lat = f.lat;
+  airports[airportKey].aircraft.lon = f.lng;
+  airports[airportKey].aircraft.altFt = f.alt;
+  airports[airportKey].aircraft.hdg = f.dir;
+  airports[airportKey].aircraft.gs = f.speed;
 
-      updateNdAirbus(airportKey);
-    });
+  const track = await fetchFullTrack(f.flight_icao);
+  if (track.length > 0) {
+    showFullFlightPath(track);
+  }
+
+  updateNdAirbus(airportKey);
+});
+
 
     arrTbody.appendChild(tr);
   });
@@ -184,15 +249,21 @@ if (track.length > 0) {
     /********************************************
      * CLICK → ND Airbus (tracking avion réel)
      ********************************************/
-    tr.addEventListener("click", () => {
-      airports[airportKey].aircraft.lat = f.lat;
-      airports[airportKey].aircraft.lon = f.lng;
-      airports[airportKey].aircraft.altFt = f.alt;
-      airports[airportKey].aircraft.hdg = f.dir;
-      airports[airportKey].aircraft.gs = f.speed;
+   tr.addEventListener("click", async () => {
+  airports[airportKey].aircraft.lat = f.lat;
+  airports[airportKey].aircraft.lon = f.lng;
+  airports[airportKey].aircraft.altFt = f.alt;
+  airports[airportKey].aircraft.hdg = f.dir;
+  airports[airportKey].aircraft.gs = f.speed;
 
-      updateNdAirbus(airportKey);
-    });
+  const track = await fetchFullTrack(f.flight_icao);
+  if (track.length > 0) {
+    showFullFlightPath(track);
+  }
+
+  updateNdAirbus(airportKey);
+});
+
 
     depTbody.appendChild(tr);
   });
