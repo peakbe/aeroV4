@@ -133,8 +133,7 @@ async function fetchFullTrack(flightIcao) {
     return [];
   }
 }
-import { updateNdAirbus } from "./nd-airbus.js";
-import { airports } from "./config.js";
+
 
 export async function updateFidsFlights(airportKey) {
 
@@ -150,12 +149,10 @@ export async function updateFidsFlights(airportKey) {
 
   if (!arrTbody || !depTbody) return;
 
-  arrTbody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
-  depTbody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
+  arrTbody.innerHTML = "<tr><td colspan='10'>Loading...</td></tr>";
+  depTbody.innerHTML = "<tr><td colspan='10'>Loading...</td></tr>";
 
   const fids = await fetchAirlabs(icao);
-  
-
 
   /***************
    * ARRIVALS
@@ -177,39 +174,39 @@ export async function updateFidsFlights(airportKey) {
     const type = f.aircraft_icao || "n/a";
     const origin = f.dep_iata || f.dep_icao || "n/a";
     const status = f.status || "n/a";
-    
-const glide = computeGlideRatio(f, airportKey);
+
+    const glide = computeGlideRatio(f, airportKey);
+    const { distNm, ete, eta, eto } = computeEtaEte(f, airportKey);
 
     tr.innerHTML = `
       <td>${time}</td>
       <td>${flight}</td>
-      <td>${company}</td>
+      <td><img src="${airlineLogos[company] || 'img/logos/default.png'}" class="fids-logo"> ${company}</td>
       <td>${type}</td>
       <td>${origin}</td>
       <td>${icao}</td>
+      <td>${distNm} NM</td>
+      <td>${ete}</td>
+      <td>${eta}</td>
+      <td>${eto}</td>
       <td class="${statusClass(status)}">${status}</td>
       <td>${glide}</td>
-
     `;
 
-    /********************************************
-     * CLICK → ND Airbus (tracking avion réel)
-     ********************************************/
- tr.addEventListener("click", async () => {
-  airports[airportKey].aircraft.lat = f.lat;
-  airports[airportKey].aircraft.lon = f.lng;
-  airports[airportKey].aircraft.altFt = f.alt;
-  airports[airportKey].aircraft.hdg = f.dir;
-  airports[airportKey].aircraft.gs = f.speed;
+    tr.addEventListener("click", async () => {
+      airports[airportKey].aircraft.lat = f.lat;
+      airports[airportKey].aircraft.lon = f.lng;
+      airports[airportKey].aircraft.altFt = f.alt;
+      airports[airportKey].aircraft.hdg = f.dir;
+      airports[airportKey].aircraft.gs = f.speed;
 
-  const track = await fetchFullTrack(f.flight_icao);
-  if (track.length > 0) {
-    showFullFlightPath(track);
-  }
+      const track = await fetchFullTrack(f.flight_icao);
+      if (track.length > 0) {
+        showFullFlightPath(track);
+      }
 
-  updateNdAirbus(airportKey);
-});
-
+      updateNdAirbus(airportKey);
+    });
 
     arrTbody.appendChild(tr);
   });
@@ -238,36 +235,31 @@ const glide = computeGlideRatio(f, airportKey);
     tr.innerHTML = `
       <td>${time}</td>
       <td>${flight}</td>
-      <td>${company}</td>
+      <td><img src="${airlineLogos[company] || 'img/logos/default.png'}" class="fids-logo"> ${company}</td>
       <td>${type}</td>
       <td>${icao}</td>
       <td>${dest}</td>
       <td class="${statusClass(status)}">${status}</td>
     `;
 
-    /********************************************
-     * CLICK → ND Airbus (tracking avion réel)
-     ********************************************/
-   tr.addEventListener("click", async () => {
-  airports[airportKey].aircraft.lat = f.lat;
-  airports[airportKey].aircraft.lon = f.lng;
-  airports[airportKey].aircraft.altFt = f.alt;
-  airports[airportKey].aircraft.hdg = f.dir;
-  airports[airportKey].aircraft.gs = f.speed;
+    tr.addEventListener("click", async () => {
+      airports[airportKey].aircraft.lat = f.lat;
+      airports[airportKey].aircraft.lon = f.lng;
+      airports[airportKey].aircraft.altFt = f.alt;
+      airports[airportKey].aircraft.hdg = f.dir;
+      airports[airportKey].aircraft.gs = f.speed;
 
-  const track = await fetchFullTrack(f.flight_icao);
-  if (track.length > 0) {
-    showFullFlightPath(track);
-  }
+      const track = await fetchFullTrack(f.flight_icao);
+      if (track.length > 0) {
+        showFullFlightPath(track);
+      }
 
-  updateNdAirbus(airportKey);
-});
-
+      updateNdAirbus(airportKey);
+    });
 
     depTbody.appendChild(tr);
   });
 }
-
 
 /****************************************************
  * Sonomètres (FIDS) — OPTION 2
