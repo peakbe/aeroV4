@@ -113,10 +113,7 @@ export async function processAirport(airportKey) {
   ap.lastMetar = metar;
   metar.icao = airportKey;
 
-  /***********************
-   * 2) Piste active (toujours calculée)
-   ***********************/
-  /***********************
+   /***********************
  * 2) Piste active (toujours calculée)
  ***********************/
 const windDir = Number(metar?.wind_dir) || 0;
