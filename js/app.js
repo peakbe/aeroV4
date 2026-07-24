@@ -164,7 +164,7 @@ document.getElementById(`runway-${airportKey.toLowerCase()}`).innerHTML = `
   /***********************
    * 5) SONO (toujours)
    ***********************/
-  updateSono(airportKey, activeRunway, map);
+  updateSono(airportKey, rw, map);
 
   /***********************
    * 6) FIDS avionique (toujours)
