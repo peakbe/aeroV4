@@ -82,7 +82,7 @@ function computeWindChill(temp, windKt) {
 /****************************************************
  * AFFICHAGE STATION — Compatible cockpit IFR
  ****************************************************/
-export function updateStationUI(airportKey, station) {
+export function updateStationUI(airportKey, station, metar) {
   if (window.isSonoTab()) return;
 
   const id = airportKey === "EBCI" ? "station-ebci" : "station-eblg";
@@ -93,8 +93,7 @@ export function updateStationUI(airportKey, station) {
   const trend = computeTrend(airportKey, station);
 
   // Wind chill (température ressentie)
-  const metar = window.airports[airportKey].lastMetar || {};
-  const windChill = computeWindChill(station.temp, metar.wind_speed);
+  const windChill = computeWindChill(station.temp, metar?.wind_speed ?? null);
 
   el.innerHTML = `
     <div class="station-line">
@@ -107,8 +106,7 @@ export function updateStationUI(airportKey, station) {
     </div>
 
     <div class="station-line">
-      Humidité : ${station.humidity ?? "n/a"}%
-    </div>
+      Humidité : ${station.humidity ?? "n/a"}%</div>
 
     <div class="station-line">
       Pression : ${station.pressure ?? "n/a"} hPa
@@ -116,4 +114,5 @@ export function updateStationUI(airportKey, station) {
     </div>
   `;
 }
+
 
