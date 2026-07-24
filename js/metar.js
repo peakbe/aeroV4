@@ -73,26 +73,29 @@ export function updateMetarUI(airportKey, metar, targetId) {
   const el = document.getElementById(targetId);
   if (!el) return;
 
-  const gust = metar.wind_gust
-    ? `<span class="${gustColor(metar.wind_gust)}">(G${metar.wind_gust})</span>`
-    : "";
-
-  const varDir = (metar.wind_var_from && metar.wind_var_to)
-    ? `${metar.wind_var_from}V${metar.wind_var_to}`
-    : "";
+  const rw = airports[airportKey].activeRunway;
 
   el.innerHTML = `
     <div class="metar-line">
-      Vent ${metar.wind_dir}° / ${metar.wind_speed} kt ${gust} ${varDir}
+      Vent ${metar.wind_dir}° / ${metar.wind_speed} kt
     </div>
 
-    <div class="metar-line">Température : ${metar.temp ?? "n/a"}°C</div>
-    <div class="metar-line">QNH : ${metar.qnh ?? "n/a"} hPa</div>
-    <div class="metar-line">Visibilité : ${metar.visib ?? "n/a"} m</div>
+    <div class="metar-line">
+      Température : ${metar.temp ?? "n/a"}°C
+    </div>
+
+    <div class="metar-line">
+      QNH : ${metar.qnh ?? "n/a"} hPa
+    </div>
+
+    <div class="metar-line">
+      Visibilité : ${metar.visib ?? "n/a"} m
+    </div>
+
+    <div class="metar-line runway-active">
+      Piste active : ${rw?.name ?? "n/a"}
+    </div>
 
     <div class="metar-raw">${metar.raw}</div>
   `;
 }
-
-
-
