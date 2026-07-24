@@ -95,7 +95,7 @@ export async function processAirport(airportKey) {
     updateWindRose(metar);
 
     const station = await fetchStationInfo(ap.icao);
-    updateStationUI(airportKey, station);
+    updateStationUI(airportKey, station, ap.lastMetar);
   }
 
   /***********************
