@@ -116,12 +116,28 @@ export async function processAirport(airportKey) {
   /***********************
    * 2) Piste active (toujours calculée)
    ***********************/
-  const windDir = Number(metar?.wind_dir) || 0;
-  const windSpd = Number(metar?.wind_speed) || 0;
+  /***********************
+ * 2) Piste active (toujours calculée)
+ ***********************/
+const windDir = Number(metar?.wind_dir) || 0;
+const windSpd = Number(metar?.wind_speed) || 0;
 
-  const activeRunway = computeRunway(ap, windDir);
-  ap.activeRunway = activeRunway;
-  window.activeRunway = activeRunway;
+// Nouveau computeRunway PRO+++
+const rw = computeRunway(ap, windDir, windSpd);
+
+// Sauvegarde cockpit IFR
+ap.activeRunway = rw;
+window.activeRunway = rw;
+
+// Affichage piste active (crosswind / headwind / angle)
+document.getElementById(`runway-${airportKey.toLowerCase()}`).innerHTML = `
+  <div class="${rw.color}">
+    Piste active : ${rw.name}
+    <br>Vent de face : ${rw.headwind} kt
+    <br>Vent de travers : ${rw.crosswind} kt
+    <br>Angle vent/piste : ${rw.angle}°
+  </div>
+`;
 
   /***********************
    * 3) METAR / HUD / Rose / Station
@@ -142,18 +158,8 @@ export async function processAirport(airportKey) {
     const station = await fetchStationInfo(ap.icao);
     updateStationUI(airportKey, station, ap.lastMetar);
   }
-const rw = computeRunway(ap, windDir, windSpeed);
 
-document.getElementById(`runway-${airportKey.toLowerCase()}`).innerHTML = `
-  <div class="${rw.color}">
-    Piste active : ${rw.name}
-    <br>Vent de face : ${rw.headwind} kt
-    <br>Vent de travers : ${rw.crosswind} kt
-    <br>Angle vent/piste : ${rw.angle}°
-  </div>
-`;
-
-  /***********************
+ /***********************
    * 4) ILS dynamique (toujours)
    ***********************/
   refreshILS();    // ton ILS classique
