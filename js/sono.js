@@ -175,7 +175,7 @@ export function updateSono(airportKey, activeRunway, map) {
   const windMs = (windSpd * 0.514444).toFixed(1);
 
   // Affichage unique pour EBCI + EBLG
-  const sonoText = `Vent ${windDir}° / ${windMs} m/s — Piste ${activeRunway}`;
+  const sonoText = `Vent ${windDir}° / ${windMs} m/s — Piste ${activeRunway.name}`;
 
   sono.innerHTML = `
     <div class="sono-line" style="color:${color}">
@@ -193,7 +193,7 @@ const indicatorId = airportKey === "EBCI"
 const indicator = document.getElementById(indicatorId);
 
 if (indicator) {
-  indicator.textContent = `${windDir}° / ${windMs} m/s — RWY ${activeRunway}`;
+  indicator.textContent = `${windDir}° / ${windMs} m/s — RWY ${activeRunway.name}`;
 
   // Classification IFR selon l’angle vent/piste
   const runwayHeading = parseInt(activeRunway) * 10; // RWY 24 → 240°
