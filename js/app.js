@@ -14,30 +14,19 @@ window.isSonoTab = function () {
  * IMPORTS
  ****************************************************/
 import { updateNdAirbus } from "./nd-airbus.js";
-
 import { refreshIlsNd } from "./ils-nd.js";
-
 import { airports } from "./config.js";
-
+import { AVWX_API_KEY } from "./config.js";
 import { initMap, map, resetMapView } from "./map.js";
-
 import { fetchMetar, updateMetarUI } from "./metar.js";
 import { fetchTaf, updateTafUI } from "./taf.js";
-
 import { updateWindRose } from "./windrose.js";
-
 import { updateRunwayHUD, refreshILS } from "./ils.js";
-
 import { updateSono } from "./sono.js";
-
 import { updateFidsFlights } from "./fids.js";
-
 import { initTabs } from "./tabs.js";
-
 import { angleDiff } from "./utils.js";
-
 import { fetchStationInfo, updateStationUI } from "./station.js";
-
 
 /****************************************************
  * Détection piste active (computeRunway)
