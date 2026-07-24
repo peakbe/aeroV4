@@ -31,16 +31,13 @@ import { fetchStationInfo, updateStationUI } from "./station.js";
 /****************************************************
  * Détection piste active (computeRunway)
  ****************************************************/
-export function computeRunway(airport, windDirDeg) {
+export function computeRunway(airport, windDirDeg, windSpeedKt) {
   if (!airport || !airport.runways || airport.runways.length === 0) {
     console.warn("No runway data for airport", airport);
     return null;
   }
 
-  // Gestion VRB / NaN
-  if (isNaN(windDirDeg)) {
-    windDirDeg = 0; // fallback
-  }
+  if (isNaN(windDirDeg)) windDirDeg = 0;
 
   let best = null;
   let bestDiff = 999;
@@ -57,8 +54,21 @@ export function computeRunway(airport, windDirDeg) {
     }
   });
 
-  return best ? best.name : airport.runways[0].name;
+  if (!best) return null;
+
+  // Calcul vent de face / travers
+  const comp = computeWindComponents(windDirDeg, windSpeedKt, best.heading);
+
+  return {
+    name: best.name,
+    heading: best.heading,
+    angle: comp.angle,
+    headwind: comp.headwind,
+    crosswind: comp.crosswind,
+    color: runwayColor(comp.crosswind)
+  };
 }
+
 
 // Calcul vent de face / vent de travers
 function computeWindComponents(windDirDeg, windSpeedKt, runwayHeadingDeg) {
@@ -132,6 +142,16 @@ export async function processAirport(airportKey) {
     const station = await fetchStationInfo(ap.icao);
     updateStationUI(airportKey, station, ap.lastMetar);
   }
+const rw = computeRunway(ap, windDir, windSpeed);
+
+document.getElementById(`runway-${airportKey.toLowerCase()}`).innerHTML = `
+  <div class="${rw.color}">
+    Piste active : ${rw.name}
+    <br>Vent de face : ${rw.headwind} kt
+    <br>Vent de travers : ${rw.crosswind} kt
+    <br>Angle vent/piste : ${rw.angle}°
+  </div>
+`;
 
   /***********************
    * 4) ILS dynamique (toujours)
