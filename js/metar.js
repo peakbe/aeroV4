@@ -100,3 +100,4 @@ export function updateMetarUI(airportKey, metar, targetId) {
     <div class="metar-raw">${metar.raw}</div>
   `;
 }
+
