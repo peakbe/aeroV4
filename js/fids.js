@@ -3,7 +3,6 @@
  ****************************************************/
 
 import { AVWX_API_KEY, airports } from "./config.js";
-import { AVWX_API_KEY, airports } from "./config.js";
 import { updateNdAirbus } from "./nd-airbus.js";
 import { showFullFlightPath } from "./map.js";
 
