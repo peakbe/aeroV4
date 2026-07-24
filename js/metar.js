@@ -14,17 +14,26 @@ export async function fetchMetar(icao) {
 
     const data = await r.json();
 
-  return {
-  raw: data.raw || null,
-  wind_dir: data.wind_direction?.value ?? "VRB",
-  wind_speed: data.wind_speed?.value ?? 0,
-  wind_gust: data.wind_gust?.value ?? null,
-  temp: data.temperature?.value ?? null,
-  dew: data.dewpoint?.value ?? null,
-  visib: data.visibility?.value ?? null,
-  qnh: data.altimeter?.value ?? null
-};
+    return {
+      raw: data.raw || null,
 
+      // Vent moyen
+      wind_dir: data.wind_direction?.value ?? "VRB",
+      wind_speed: data.wind_speed?.value ?? 0,
+
+      // Rafales
+      wind_gust: data.wind_gust?.value ?? null,
+
+      // Variation direction (ex: 180V240)
+      wind_var_from: data.wind_variable_direction?.value?.from ?? null,
+      wind_var_to: data.wind_variable_direction?.value?.to ?? null,
+
+      // Temp / Dew / Vis / QNH
+      temp: data.temperature?.value ?? null,
+      dew: data.dewpoint?.value ?? null,
+      visib: data.visibility?.value ?? null,
+      qnh: data.altimeter?.value ?? null
+    };
   } catch (e) {
     console.error("METAR AVWX error:", e);
     return null;
@@ -43,6 +52,16 @@ function classifyMetar(metar) {
   if (wind <= 8 && vis >= 8000) return "green";
   if (wind <= 15 && vis >= 4000) return "orange";
   return "red";
+}
+
+/****************************************************
+ * fonction couleur GUST
+ ****************************************************/
+function gustColor(gust) {
+  if (!gust) return "";
+  if (gust <= 10) return "metar-green";
+  if (gust <= 20) return "metar-orange";
+  return "metar-red";
 }
 
 /****************************************************
