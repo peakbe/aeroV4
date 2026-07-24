@@ -342,5 +342,6 @@ setInterval(async () => {
       parent.classList.toggle("collapsed");
     });
   });
+  
 
 });
