@@ -52,7 +52,7 @@ export function updateWindRose(metar) {
   if (!ap) return;
 
   // 5) Piste active sécurisée
-  const runway = ap.activeRunway || "??";
+  const runway = ap.activeRunway?.name || "??";
 
   // 6) Sécurité : valeurs METAR
   const windDir = Number(metar.wind_dir) || 0;
