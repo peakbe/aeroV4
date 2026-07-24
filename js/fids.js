@@ -76,6 +76,23 @@ export async function updateFidsFlights(airportKey) {
   depTbody.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
 
   const fids = await fetchAirlabs(icao);
+  
+/****************************************************
+ * Fetch trajectoire complète AirLabs
+ ****************************************************/
+async function fetchFullTrack(flightIcao) {
+  const key = AVWX_API_KEY;
+  const url = `https://airlabs.co/api/v9/flights?flight_icao=${flightIcao}&api_key=${key}`;
+
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
+    return json.response || [];
+  } catch (e) {
+    console.warn("AirLabs track error:", e);
+    return [];
+  }
+}
 
   /***************
    * ARRIVALS
@@ -117,6 +134,11 @@ export async function updateFidsFlights(airportKey) {
       airports[airportKey].aircraft.altFt = f.alt;
       airports[airportKey].aircraft.hdg = f.dir;
       airports[airportKey].aircraft.gs = f.speed;
+      
+const track = await fetchFullTrack(f.flight_icao);
+if (track.length > 0) {
+  showFullFlightPath(track);
+}
 
       updateNdAirbus(airportKey);
     });
