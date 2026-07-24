@@ -63,39 +63,6 @@ async function fetchFids(airportKey) {
 }
 
 /****************************************************
- * Update FIDS UI
- ****************************************************/
-export async function updateFidsFlights(airportKey) {
-  const fids = await fetchFids(airportKey);
-
-  const tbody = document.getElementById(
-    airportKey === "EBCI" ? "fids-ebci" : "fids-eblg"
-  );
-
-  if (!tbody) return;
-
-  tbody.innerHTML = "";
-
-  const rows = [...fids.arrivals, ...fids.departures];
-
-  rows.forEach(f => {
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${new Date(f.updated * 1000).toLocaleTimeString()}</td>
-      <td>${f.flight_iata || "-"}</td>
-      <td>${f.airline_iata || "-"}</td>
-      <td>${f.aircraft_icao || "-"}</td>
-      <td>${f.dep_iata || "-"}</td>
-      <td>${f.arr_iata || "-"}</td>
-      <td>${f.status || "-"}</td>
-    `;
-
-    tbody.appendChild(tr);
-  });
-}
-
-/****************************************************
  * Détection piste active (computeRunway)
  ****************************************************/
 export function computeRunway(airport, windDirDeg) {
