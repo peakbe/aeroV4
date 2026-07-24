@@ -119,12 +119,30 @@ export async function processAirport(airportKey) {
 const windDir = Number(metar?.wind_dir) || 0;
 const windSpd = Number(metar?.wind_speed) || 0;
 
-// Nouveau computeRunway PRO+++
+// ComputeRunway PRO+++
 const rw = computeRunway(ap, windDir, windSpd);
 
 // Sauvegarde cockpit IFR
 ap.activeRunway = rw;
 window.activeRunway = rw;
+
+/***********************
+ * 3) METAR / HUD / Rose / Station
+ ***********************/
+if (!sonoMode) {
+
+  updateMetarUI(
+    airportKey,
+    metar,
+    airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
+  );
+
+  updateRunwayHUD(ap, windDir, windSpd);
+  updateWindRose(metar);
+
+  const station = await fetchStationInfo(ap.icao);
+  updateStationUI(airportKey, station, ap.lastMetar);
+}
 
 // Affichage piste active (crosswind / headwind / angle)
 document.getElementById(`runway-${airportKey.toLowerCase()}`).innerHTML = `
@@ -136,25 +154,6 @@ document.getElementById(`runway-${airportKey.toLowerCase()}`).innerHTML = `
   </div>
 `;
 
-  /***********************
-   * 3) METAR / HUD / Rose / Station
-   *    👉 uniquement si on n’est PAS dans SONO
-   ***********************/
-  if (!sonoMode) {
-
-    updateMetarUI(
-      airportKey,
-      metar,
-      airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
-    );
-
-    updateRunwayHUD(ap, windDir, windSpd);
-
-    updateWindRose(metar);
-
-    const station = await fetchStationInfo(ap.icao);
-    updateStationUI(airportKey, station, ap.lastMetar);
-  }
 
  /***********************
    * 4) ILS dynamique (toujours)
