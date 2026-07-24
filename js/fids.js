@@ -75,7 +75,7 @@ function computeEtaEte(f, airportKey) {
 function computeGlideRatio(f, airportKey) {
   const ap = airports[airportKey];
   const distNm = distanceNm(f.lat, f.lng, ap.lat, ap.lon);
-  const altFt = f.alt || 0;
+  const altFt = f.alt || f.alt_ft || f.altitude || 0;
 
   if (distNm < 0.1) return "n/a";
 
@@ -170,7 +170,7 @@ export async function updateFidsFlights(airportKey) {
 
     const time = formatTime(f.arr_time);
     const flight = f.flight_iata || f.flight_icao || "n/a";
-    const company = f.airline_iata || f.airline_icao || "n/a";
+    const company = f.airline_iata || f.airline_icao?.replace(/[^A-Z]/g, "") || "n/a";
     const type = f.aircraft_icao || "n/a";
     const origin = f.dep_iata || f.dep_icao || "n/a";
     const status = f.status || "n/a";
@@ -200,7 +200,8 @@ export async function updateFidsFlights(airportKey) {
       airports[airportKey].aircraft.hdg = f.dir;
       airports[airportKey].aircraft.gs = f.speed;
 
-      const track = await fetchFullTrack(f.flight_icao);
+      const track = await fetchFullTrack(f.flight_icao || f.flight_iata);
+
       if (track.length > 0) {
         showFullFlightPath(track);
       }
