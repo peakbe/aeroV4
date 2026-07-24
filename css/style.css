@@ -599,3 +599,9 @@ main {
 .metar-green { color: #00ff00; }
 .metar-orange { color: orange; }
 .metar-red { color: red; }
+
+.trend {
+  margin-left: 6px;
+  font-weight: bold;
+  color: #00eaff; /* bleu avionique */
+}
