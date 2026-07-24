@@ -114,6 +114,8 @@ async function fetchFullTrack(flightIcao) {
     const type = f.aircraft_icao || "n/a";
     const origin = f.dep_iata || f.dep_icao || "n/a";
     const status = f.status || "n/a";
+    
+const glide = computeGlideRatio(f, airportKey);
 
     tr.innerHTML = `
       <td>${time}</td>
@@ -123,6 +125,8 @@ async function fetchFullTrack(flightIcao) {
       <td>${origin}</td>
       <td>${icao}</td>
       <td class="${statusClass(status)}">${status}</td>
+      <td>${glide}</td>
+
     `;
 
     /********************************************
