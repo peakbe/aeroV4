@@ -38,29 +38,6 @@ import { angleDiff } from "./utils.js";
 
 import { fetchStationInfo, updateStationUI } from "./station.js";
 
-/****************************************************
- * Fetch AirLabs (arrivals + departures)
- ****************************************************/
-async function fetchFids(airportKey) {
-  const ap = airports[airportKey];
-  const iata = ap.icao === "EBCI" ? "CRL" : "LGG";
-
-  const urlArr = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&arr_iata=${iata}`;
-  const urlDep = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&dep_iata=${iata}`;
-
-  const [arrRes, depRes] = await Promise.all([
-    fetch(urlArr),
-    fetch(urlDep)
-  ]);
-
-  const arrData = await arrRes.json();
-  const depData = await depRes.json();
-
-  return {
-    arrivals: arrData.response || [],
-    departures: depData.response || []
-  };
-}
 
 /****************************************************
  * Détection piste active (computeRunway)
