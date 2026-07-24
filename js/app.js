@@ -32,21 +32,34 @@ import { fetchStationInfo, updateStationUI } from "./station.js";
  * Détection piste active (computeRunway)
  ****************************************************/
 export function computeRunway(airport, windDirDeg) {
-  if (!windDirDeg) return null;
+  if (!airport || !airport.runways || airport.runways.length === 0) {
+    console.warn("No runway data for airport", airport);
+    return null;
+  }
+
+  // Gestion VRB / NaN
+  if (isNaN(windDirDeg)) {
+    windDirDeg = 0; // fallback
+  }
 
   let best = null;
   let bestDiff = 999;
 
   airport.runways.forEach(rw => {
-    const diff = angleDiff(windDirDeg, rw.heading);
+    const heading = Number(rw.heading);
+    if (isNaN(heading)) return;
+
+    const diff = Math.abs(((windDirDeg - heading + 180) % 360) - 180);
+
     if (diff < bestDiff) {
       bestDiff = diff;
       best = rw;
     }
   });
 
-  return best ? best.name : null;
+  return best ? best.name : airport.runways[0].name;
 }
+
 
 /****************************************************
  * Processus principal par aéroport — Version PRO+++
