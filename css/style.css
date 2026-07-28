@@ -427,15 +427,6 @@ main {
 /****************************************************
  * SIDEBAR — Airbus MCDU
  ****************************************************/
-#sidebar {
-  background-color: #0b1120;
-  color: #e2e8f0;
-  width: 320px;
-  padding: 0px;
-  overflow-y: auto;
-  font-family: Consolas, monospace;
-}
-
 .sidebar-title {
   font-size: 20px;
   font-weight: 700;
