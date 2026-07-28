@@ -1,84 +1,71 @@
 import { airports } from "./config.js";
 
 /****************************************************
- * ROSE DES VENTS — IFR
- ****************************************************/
-
-
-/****************************************************
- * 1) CLASSIFICATION VENT
+ * 1) CLASSIFICATION VENT — Airbus ND
  ****************************************************/
 function classifyWind(speed) {
-  if (speed <= 8) return "lime";
-  if (speed <= 15) return "orange";
-  return "red";
+  if (speed <= 8) return "lime";      // calme
+  if (speed <= 15) return "orange";   // modéré
+  return "red";                       // fort
 }
 
 /****************************************************
- * 2) PISTE ACTIVE
- ****************************************************/
-
-function classifyRunway(runway, windDir) {
-  // Exemple : RWY 25 → direction 250°
-  const rwyDir = parseInt(runway) * 10;
-
-  const diff = Math.abs(rwyDir - windDir);
-
-  if (diff <= 30) return "lime";     // vent de face
-  if (diff <= 90) return "orange";   // vent travers
-  return "red";                      // vent arrière
-}
-/****************************************************
- * 3) AFFICHAGE ROSE DES VENTS — Version PRO+++
+ * 2) AFFICHAGE ROSE DES VENTS — Airbus ND
  ****************************************************/
 export function updateWindRose(metar) {
 
-  // 1) Sécurité : METAR valide ?
+  // Sécurité METAR
   if (!metar || !metar.icao) return;
 
-  // 2) Règle IFR : ne rien afficher dans l’onglet SONO
+  // Ne rien afficher dans l’onglet SONO
   if (window.isSonoTab()) return;
 
-  // 3) Détermination du conteneur
+  // Sélection du conteneur
   const targetId = metar.icao === "EBCI"
     ? "wind-rose-ebci"
     : "wind-rose-eblg";
 
   const el = document.getElementById(targetId);
-  if (!el) return; // Sécurité DOM
+  if (!el) return;
 
-  // 4) Sécurité : aéroport valide ?
+  // Aéroport valide ?
   const ap = airports[metar.icao];
   if (!ap) return;
 
-  // 5) Piste active sécurisée
+  // Piste active (déjà calculée dans processAirport)
   const runway = ap.activeRunway?.name || "??";
 
-  // 6) Sécurité : valeurs METAR
+  // Valeurs METAR
   const windDir = Number(metar.wind_dir) || 0;
   const windSpd = Number(metar.wind_speed) || 0;
 
-  // 7) Classification cockpit IFR
+  // Classification avionique
   const windColor = classifyWind(windSpd);
-  const runwayColor = classifyRunway(runway, windDir);
 
-  // 8) Affichage cockpit IFR
+  /****************************************************
+   * Rendu Airbus ND — PRO+++
+   * - Flèche fine (6px)
+   * - Longueur cockpit (26px)
+   * - Rotation propre
+   * - Pas de background inline
+   ****************************************************/
   el.innerHTML = `
     <div class="wind-rose-container">
+
       <div class="wind-rose-circle"></div>
 
       <div class="wind-rose-arrow"
            style="transform: rotate(${windDir}deg);
-                  background-color: ${windColor};">
+                  border-bottom-color:${windColor};">
       </div>
+
     </div>
 
     <div class="wind-rose-value">
       ${windDir}° / ${windSpd} kt
     </div>
 
-    <div class="wind-runway-label"
-         style="color:${runwayColor}">
+    <div class="wind-runway-label">
       Piste active : ${runway}
     </div>
   `;
