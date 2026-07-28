@@ -431,7 +431,7 @@ main {
   background-color: #0b1120;
   color: #e2e8f0;
   width: 320px;
-  padding: 14px;
+  padding: 1px;
   overflow-y: auto;
   font-family: Consolas, monospace;
 }
