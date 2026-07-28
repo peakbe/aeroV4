@@ -301,38 +301,7 @@ setInterval(async () => {
     });
   });
 
-  /***********************
-   * Boutons SONO : EBCI / EBLG / Tous
-   ***********************/
-  const sonoEBCI = document.getElementById("sono-ebci");
-  const sonoEBLG = document.getElementById("sono-eblg");
-
-  document.querySelectorAll(".sidebar-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-
-      document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      const target = btn.dataset.target;
-
-      if (target === "EBCI") {
-        sonoEBCI.style.display = "block";
-        sonoEBLG.style.display = "none";
-      }
-
-      else if (target === "EBLG") {
-        sonoEBCI.style.display = "none";
-        sonoEBLG.style.display = "block";
-      }
-
-      else {
-        sonoEBCI.style.display = "block";
-        sonoEBLG.style.display = "block";
-      }
-    });
-  });
-
-  /***********************
+   /***********************
    * Collapse SONO IFR
    ***********************/
   document.querySelectorAll(".sono-collapse-header").forEach(header => {
