@@ -1,5 +1,5 @@
 /****************************************************
- * CONFIG — Cockpit IFR PRO+++
+ * CONFIG — Cockpit IFR Airbus PRO+++
  ****************************************************/
 
 export const AVWX_API_KEY = "ersegQzkf2Dfal-o26B4b5uzMrXBeHK2jOpOaY7nffc";
@@ -7,7 +7,7 @@ export const AVWX_API_KEY = "ersegQzkf2Dfal-o26B4b5uzMrXBeHK2jOpOaY7nffc";
 export const airports = {
 
   /****************************************************
-   * EBCI — Charleroi
+   * EBCI — Brussels South Charleroi
    ****************************************************/
   EBCI: {
     icao: "EBCI",
@@ -15,6 +15,9 @@ export const airports = {
     lat: 50.459,
     lon: 4.453,
 
+    /****************************************************
+     * Aircraft — ND Airbus defaults
+     ****************************************************/
     aircraft: {
       lat: 50.4600,
       lon: 4.4600,
@@ -23,6 +26,9 @@ export const airports = {
       gs: 140
     },
 
+    /****************************************************
+     * Runways — ND / PFD harmonisées
+     ****************************************************/
     runways: [
       {
         name: "24",
@@ -38,20 +44,27 @@ export const airports = {
       }
     ],
 
+    /****************************************************
+     * ILS — Airbus ND harmonisé
+     ****************************************************/
     ils: {
       localizer: {
-        lat: 50.456430, lon: 4.468300,
-        dirLat: 0.0100, dirLon: -0.0300
+        lat: 50.456430,
+        lon: 4.468300,
+        dirLat: 0.0100,
+        dirLon: -0.0300
       },
       glideSlope: {
-        lat: 50.456430, lon: 4.468300,
-        dirLat: 0.0050, dirLon: -0.0150
+        lat: 50.456430,
+        lon: 4.468300,
+        dirLat: 0.0050,
+        dirLon: -0.0150
       }
     }
   },
 
   /****************************************************
-   * EBLG — Liège
+   * EBLG — Liège Airport
    ****************************************************/
   EBLG: {
     icao: "EBLG",
@@ -59,6 +72,9 @@ export const airports = {
     lat: 50.637,
     lon: 5.443,
 
+    /****************************************************
+     * Aircraft — ND Airbus defaults
+     ****************************************************/
     aircraft: {
       lat: 50.6400,
       lon: 5.4500,
@@ -67,6 +83,9 @@ export const airports = {
       gs: 150
     },
 
+    /****************************************************
+     * Runways — ND / PFD harmonisées
+     ****************************************************/
     runways: [
       {
         name: "22",
@@ -82,14 +101,21 @@ export const airports = {
       }
     ],
 
+    /****************************************************
+     * ILS — Airbus ND harmonisé
+     ****************************************************/
     ils: {
       localizer: {
-        lat: 50.631900, lon: 5.438200,
-        dirLat: 0.0150, dirLon: 0.0300
+        lat: 50.631900,
+        lon: 5.438200,
+        dirLat: 0.0150,
+        dirLon: 0.0300
       },
       glideSlope: {
-        lat: 50.631900, lon: 5.438200,
-        dirLat: 0.0070, dirLon: 0.0150
+        lat: 50.631900,
+        lon: 5.438200,
+        dirLat: 0.0070,
+        dirLon: 0.0150
       }
     }
   }
