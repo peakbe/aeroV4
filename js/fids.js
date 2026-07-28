@@ -1,5 +1,5 @@
 /****************************************************
- * FIDS.js — Tableau avionique PRO+++ (AirLabs)
+ * FIDS — Airbus ECAM Flight Status PRO+++
  ****************************************************/
 
 import { AVWX_API_KEY, airports } from "./config.js";
@@ -7,7 +7,7 @@ import { updateNdAirbus } from "./nd-airbus.js";
 import { showFullFlightPath } from "./map.js";
 
 /****************************************************
- * Logos compagnies (Airline → Logo)
+ * Logos compagnies
  ****************************************************/
 const airlineLogos = {
   "FR": "img/logos/ryanair.png",
@@ -83,7 +83,7 @@ function computeGlideRatio(f, airportKey) {
 }
 
 /****************************************************
- * Statut avionique (couleurs cockpit)
+ * Statut avionique Airbus ECAM
  ****************************************************/
 function statusClass(status) {
   return {
@@ -118,7 +118,7 @@ async function fetchAirlabs(icao) {
 }
 
 /****************************************************
- * Fetch trajectoire complète AirLabs
+ * Trajectoire complète AirLabs
  ****************************************************/
 async function fetchFullTrack(flightIcao) {
   const key = AVWX_API_KEY;
@@ -134,7 +134,9 @@ async function fetchFullTrack(flightIcao) {
   }
 }
 
-
+/****************************************************
+ * FIDS Airbus ECAM — Mise à jour
+ ****************************************************/
 export async function updateFidsFlights(airportKey) {
 
   const icao = airportKey === "EBCI" ? "CRL" : "LGG";
@@ -149,14 +151,14 @@ export async function updateFidsFlights(airportKey) {
 
   if (!arrTbody || !depTbody) return;
 
-  arrTbody.innerHTML = "<tr><td colspan='10'>Loading...</td></tr>";
-  depTbody.innerHTML = "<tr><td colspan='10'>Loading...</td></tr>";
+  arrTbody.innerHTML = "<tr><td colspan='12'>Loading...</td></tr>";
+  depTbody.innerHTML = "<tr><td colspan='12'>Loading...</td></tr>";
 
   const fids = await fetchAirlabs(icao);
 
-  /***************
-   * ARRIVALS
-   ***************/
+  /****************************************************
+   * ARRIVALS — Airbus ECAM
+   ****************************************************/
   const arrivals = [...fids.arrivals].sort((a, b) => {
     const ta = a.arr_time || "";
     const tb = b.arr_time || "";
@@ -212,9 +214,9 @@ export async function updateFidsFlights(airportKey) {
     arrTbody.appendChild(tr);
   });
 
-  /***************
-   * DEPARTURES
-   ***************/
+  /****************************************************
+   * DEPARTURES — Airbus ECAM
+   ****************************************************/
   const departures = [...fids.departures].sort((a, b) => {
     const ta = a.dep_time || "";
     const tb = b.dep_time || "";
@@ -261,23 +263,3 @@ export async function updateFidsFlights(airportKey) {
     depTbody.appendChild(tr);
   });
 }
-
-/****************************************************
- * Sonomètres (FIDS) — OPTION 2
- ****************************************************/
-export async function updateFidsList(airportKey) {
-  const id = airportKey === "EBCI" ? "sonos-ebci" : "sonos-eblg";
-  const el = document.getElementById(id);
-  if (!el) return;
-
-  el.textContent = "Chargement...";
-
-  try {
-    const res = await fetch(`/api/fids/${airportKey}/sonos.json`);
-    const data = await res.json();
-    el.innerHTML = data.map(s => `${s.name} — ${s.value} dB`).join("<br>");
-  } catch (e) {
-    el.textContent = "Sonomètres indisponibles";
-  }
-}
-
