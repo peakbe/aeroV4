@@ -2,23 +2,28 @@
 import { airports } from "./config.js";
 
 export let map;
-export let planesLayer;
-export let ilsLayer;
-export let ilsLabelsLayer;
+export let ndIlsLayer;
+export let ndAircraftLayer;
+export let ndTrackLayer;
 
 /****************************************************
- * INIT MAP
+ * INIT MAP — Airbus ND PRO+++
  ****************************************************/
 export function initMap() {
   if (map) return;
 
-  map = L.map("map").setView([50.5, 4.7], 10);
+  map = L.map("map", {
+    zoomControl: false,        // ND Airbus = pas de zoom manuel
+    attributionControl: false  // cockpit IFR propre
+  }).setView([50.55, 5.0], 10);
 
-  ilsLayer = L.layerGroup().addTo(map);
-  ilsLabelsLayer = L.layerGroup().addTo(map);
-  planesLayer = L.layerGroup().addTo(map);
+  // Couches ND
+  ndIlsLayer = L.layerGroup().addTo(map);
+  ndAircraftLayer = L.layerGroup().addTo(map);
+  ndTrackLayer = L.layerGroup().addTo(map);
 
-   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  // Fond de carte (sobre, IFR)
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18
   }).addTo(map);
 
@@ -26,191 +31,91 @@ export function initMap() {
     window._mapReady = true;
   });
 
+  // Marqueurs aéroports (Airbus ND)
   Object.values(airports).forEach(ap => {
-    L.marker([ap.lat, ap.lon])
-      .addTo(map)
-      .bindPopup(ap.name);
+    L.circleMarker([ap.lat, ap.lon], {
+      radius: 6,
+      color: "#5ee7ff",
+      fillColor: "#5ee7ff",
+      fillOpacity: 0.9
+    })
+    .addTo(map)
+    .bindPopup(`<strong>${ap.name}</strong>`);
   });
 }
 
 /****************************************************
- * RESET MAP VIEW
+ * RESET MAP VIEW — Airbus ND (centrage runway)
  ****************************************************/
 export function resetMapView(airportKey) {
   if (!map) return;
+
   const ap = airports[airportKey];
-  if (ap) map.setView([ap.lat, ap.lon], 13);
-}
+  if (!ap || !ap.activeRunway) return;
 
-/****************************************************
- * ICONES AVION
- ****************************************************/
-export const planeIconApproach = L.icon({
-  iconUrl: "img/plane-blue.png",
-  iconSize: [32, 32],
-  iconAnchor: [16, 16]
-});
-
-export const planeIconDeparture = L.icon({
-  iconUrl: "img/plane-green.png",
-  iconSize: [32, 32],
-  iconAnchor: [16, 16]
-});
-
-/****************************************************
- * ILS — LOC + Glidepath + OM/MM/IM + Label
- ****************************************************/
-export function drawILS(airportKey, runwayName) {
-  const ap = airports[airportKey];
-  if (!ap) return;
-
-  const rw = ap.runways.find(r => r.name === runwayName);
+  const rw = ap.runways.find(r => r.name === ap.activeRunway.name);
   if (!rw) return;
 
-  const lat = rw.lat;
-  const lon = rw.lon;
-  const heading = rw.heading;
+  // Centrage sur la piste active
+  const midLat = (rw.lat1 + rw.lat2) / 2;
+  const midLon = (rw.lon1 + rw.lon2) / 2;
 
-  const lengthKm = 15;
-  const kmToDeg = lengthKm / 111;
-
-  const rad = heading * Math.PI / 180;
-
-  const endLat = lat + kmToDeg * Math.cos(rad);
-  const endLon = lon + kmToDeg * Math.sin(rad);
-
-  const leftRad = (heading - 3) * Math.PI / 180;
-  const rightRad = (heading + 3) * Math.PI / 180;
-
-  const leftLat = lat + kmToDeg * Math.cos(leftRad);
-  const leftLon = lon + kmToDeg * Math.sin(leftRad);
-
-  const rightLat = lat + kmToDeg * Math.cos(rightRad);
-  const rightLon = lon + kmToDeg * Math.sin(rightRad);
-
-  /****************************************************
-   * 1) LOC — Cône horizontal
-   ****************************************************/
-  const locCone = L.polygon([
-    [lat, lon],
-    [leftLat, leftLon],
-    [endLat, endLon],
-    [rightLat, rightLon]
-  ], {
-    color: "cyan",
-    weight: 2,
-    opacity: 0.8,
-    fillOpacity: 0.1
-  });
-
-  /****************************************************
-   * 2) Glidepath 3° — Ligne verticale
-   ****************************************************/
-  const glideLengthKm = 10;
-  const glideKmToDeg = glideLengthKm / 111;
-
-  const glideEndLat = lat + glideKmToDeg * Math.cos(rad);
-  const glideEndLon = lon + glideKmToDeg * Math.sin(rad);
-
-  const glidePath = L.polyline([
-    [lat, lon],
-    [glideEndLat, glideEndLon]
-  ], {
-    color: "orange",
-    weight: 3,
-    dashArray: "6,6"
-  });
-
-  /****************************************************
-   * 3) OM / MM / IM — Markers IFR
-   ****************************************************/
-  const markers = [];
-
-  const OMdist = 7 / 111;
-  const MMdist = 1 / 111;
-  const IMdist = 0.5 / 111;
-
-  const OMlat = lat + OMdist * Math.cos(rad);
-  const OMlon = lon + OMdist * Math.sin(rad);
-
-  const MMlat = lat + MMdist * Math.cos(rad);
-  const MMlon = lon + MMdist * Math.sin(rad);
-
-  const IMlat = lat + IMdist * Math.cos(rad);
-  const IMlon = lon + IMdist * Math.sin(rad);
-
-  markers.push(L.circleMarker([OMlat, OMlon], {
-    radius: 6,
-    color: "blue",
-    fillColor: "blue",
-    fillOpacity: 0.9
-  }).bindPopup("OM — Outer Marker"));
-
-  markers.push(L.circleMarker([MMlat, MMlon], {
-    radius: 6,
-    color: "yellow",
-    fillColor: "yellow",
-    fillOpacity: 0.9
-  }).bindPopup("MM — Middle Marker"));
-
-  markers.push(L.circleMarker([IMlat, IMlon], {
-    radius: 6,
-    color: "white",
-    fillColor: "white",
-    fillOpacity: 0.9
-  }).bindPopup("IM — Inner Marker"));
-
-  /****************************************************
-   * 4) Label piste active
-   ****************************************************/
-  const activeRunway = window.activeRunway;
-
-  if (runwayName === activeRunway) {
-    locCone.setStyle({ color: "lime", weight: 3 });
-    glidePath.setStyle({ color: "lime", weight: 4 });
-
-    const label = L.marker([lat, lon], {
-      icon: L.divIcon({
-        className: "ils-label",
-        html: `<div style="color:lime; font-weight:bold; font-size:18px;">RWY ${runwayName} ACTIVE</div>`
-      }),
-      interactive: false
-    });
-
-    ilsLabelsLayer.addLayer(label);
-  }
-
-  ilsLayer.addLayer(locCone);
-  ilsLayer.addLayer(glidePath);
-  markers.forEach(m => ilsLayer.addLayer(m));
+  map.setView([midLat, midLon], 13);
 }
 
 /****************************************************
- * Redessiner tous les ILS
+ * ICONES AVION — Airbus ND
  ****************************************************/
-export function refreshILS() {
-  if (!ilsLayer) return;
-  ilsLayer.clearLayers();
-  ilsLabelsLayer.clearLayers();
+export const planeIconND = L.icon({
+  iconUrl: "img/plane-nd.png",   // silhouette ND Airbus
+  iconSize: [34, 34],
+  iconAnchor: [17, 17]
+});
 
-  drawILS("EBCI", "24");
-  drawILS("EBCI", "06");
-  drawILS("EBLG", "22");
-  drawILS("EBLG", "04");
+/****************************************************
+ * AFFICHAGE AVION — ND Airbus
+ ****************************************************/
+export function drawNdAircraft(airportKey) {
+  const ap = airports[airportKey];
+  if (!ap || !ap.aircraft) return;
+
+  ndAircraftLayer.clearLayers();
+
+  const ac = ap.aircraft;
+
+  const marker = L.marker([ac.lat, ac.lon], {
+    icon: planeIconND,
+    rotationAngle: ac.hdg || 0,
+    rotationOrigin: "center"
+  });
+
+  marker.addTo(ndAircraftLayer);
 }
 
 /****************************************************
- * Trajectoire complète AirLabs — Polyline PRO+++
+ * TRAJECTOIRE COMPLETTE — ND Airbus PRO+++
  ****************************************************/
 export function showFullFlightPath(points) {
-  if (window.fullFlightPath) {
-    map.removeLayer(window.fullFlightPath);
-  }
+  ndTrackLayer.clearLayers();
 
-  window.fullFlightPath = L.polyline(
+  const poly = L.polyline(
     points.map(p => [p.lat, p.lng]),
-    { color: "yellow", weight: 3 }
-  ).addTo(map);
+    {
+      color: "#ffb300",   // amber Airbus
+      weight: 3,
+      opacity: 0.9
+    }
+  );
 
-  map.fitBounds(window.fullFlightPath.getBounds(), { padding: [50, 50] });
+  poly.addTo(ndTrackLayer);
+
+  map.fitBounds(poly.getBounds(), { padding: [50, 50] });
+}
+
+/****************************************************
+ * ILS ND — délégué à ils-nd.js
+ * (on ne dessine plus d’ILS ici)
+ ****************************************************/
+export function clearNdIls() {
+  ndIlsLayer.clearLayers();
 }
