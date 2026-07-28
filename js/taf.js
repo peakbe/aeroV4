@@ -1,5 +1,5 @@
 /****************************************************
- * TAF — AVWX Version PRO+++
+ * TAF — AVWX Version Airbus MCDU PRO+++
  ****************************************************/
 import { AVWX_API_KEY } from "./config.js";
 
@@ -18,6 +18,7 @@ export async function fetchTaf(icao) {
       raw: data.raw || null,
       forecast: data.forecast || []
     };
+
   } catch (e) {
     console.error("TAF AVWX error:", e);
     return null;
@@ -25,25 +26,121 @@ export async function fetchTaf(icao) {
 }
 
 /****************************************************
- * 2) AFFICHAGE TAF — IFR simple
+ * 2) Format cockpit IFR
+ ****************************************************/
+function fmt(val, unit = "") {
+  return val !== null && val !== undefined ? `${val}${unit}` : "n/a";
+}
+
+function fmtTime(t) {
+  if (!t) return "n/a";
+  try {
+    return t.replace("T", " ").replace("Z", "");
+  } catch {
+    return "n/a";
+  }
+}
+
+/****************************************************
+ * 3) Classification avionique (Airbus)
+ ****************************************************/
+function colorWind(speed) {
+  if (speed <= 8) return "cyan";
+  if (speed <= 15) return "orange";
+  return "red";
+}
+
+function colorVis(vis) {
+  if (vis >= 8000) return "cyan";
+  if (vis >= 4000) return "orange";
+  return "red";
+}
+
+/****************************************************
+ * 4) AFFICHAGE TAF — Airbus MCDU PRO+++
  ****************************************************/
 export function updateTafUI(airportKey, taf) {
+
   const el = document.getElementById("taf-content");
   if (!el) return;
 
   if (!taf) {
-    el.innerHTML = "<div class='taf-line'>TAF indisponible</div>";
+    el.innerHTML = `
+      <div class="taf-block">
+        <div class="taf-title">TAF ${airportKey}</div>
+        <div class="taf-line">TAF indisponible</div>
+      </div>
+    `;
     return;
   }
 
-  el.innerHTML = `
-    <div class="taf-title">TAF ${airportKey}</div>
-    <div class="taf-raw">${taf.raw || "n/a"}</div>
+  /****************************************************
+   * Construction cockpit IFR
+   ****************************************************/
+  let html = `
+    <div class="taf-block">
+      <div class="taf-title">TAF — ${airportKey}</div>
+      <div class="taf-raw">${taf.raw}</div>
+      <div class="taf-subtitle">FORECAST</div>
   `;
+
+  taf.forecast.forEach(f => {
+
+    const windDir = f.wind_direction?.value ?? "VRB";
+    const windSpd = f.wind_speed?.value ?? 0;
+    const vis = f.visibility?.value ?? null;
+
+    const windColor = colorWind(windSpd);
+    const visColor = colorVis(vis);
+
+    html += `
+      <div class="taf-forecast-block">
+
+        <div class="taf-line">
+          <span class="taf-label">PERIOD</span>
+          <span class="taf-value">
+            ${fmtTime(f.start)} → ${fmtTime(f.end)}
+          </span>
+        </div>
+
+        <div class="taf-line">
+          <span class="taf-label">WIND</span>
+          <span class="taf-value" style="color:${windColor}">
+            ${windDir}° / ${windSpd} kt
+          </span>
+        </div>
+
+        <div class="taf-line">
+          <span class="taf-label">VIS</span>
+          <span class="taf-value" style="color:${visColor}">
+            ${fmt(vis, " m")}
+          </span>
+        </div>
+
+        ${f.weather?.length ? `
+        <div class="taf-line">
+          <span class="taf-label">WX</span>
+          <span class="taf-value">${f.weather.join(" ")}</span>
+        </div>` : ""}
+
+        ${f.clouds?.length ? `
+        <div class="taf-line">
+          <span class="taf-label">CLOUDS</span>
+          <span class="taf-value">
+            ${f.clouds.map(c => `${c.type}${fmt(c.base, " ft")}`).join(", ")}
+          </span>
+        </div>` : ""}
+
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  el.innerHTML = html;
 }
 
 /****************************************************
- * 3) SWITCH METAR / TAF
+ * 5) SWITCH METAR / TAF — Airbus MCDU
  ****************************************************/
 export function initMetarSwitch() {
   const btnMetar = document.getElementById("btn-metar");
