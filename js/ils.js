@@ -1,14 +1,13 @@
 /****************************************************
- * ILS — Cockpit IFR PRO+++
- * Localizer + Glide Slope + Runway HUD
- * Sans IM / MM / OM
+ * ILS — Airbus ND / PFD PRO+++
+ * Localizer + Glide Slope + Runway Centerline + HUD
  ****************************************************/
 
 import { airports } from "./config.js";
 import { map } from "./map.js";
 
 /****************************************************
- * Nettoyage des anciennes couches ILS
+ * 1) Nettoyage des couches ILS
  ****************************************************/
 function clearIlsLayers(ap) {
   if (ap.ilsLayers) {
@@ -18,7 +17,7 @@ function clearIlsLayers(ap) {
 }
 
 /****************************************************
- * Dessine le localizer (LOC)
+ * 2) Localizer — ND Airbus (bleu cyan)
  ****************************************************/
 function drawLocalizer(ap) {
   const loc = ap.ils?.localizer;
@@ -30,9 +29,9 @@ function drawLocalizer(ap) {
       [loc.lat + loc.dirLat, loc.lon + loc.dirLon]
     ],
     {
-      color: "#00aaff",
+      color: "#00e5ff",     // Airbus cyan LOC
       weight: 3,
-      opacity: 0.9
+      opacity: 0.95
     }
   );
 
@@ -41,7 +40,7 @@ function drawLocalizer(ap) {
 }
 
 /****************************************************
- * Dessine le glide slope (GS)
+ * 3) Glide Slope — ND Airbus (orange GS)
  ****************************************************/
 function drawGlideSlope(ap) {
   const gs = ap.ils?.glideSlope;
@@ -53,7 +52,7 @@ function drawGlideSlope(ap) {
       [gs.lat + gs.dirLat, gs.lon + gs.dirLon]
     ],
     {
-      color: "#ffaa00",
+      color: "#ffb300",     // Airbus amber GS
       weight: 3,
       opacity: 0.9,
       dashArray: "6 6"
@@ -65,10 +64,15 @@ function drawGlideSlope(ap) {
 }
 
 /****************************************************
- * Dessine la piste active (runway centerline)
+ * 4) Runway Centerline — ND Airbus (blanc runway)
  ****************************************************/
 function drawRunwayCenterline(ap) {
-  const rw = ap.runways.find(r => r.name === ap.activeRunway);
+
+  // ap.activeRunway est un OBJET, pas un nom
+  const active = ap.activeRunway;
+  if (!active || !active.name) return;
+
+  const rw = ap.runways.find(r => r.name === active.name);
   if (!rw) return;
 
   const line = L.polyline(
@@ -77,9 +81,9 @@ function drawRunwayCenterline(ap) {
       [rw.lat2, rw.lon2]
     ],
     {
-      color: "#ffffff",
+      color: "#ffffff",     // Airbus runway
       weight: 4,
-      opacity: 0.8
+      opacity: 0.85
     }
   );
 
@@ -88,27 +92,28 @@ function drawRunwayCenterline(ap) {
 }
 
 /****************************************************
- * HUD piste active (appelé par app.js)
+ * 5) HUD Piste Active — Airbus PFD
  ****************************************************/
 export function updateRunwayHUD(ap, windDir, windSpd) {
+
   const hud = document.getElementById(
     ap.icao === "EBCI" ? "runway-ebci" : "runway-eblg"
   );
-
   if (!hud) return;
 
-  const runway = ap.activeRunway || "??";
+  const active = ap.activeRunway;
+  const runwayName = active?.name || "??";
 
   hud.innerHTML = `
     <div class="hud-runway">
-      <strong>Piste active :</strong> ${runway}<br>
+      <strong>Piste active :</strong> ${runwayName}<br>
       <strong>Vent :</strong> ${windDir}° / ${windSpd} kt
     </div>
   `;
 }
 
 /****************************************************
- * Rafraîchissement complet ILS
+ * 6) Rafraîchissement complet ILS — ND Airbus
  ****************************************************/
 export function refreshILS() {
   Object.values(airports).forEach(ap => {
