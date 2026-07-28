@@ -1,5 +1,5 @@
 /****************************************************
- * METAR — AVWX Version PRO+++
+ * METAR — AVWX Version Airbus MCDU PRO+++
  ****************************************************/
 import { AVWX_API_KEY } from "./config.js";
 import { airports } from "./config.js";
@@ -18,23 +18,19 @@ export async function fetchMetar(icao) {
     return {
       raw: data.raw || null,
 
-      // Vent moyen
       wind_dir: data.wind_direction?.value ?? "VRB",
       wind_speed: data.wind_speed?.value ?? 0,
-
-      // Rafales
       wind_gust: data.wind_gust?.value ?? null,
 
-      // Variation direction (ex: 180V240)
       wind_var_from: data.wind_variable_direction?.value?.from ?? null,
       wind_var_to: data.wind_variable_direction?.value?.to ?? null,
 
-      // Temp / Dew / Vis / QNH
       temp: data.temperature?.value ?? null,
       dew: data.dewpoint?.value ?? null,
       visib: data.visibility?.value ?? null,
       qnh: data.altimeter?.value ?? null
     };
+
   } catch (e) {
     console.error("METAR AVWX error:", e);
     return null;
@@ -42,62 +38,103 @@ export async function fetchMetar(icao) {
 }
 
 /****************************************************
- * 2) CLASSIFICATION METAR
+ * 2) CLASSIFICATION METAR — Airbus
  ****************************************************/
-function classifyMetar(metar) {
-  if (!metar) return "red";
+function classifyWind(speed) {
+  if (speed <= 8) return "cyan";
+  if (speed <= 15) return "orange";
+  return "red";
+}
 
-  const wind = metar.wind_speed || 0;
-  const vis = metar.visibility || 0;
+function classifyGust(gust) {
+  if (!gust) return "cyan";
+  if (gust <= 10) return "cyan";
+  if (gust <= 20) return "orange";
+  return "red";
+}
 
-  if (wind <= 8 && vis >= 8000) return "green";
-  if (wind <= 15 && vis >= 4000) return "orange";
+function classifyVis(vis) {
+  if (vis >= 8000) return "cyan";
+  if (vis >= 4000) return "orange";
   return "red";
 }
 
 /****************************************************
- * fonction couleur GUST
- ****************************************************/
-function gustColor(gust) {
-  if (!gust) return "";
-  if (gust <= 10) return "metar-green";
-  if (gust <= 20) return "metar-orange";
-  return "metar-red";
-}
-
-/****************************************************
- * 3) AFFICHAGE METAR — AVWX harmonisé
+ * 3) AFFICHAGE METAR — Airbus MCDU PRO+++
  ****************************************************/
 export function updateMetarUI(airportKey, metar, targetId) {
+
   if (window.isSonoTab()) return;
 
   const el = document.getElementById(targetId);
-  if (!el) return;
+  if (!el || !metar) return;
 
   const rw = airports[airportKey].activeRunway;
 
+  const windColor = classifyWind(metar.wind_speed);
+  const gustColor = classifyGust(metar.wind_gust);
+  const visColor = classifyVis(metar.visib);
+
+  /****************************************************
+   * Rendu cockpit IFR — Airbus MCDU
+   ****************************************************/
   el.innerHTML = `
-    <div class="metar-line">
-      Vent ${metar.wind_dir}° / ${metar.wind_speed} kt
-    </div>
+    <div class="metar-block">
 
-    <div class="metar-line">
-      Température : ${metar.temp ?? "n/a"}°C
-    </div>
+      <div class="metar-title">
+        METAR — ${airportKey}
+      </div>
 
-    <div class="metar-line">
-      QNH : ${metar.qnh ?? "n/a"} hPa
-    </div>
+      <div class="metar-line">
+        <span class="metar-label">WIND</span>
+        <span class="metar-value" style="color:${windColor}">
+          ${metar.wind_dir}° / ${metar.wind_speed} kt
+        </span>
+        ${metar.wind_gust ? `
+          <span class="metar-value" style="color:${gustColor}">
+            G${metar.wind_gust}
+          </span>` : ""}
+      </div>
 
-    <div class="metar-line">
-      Visibilité : ${metar.visib ?? "n/a"} m
-    </div>
+      ${metar.wind_var_from && metar.wind_var_to ? `
+      <div class="metar-line">
+        <span class="metar-label">VAR</span>
+        <span class="metar-value">
+          ${metar.wind_var_from}V${metar.wind_var_to}
+        </span>
+      </div>` : ""}
 
-    <div class="metar-line runway-active">
-      Piste active : ${rw?.name ?? "n/a"}
-    </div>
+      <div class="metar-line">
+        <span class="metar-label">TEMP</span>
+        <span class="metar-value">${metar.temp ?? "n/a"}°C</span>
+      </div>
 
-    <div class="metar-raw">${metar.raw}</div>
+      <div class="metar-line">
+        <span class="metar-label">DEW</span>
+        <span class="metar-value">${metar.dew ?? "n/a"}°C</span>
+      </div>
+
+      <div class="metar-line">
+        <span class="metar-label">QNH</span>
+        <span class="metar-value">${metar.qnh ?? "n/a"} hPa</span>
+      </div>
+
+      <div class="metar-line">
+        <span class="metar-label">VIS</span>
+        <span class="metar-value" style="color:${visColor}">
+          ${metar.visib ?? "n/a"} m
+        </span>
+      </div>
+
+      <div class="metar-line runway-active">
+        <span class="metar-label">RWY</span>
+        <span class="metar-value">${rw?.name ?? "n/a"}</span>
+      </div>
+
+      <div class="metar-raw">
+        ${metar.raw}
+      </div>
+
+    </div>
   `;
 }
-
