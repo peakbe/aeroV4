@@ -1,9 +1,9 @@
 /****************************************************
  * STATION INFO — Open‑Meteo Version PRO+++
+ * Airbus SD harmonisé
  ****************************************************/
 export async function fetchStationInfo(icao) {
   try {
-    // Coordonnées de tes aéroports
     const coords = {
       EBCI: { lat: 50.459, lon: 4.453 },
       EBLG: { lat: 50.637, lon: 5.443 }
@@ -11,7 +11,9 @@ export async function fetchStationInfo(icao) {
 
     const { lat, lon } = coords[icao];
 
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl`;
+    const url =
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&current=temperature_2m,relative_humidity_2m,pressure_msl`;
 
     const r = await fetch(url);
     const data = await r.json();
@@ -30,7 +32,9 @@ export async function fetchStationInfo(icao) {
   }
 }
 
-// Historique station pour tendance
+/****************************************************
+ * Historique station — Airbus SD (tendances)
+ ****************************************************/
 window.stationHistory = window.stationHistory || {
   EBCI: { temp: null, pressure: null },
   EBLG: { temp: null, pressure: null }
@@ -54,21 +58,21 @@ function computeTrend(airportKey, station) {
     else if (station.pressure < hist.pressure) trend.pressure = "baisse";
   }
 
-  // Mise à jour historique
   hist.temp = station.temp;
   hist.pressure = station.pressure;
 
   return trend;
 }
 
-//  fonction wind chill
-
+/****************************************************
+ * Wind Chill — Airbus SD
+ ****************************************************/
 function computeWindChill(temp, windKt) {
   if (temp === null || windKt === null) return null;
 
-  const windMs = windKt * 0.514444; // conversion kt → m/s
+  const windMs = windKt * 0.514444;
 
-  if (temp > 10 || windMs < 1.3) return temp; // pas de wind chill au-dessus de 10°C
+  if (temp > 10 || windMs < 1.3) return temp;
 
   const wc =
     13.12 +
@@ -80,39 +84,72 @@ function computeWindChill(temp, windKt) {
 }
 
 /****************************************************
- * AFFICHAGE STATION — Compatible cockpit IFR
+ * AFFICHAGE STATION — Airbus SD PRO+++
  ****************************************************/
 export function updateStationUI(airportKey, station, metar) {
+
   if (window.isSonoTab()) return;
 
   const id = airportKey === "EBCI" ? "station-ebci" : "station-eblg";
   const el = document.getElementById(id);
   if (!el || !station) return;
 
-  // Tendance
   const trend = computeTrend(airportKey, station);
-
-  // Wind chill (température ressentie)
   const windChill = computeWindChill(station.temp, metar?.wind_speed ?? null);
 
+  /****************************************************
+   * Classification avionique (Airbus SD)
+   ****************************************************/
+  const tempColor =
+    trend.temp === "hausse" ? "lime" :
+    trend.temp === "baisse" ? "orange" :
+    "#38bdf8";
+
+  const pressureColor =
+    trend.pressure === "hausse" ? "lime" :
+    trend.pressure === "baisse" ? "orange" :
+    "#38bdf8";
+
+  /****************************************************
+   * Rendu cockpit IFR — Airbus SD
+   ****************************************************/
   el.innerHTML = `
-    <div class="station-line">
-      Température : ${station.temp ?? "n/a"}°C
-      <span class="trend">${trend.temp}</span>
-    </div>
+    <div class="station-block">
 
-    <div class="station-line">
-      Ressentie : ${windChill ?? "n/a"}°C
-    </div>
+      <div class="station-title">
+        <span>STATION DATA — ${airportKey}</span>
+      </div>
 
-    <div class="station-line">
-      Humidité : ${station.humidity ?? "n/a"}%</div>
+      <div class="station-line">
+        Température :
+        <span style="color:${tempColor}">
+          ${station.temp ?? "n/a"}°C
+        </span>
+        <span class="trend">${trend.temp}</span>
+      </div>
 
-    <div class="station-line">
-      Pression : ${station.pressure ?? "n/a"} hPa
-      <span class="trend">${trend.pressure}</span>
+      <div class="station-line">
+        Ressentie :
+        <span style="color:#5ee7ff">
+          ${windChill ?? "n/a"}°C
+        </span>
+      </div>
+
+      <div class="station-line">
+        Humidité :
+        <span style="color:#38bdf8">
+          ${station.humidity ?? "n/a"}%
+        </span>
+      </div>
+
+      <div class="station-line">
+        Pression :
+        <span style="color:${pressureColor}">
+          ${station.pressure ?? "n/a"} hPa
+        </span>
+        <span class="trend">${trend.pressure}</span>
+      </div>
+
     </div>
   `;
 }
-
-
