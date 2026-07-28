@@ -359,28 +359,43 @@ main {
 /****************************************************
  * PANEL METAR — Airbus MCDU
  ****************************************************/
-#tab-metar {
-  background-color: #0b1120;
-  color: #e2e8f0;
-  padding: 10px;
+.metar-block {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  padding: 10px 12px;
+  border-radius: 6px;
   font-family: Consolas, monospace;
+  color: #e2e8f0;
+  margin-bottom: 10px;
 }
 
 .metar-title {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: bold;
   color: #5ee7ff;
-  margin: 12px 0 6px;
-  letter-spacing: 1px;
+  margin-bottom: 6px;
 }
 
-.metar-block {
-  background-color: #1e293b;
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  font-size: 14px;
-  line-height: 1.4;
+.metar-line {
+  margin: 4px 0;
+  display: flex;
+  gap: 8px;
+}
+
+.metar-label {
+  color: #38bdf8;
+  min-width: 50px;
+}
+
+.metar-value {
+  font-weight: bold;
+}
+
+.metar-raw {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #94a3b8;
+  white-space: pre-wrap;
 }
 
 /****************************************************
