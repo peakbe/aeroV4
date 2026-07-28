@@ -559,3 +559,43 @@ main {
   background: #0b1120;
 }
 
+/****************************************************
+ * HUD - AIRBUS PFD
+ ****************************************************/
+.hud-runway-block {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-family: Consolas, monospace;
+  color: #e2e8f0;
+  margin-bottom: 10px;
+}
+
+.hud-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.hud-wind {
+  margin-bottom: 10px;
+}
+
+.hud-label {
+  color: #38bdf8; /* cyan Airbus */
+  margin-right: 6px;
+}
+
+.hud-value {
+  font-weight: bold;
+}
+
+.hud-components .hud-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+}
+
