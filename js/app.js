@@ -27,6 +27,7 @@ import { updateFidsFlights } from "./fids.js";
 import { initTabs } from "./tabs.js";
 import { angleDiff } from "./utils.js";
 import { fetchStationInfo, updateStationUI } from "./station.js";
+import { updateRunwayHUD } from "./hud.js";
 
 /****************************************************
  * Détection piste active (computeRunway)
@@ -147,7 +148,7 @@ if (!sonoMode) {
 /****************************************************
  * HUD Piste Active — Airbus PFD / ND PRO+++
  ****************************************************/
-export function updateRunwayHUD(ap, windDir, windSpd) {
+function updateRunwayHUD(ap, windDir, windSpd) {
 
   const hud = document.getElementById(
     ap.icao === "EBCI" ? "runway-ebci" : "runway-eblg"
