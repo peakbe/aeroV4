@@ -22,147 +22,94 @@
 <button id="toggle-sidebar">☰ PANNEAUX</button>
 
 <main>
-  
-<!-- CARTE ND AIRBUS -->
-<div id="map"></div>
 
-<!-- LAYOUT COCKPIT IFR -->
- <div id="layout">
+  <!-- CARTE ND AIRBUS -->
+  <div id="map"></div>
 
-  <!-- SIDEBAR -->
-  <div id="sidebar">
+  <!-- CONTENEUR LATERAL -->
+  <div id="layout">
 
-    <div class="sidebar-controls">
-      <button class="sidebar-btn" data-target="EBCI">EBCI</button>
-      <button class="sidebar-btn" data-target="EBLG">EBLG</button>
-      <button class="sidebar-btn" data-target="ALL">Tous</button>
-    </div>
+    <!-- SIDEBAR -->
+    <div id="sidebar">
 
-    <!-- Onglets MCDU -->
-    <div class="sidebar-tabs">
-      <button class="mcdu-tab active" data-tab="tab-metar">METAR</button>
-      <button class="mcdu-tab" data-tab="tab-sono">SONO</button>
-      <button class="mcdu-tab" data-tab="tab-fids">FIDS</button>
-      <button class="mcdu-tab" data-tab="tab-logs">LOGS</button>
-    </div>
-
-  </div>
-
-  <!-- PANELS -->
-  <div id="panels">
-
-    <!-- PANEL METAR -->
-    <div id="tab-metar" class="tab-panel active">
-
-      <h2 class="mcdu-title">METAR — Cockpit IFR</h2>
-
-      <div class="mcdu-section">
-        <h3 class="mcdu-subtitle">EBCI — Rose des vents</h3>
-        <div id="wind-rose-ebci"></div>
+      <div class="sidebar-controls">
+        <button class="sidebar-btn" data-target="EBCI">EBCI</button>
+        <button class="sidebar-btn" data-target="EBLG">EBLG</button>
+        <button class="sidebar-btn" data-target="ALL">Tous</button>
       </div>
 
-      <div class="mcdu-section">
-        <h3 class="mcdu-subtitle">EBCI — METAR</h3>
-        <div id="metar-ebci"></div>
-      </div>
-
-      <div class="mcdu-section">
-        <h3 class="mcdu-subtitle">EBCI — Station</h3>
-        <div id="station-ebci"></div>
-      </div>
-
-      <hr class="mcdu-sep">
-
-      <div class="mcdu-section">
-        <h3 class="mcdu-subtitle">EBLG — Rose des vents</h3>
-        <div id="wind-rose-eblg"></div>
-      </div>
-
-      <div class="mcdu-section">
-        <h3 class="mcdu-subtitle">EBLG — METAR</h3>
-        <div id="metar-eblg"></div>
-      </div>
-
-      <div class="mcdu-section">
-        <h3 class="mcdu-subtitle">EBLG — Station</h3>
-        <div id="station-eblg"></div>
+      <div class="sidebar-tabs">
+        <button class="mcdu-tab active" data-tab="tab-metar">METAR</button>
+        <button class="mcdu-tab" data-tab="tab-sono">SONO</button>
+        <button class="mcdu-tab" data-tab="tab-fids">FIDS</button>
+        <button class="mcdu-tab" data-tab="tab-logs">LOGS</button>
       </div>
 
     </div>
 
-    <!-- PANEL SONO -->
-    <div id="tab-sono" class="tab-panel">
+    <!-- PANELS -->
+    <div id="panels">
 
-      <h2 class="mcdu-title">SONO — Sonomètres IFR</h2>
+      <!-- PANEL METAR -->
+      <div id="tab-metar" class="tab-panel active">
 
-      <div class="sono-collapse">
-        <div class="sono-collapse-header">
-          <span>Sonomètres EBCI</span>
-          <button class="collapse-toggle">▼</button>
+        <h2 class="mcdu-title">METAR — Cockpit IFR</h2>
+
+        <div class="mcdu-section">
+          <h3 class="mcdu-subtitle">EBCI — Rose des vents</h3>
+          <div id="wind-rose-ebci"></div>
         </div>
-        <div class="sono-collapse-body">
-          <div id="sono-status-ebci"></div>
-          <div id="sono-list-ebci"></div>
+
+        <div class="mcdu-section">
+          <h3 class="mcdu-subtitle">EBCI — METAR</h3>
+          <div id="metar-ebci"></div>
         </div>
-      </div>
 
-      <div class="sono-collapse">
-        <div class="sono-collapse-header">
-          <span>Sonomètres EBLG</span>
-          <button class="collapse-toggle">▼</button>
+        <div class="mcdu-section">
+          <h3 class="mcdu-subtitle">EBCI — Station</h3>
+          <div id="station-ebci"></div>
         </div>
-        <div class="sono-collapse-body">
-          <div id="sono-status-eblg"></div>
-          <div id="sono-list-eblg"></div>
+
+        <hr class="mcdu-sep">
+
+        <div class="mcdu-section">
+          <h3 class="mcdu-subtitle">EBLG — Rose des vents</h3>
+          <div id="wind-rose-eblg"></div>
         </div>
+
+        <div class="mcdu-section">
+          <h3 class="mcdu-subtitle">EBLG — METAR</h3>
+          <div id="metar-eblg"></div>
+        </div>
+
+        <div class="mcdu-section">
+          <h3 class="mcdu-subtitle">EBLG — Station</h3>
+          <div id="station-eblg"></div>
+        </div>
+
       </div>
 
-      <button id="reset-map" class="mcd-btn">RESET MAP</button>
-
-    </div>
-
-    <!-- PANEL FIDS -->
-    <div id="tab-fids" class="tab-panel">
-
-      <h2 class="mcdu-title">FIDS — Vols & Pistes</h2>
-
-      <div class="mcdu-section">
-        <h3 class="mcdu-subtitle">PISTE ACTIVE — EBCI</h3>
-        <div id="runway-ebci"></div>
+      <!-- PANEL SONO -->
+      <div id="tab-sono" class="tab-panel">
+        ...
       </div>
 
-      <div class="mcdu-section">
-        <h3 class="mcdu-subtitle">Vols EBCI</h3>
-        <table class="fids-table">
-          <tbody id="fids-arr-ebci"></tbody>
-        </table>
+      <!-- PANEL FIDS -->
+      <div id="tab-fids" class="tab-panel">
+        ...
       </div>
 
-      <hr class="mcdu-sep">
-
-      <div class="mcdu-section">
-        <h3 class="mcdu-subtitle">PISTE ACTIVE — EBLG</h3>
-        <div id="runway-eblg"></div>
+      <!-- PANEL LOGS -->
+      <div id="tab-logs" class="tab-panel">
+        ...
       </div>
 
-      <div class="mcdu-section">
-        <h3 class="mcdu-subtitle">Vols EBLG</h3>
-        <table class="fids-table">
-          <tbody id="fids-arr-eblg"></tbody>
-        </table>
-      </div>
-
-    </div>
-
-    <!-- PANEL LOGS -->
-    <div id="tab-logs" class="tab-panel">
-      <h2 class="mcdu-title">LOGS — Cockpit IFR</h2>
-      <div id="logs-console" class="mcdu-logs"></div>
     </div>
 
   </div>
 
 </main>
+
 
 <!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
