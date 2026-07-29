@@ -38,6 +38,7 @@
         <button class="sidebar-btn" data-target="ALL">Tous</button>
       </div>
 
+      <!-- Onglets MCDU -->
       <div class="sidebar-tabs">
         <button class="mcdu-tab active" data-tab="tab-metar">METAR</button>
         <button class="mcdu-tab" data-tab="tab-sono">SONO</button>
@@ -91,17 +92,72 @@
 
       <!-- PANEL SONO -->
       <div id="tab-sono" class="tab-panel">
-        ...
+
+        <h2 class="mcdu-title">SONO — Sonomètres IFR</h2>
+
+        <div class="sono-collapse">
+          <div class="sono-collapse-header">
+            <span>Sonomètres EBCI</span>
+            <button class="collapse-toggle">▼</button>
+          </div>
+          <div class="sono-collapse-body">
+            <div id="sono-status-ebci"></div>
+            <div id="sono-list-ebci"></div>
+          </div>
+        </div>
+
+        <div class="sono-collapse">
+          <div class="sono-collapse-header">
+            <span>Sonomètres EBLG</span>
+            <button class="collapse-toggle">▼</button>
+          </div>
+          <div class="sono-collapse-body">
+            <div id="sono-status-eblg"></div>
+            <div id="sono-list-eblg"></div>
+          </div>
+        </div>
+
+        <button id="reset-map" class="mcd-btn">RESET MAP</button>
+
       </div>
 
       <!-- PANEL FIDS -->
       <div id="tab-fids" class="tab-panel">
-        ...
+
+        <h2 class="mcdu-title">FIDS — Vols & Pistes</h2>
+
+        <div class="mcdu-section">
+          <h3 class="mcdu-subtitle">PISTE ACTIVE — EBCI</h3>
+          <div id="runway-ebci"></div>
+        </div>
+
+        <div class="mcdu-section">
+          <h3 class="mcdu-subtitle">Vols EBCI</h3>
+          <table class="fids-table">
+            <tbody id="fids-arr-ebci"></tbody>
+          </table>
+        </div>
+
+        <hr class="mcdu-sep">
+
+        <div class="mcdu-section">
+          <h3 class="mcdu-subtitle">PISTE ACTIVE — EBLG</h3>
+          <div id="runway-eblg"></div>
+        </div>
+
+        <div class="mcdu-section">
+          <h3 class="mcdu-subtitle">Vols EBLG</h3>
+          <table class="fids-table">
+            <tbody id="fids-arr-eblg"></tbody>
+          </table>
+        </div>
+
       </div>
 
       <!-- PANEL LOGS -->
       <div id="tab-logs" class="tab-panel">
-        ...
+        <h2 class="mcdu-title">LOGS — Cockpit IFR</h2>
+        <div id="logs-console" class="mcdu-logs"></div>
       </div>
 
     </div>
@@ -109,7 +165,6 @@
   </div>
 
 </main>
-
 
 <!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
