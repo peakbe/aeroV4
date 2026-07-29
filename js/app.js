@@ -252,34 +252,46 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  /***********************
-   * Affichage EBCI-EBLG dans la side-bar
-   ***********************/
-  const ebciSection = document.getElementById("sidebar-ebci");
-  const eblgSection = document.getElementById("sidebar-eblg");
+ /***********************
+ * Filtre EBCI / EBLG / ALL
+ ***********************/
+const sections = {
+  EBCI: [
+    document.getElementById("wind-rose-ebci"),
+    document.getElementById("metar-ebci"),
+    document.getElementById("station-ebci")
+  ],
+  EBLG: [
+    document.getElementById("wind-rose-eblg"),
+    document.getElementById("metar-eblg"),
+    document.getElementById("station-eblg")
+  ]
+};
 
-  document.querySelectorAll(".sidebar-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
+document.querySelectorAll(".sidebar-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
 
-      document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
+    // Active button
+    document.querySelectorAll(".sidebar-btn")
+      .forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
 
-      const target = btn.dataset.target;
+    const target = btn.dataset.target;
 
-      if (target === "EBCI") {
-        ebciSection.style.display = "block";
-        eblgSection.style.display = "none";
-      }
-      else if (target === "EBLG") {
-        ebciSection.style.display = "none";
-        eblgSection.style.display = "block";
-      }
-      else {
-        ebciSection.style.display = "block";
-        eblgSection.style.display = "block";
-      }
-    });
+    if (target === "EBCI") {
+      sections.EBCI.forEach(el => el.style.display = "block");
+      sections.EBLG.forEach(el => el.style.display = "none");
+    }
+    else if (target === "EBLG") {
+      sections.EBCI.forEach(el => el.style.display = "none");
+      sections.EBLG.forEach(el => el.style.display = "block");
+    }
+    else {
+      sections.EBCI.forEach(el => el.style.display = "block");
+      sections.EBLG.forEach(el => el.style.display = "block");
+    }
   });
+});
 
   /***********************
    * Collapse SONO IFR
