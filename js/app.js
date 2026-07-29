@@ -3,7 +3,7 @@
  ****************************************************/
 
 /****************************************************
- * Règle IFR — Détection de l’onglet SONO (globale)
+ * Détection de l’onglet SONO (globale IFR)
  ****************************************************/
 window.isSonoTab = function () {
   const activeTab = document.querySelector(".mcdu-tab.active")?.dataset.tab;
@@ -11,22 +11,32 @@ window.isSonoTab = function () {
 };
 
 /****************************************************
- * IMPORTS
+ * IMPORTS — Modules Airbus PRO+++
  ****************************************************/
 import { updateNdAirbus } from "./nd-airbus.js";
 import { refreshIlsNd } from "./ils-nd.js";
-import { airports } from "./config.js";
-import { AVWX_API_KEY } from "./config.js";
+
+import { airports, AVWX_API_KEY } from "./config.js";
+
 import { initMap, map, resetMapView } from "./map.js";
+
 import { fetchMetar, updateMetarUI } from "./metar.js";
 import { fetchTaf, updateTafUI } from "./taf.js";
+
 import { updateWindRose } from "./windrose.js";
-import { updateRunwayHUD, refreshILS } from "./ils.js";
+
+import { refreshILS } from "./ils.js";
+
 import { updateSono } from "./sono.js";
+
 import { updateFidsFlights } from "./fids.js";
+
 import { initTabs } from "./tabs.js";
+
 import { angleDiff } from "./utils.js";
+
 import { fetchStationInfo, updateStationUI } from "./station.js";
+
 import { updateRunwayHUD } from "./hud.js";
 
 /****************************************************
@@ -57,7 +67,6 @@ export function computeRunway(airport, windDirDeg, windSpeedKt) {
 
   if (!best) return null;
 
-  // Calcul vent de face / travers
   const comp = computeWindComponents(windDirDeg, windSpeedKt, best.heading);
 
   return {
@@ -70,16 +79,12 @@ export function computeRunway(airport, windDirDeg, windSpeedKt) {
   };
 }
 
-
-// Calcul vent de face / vent de travers
 function computeWindComponents(windDirDeg, windSpeedKt, runwayHeadingDeg) {
   if (isNaN(windDirDeg) || isNaN(windSpeedKt) || isNaN(runwayHeadingDeg)) {
     return { headwind: 0, crosswind: 0, angle: 0 };
   }
 
-  // Angle vent/piste
   const angle = Math.abs(((windDirDeg - runwayHeadingDeg + 180) % 360) - 180);
-
   const rad = angle * Math.PI / 180;
 
   const headwind = Math.round(windSpeedKt * Math.cos(rad));
@@ -102,128 +107,57 @@ export async function processAirport(airportKey) {
   window.currentAirportKey = airportKey;
   const ap = airports[airportKey];
 
-  /***********************
-   * Détection onglet actif (IFR)
-   ***********************/
-  const sonoMode = window.isSonoTab(); // ✔ pas de shadowing
+  const sonoMode = window.isSonoTab();
 
   /***********************
-   * 1) METAR (toujours fetché)
+   * 1) METAR
    ***********************/
   const metar = await fetchMetar(ap.icao);
   ap.lastMetar = metar;
   metar.icao = airportKey;
 
-   /***********************
- * 2) Piste active (toujours calculée)
- ***********************/
-const windDir = Number(metar?.wind_dir) || 0;
-const windSpd = Number(metar?.wind_speed) || 0;
-
-// ComputeRunway PRO+++
-const rw = computeRunway(ap, windDir, windSpd);
-
-// Sauvegarde cockpit IFR
-ap.activeRunway = rw;
-window.activeRunway = rw;
-
-/***********************
- * 3) METAR / HUD / Rose / Station
- ***********************/
-if (!sonoMode) {
-
-  updateMetarUI(
-    airportKey,
-    metar,
-    airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
-  );
-
-  updateRunwayHUD(ap, windDir, windSpd);
-  updateWindRose(metar);
-
-  const station = await fetchStationInfo(ap.icao);
-  updateStationUI(airportKey, station, ap.lastMetar);
-}
-
-/****************************************************
- * HUD Piste Active — Airbus PFD / ND PRO+++
- ****************************************************/
-function updateRunwayHUD(ap, windDir, windSpd) {
-
-  const hud = document.getElementById(
-    ap.icao === "EBCI" ? "runway-ebci" : "runway-eblg"
-  );
-  if (!hud) return;
-
-  const active = ap.activeRunway;
-  if (!active) return;
-
-  const runwayName = active.name;
-  const headwind = active.headwind;
-  const crosswind = active.crosswind;
-  const angle = active.angle;
-
-  /****************************************************
-   * Classification avionique (Airbus)
-   ****************************************************/
-  let windColor = "cyan";
-  if (crosswind > 10) windColor = "orange";
-  if (crosswind > 20) windColor = "red";
-
-  /****************************************************
-   * Rendu cockpit IFR — Airbus PFD
-   ****************************************************/
-  hud.innerHTML = `
-    <div class="hud-runway-block">
-
-      <div class="hud-title">
-        RUNWAY ${runwayName}
-      </div>
-
-      <div class="hud-wind">
-        <span class="hud-label">WIND</span>
-        <span class="hud-value" style="color:${windColor}">
-          ${windDir}° / ${windSpd} kt
-        </span>
-      </div>
-
-      <div class="hud-components">
-        <div class="hud-line">
-          <span class="hud-label">HEADWIND</span>
-          <span class="hud-value">${headwind} kt</span>
-        </div>
-
-        <div class="hud-line">
-          <span class="hud-label">CROSSWIND</span>
-          <span class="hud-value" style="color:${windColor}">
-            ${crosswind} kt
-          </span>
-        </div>
-
-        <div class="hud-line">
-          <span class="hud-label">ANGLE</span>
-          <span class="hud-value">${angle}°</span>
-        </div>
-      </div>
-
-    </div>
-  `;
-}
-
-
-
- /***********************
-   * 4) ILS dynamique (toujours)
-   ***********************/
-  refreshILS();    // ton ILS classique
- 
   /***********************
-   * 5) SONO (toujours)
+   * 2) Piste active
+   ***********************/
+  const windDir = Number(metar?.wind_dir) || 0;
+  const windSpd = Number(metar?.wind_speed) || 0;
+
+  const rw = computeRunway(ap, windDir, windSpd);
+
+  ap.activeRunway = rw;
+  window.activeRunway = rw;
+
+  /***********************
+   * 3) METAR / HUD / Rose / Station
+   ***********************/
+  if (!sonoMode) {
+
+    updateMetarUI(
+      airportKey,
+      metar,
+      airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
+    );
+
+    updateRunwayHUD(ap, windDir, windSpd);
+
+    updateWindRose(metar);
+
+    const station = await fetchStationInfo(ap.icao);
+    updateStationUI(airportKey, station, ap.lastMetar);
+  }
+
+  /***********************
+   * 4) ILS dynamique
+   ***********************/
+  refreshILS();
+
+  /***********************
+   * 5) SONO
    ***********************/
   updateSono(airportKey, ap.activeRunway.name, map);
 
   /***********************
-   * 6) FIDS avionique (toujours)
+   * 6) FIDS avionique
    ***********************/
   updateFidsFlights(airportKey);
 }
@@ -238,81 +172,72 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   map.whenReady(async () => {
 
-    /********************************************
-     * IMPORTANT : processAirport AVANT SONO LOOP
-     ********************************************/
     await Promise.all([
       processAirport("EBCI"),
       processAirport("EBLG")
     ]);
-    
-/********************************************
- * Tracking AirLabs — EBCI + EBLG (ND Airbus)
- ********************************************/
-setInterval(async () => {
-  try {
-    // EBCI — Arrivées vers CRL
-    const urlEbci = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&arr_iata=CRL`;
-    const resEbci = await fetch(urlEbci);
-    const dataEbci = await resEbci.json();
-
-    if (dataEbci.response && dataEbci.response.length > 0) {
-      const flightEbci = dataEbci.response[0];
-
-      airports.EBCI.aircraft.lat   = flightEbci.lat;
-      airports.EBCI.aircraft.lon   = flightEbci.lng;
-      airports.EBCI.aircraft.altFt = flightEbci.alt;
-      airports.EBCI.aircraft.hdg   = flightEbci.dir;
-      airports.EBCI.aircraft.gs    = flightEbci.speed;
-
-      refreshIlsNd();
-      updateNdAirbus("EBCI");
-    } else {
-      console.warn("AirLabs: aucun vol trouvé vers CRL (EBCI)");
-    }
-
-    // EBLG — Arrivées vers LGG
-    const urlEblg = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&arr_iata=LGG`;
-    const resEblg = await fetch(urlEblg);
-    const dataEblg = await resEblg.json();
-
-    if (dataEblg.response && dataEblg.response.length > 0) {
-      const flightEblg = dataEblg.response[0];
-
-      airports.EBLG.aircraft.lat   = flightEblg.lat;
-      airports.EBLG.aircraft.lon   = flightEblg.lng;
-      airports.EBLG.aircraft.altFt = flightEblg.alt;
-      airports.EBLG.aircraft.hdg   = flightEblg.dir;
-      airports.EBLG.aircraft.gs    = flightEblg.speed;
-
-      refreshIlsNd();
-      updateNdAirbus("EBLG");
-    } else {
-      console.warn("AirLabs: aucun vol trouvé vers LGG (EBLG)");
-    }
-
-  } catch (err) {
-    console.error("AirLabs error:", err);
-  }
-}, 5000);
-
-
 
     /********************************************
-     * Rafraîchissement SONO toutes les 30 sec
+     * Tracking AirLabs — ND Airbus
+     ********************************************/
+    setInterval(async () => {
+      try {
+        // EBCI
+        const urlEbci = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&arr_iata=CRL`;
+        const resEbci = await fetch(urlEbci);
+        const dataEbci = await resEbci.json();
+
+        if (dataEbci.response && dataEbci.response.length > 0) {
+          const f = dataEbci.response[0];
+
+          airports.EBCI.aircraft.lat   = f.lat;
+          airports.EBCI.aircraft.lon   = f.lng;
+          airports.EBCI.aircraft.altFt = f.alt;
+          airports.EBCI.aircraft.hdg   = f.dir;
+          airports.EBCI.aircraft.gs    = f.speed;
+
+          refreshIlsNd();
+          updateNdAirbus("EBCI");
+        }
+
+        // EBLG
+        const urlEblg = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&arr_iata=LGG`;
+        const resEblg = await fetch(urlEblg);
+        const dataEblg = await resEblg.json();
+
+        if (dataEblg.response && dataEblg.response.length > 0) {
+          const f = dataEblg.response[0];
+
+          airports.EBLG.aircraft.lat   = f.lat;
+          airports.EBLG.aircraft.lon   = f.lng;
+          airports.EBLG.aircraft.altFt = f.alt;
+          airports.EBLG.aircraft.hdg   = f.dir;
+          airports.EBLG.aircraft.gs    = f.speed;
+
+          refreshIlsNd();
+          updateNdAirbus("EBLG");
+        }
+
+      } catch (err) {
+        console.error("AirLabs error:", err);
+      }
+    }, 5000);
+
+    /********************************************
+     * Rafraîchissement SONO
      ********************************************/
     setInterval(() => {
       updateSono("EBCI", airports.EBCI.activeRunway, map);
       updateSono("EBLG", airports.EBLG.activeRunway, map);
     }, 30000);
   });
-  
+
   /********************************************
-   * Rafraîchissement FIDS toutes les 30 sec
+   * Rafraîchissement FIDS
    ********************************************/
-    setInterval(() => {
-      updateFidsFlights("EBCI");
-      updateFidsFlights("EBLG");
+  setInterval(() => {
+    updateFidsFlights("EBCI");
+    updateFidsFlights("EBLG");
   }, 30000);
 
   /***********************
@@ -345,12 +270,10 @@ setInterval(async () => {
         ebciSection.style.display = "block";
         eblgSection.style.display = "none";
       }
-
       else if (target === "EBLG") {
         ebciSection.style.display = "none";
         eblgSection.style.display = "block";
       }
-
       else {
         ebciSection.style.display = "block";
         eblgSection.style.display = "block";
@@ -358,7 +281,7 @@ setInterval(async () => {
     });
   });
 
-   /***********************
+  /***********************
    * Collapse SONO IFR
    ***********************/
   document.querySelectorAll(".sono-collapse-header").forEach(header => {
@@ -367,6 +290,4 @@ setInterval(async () => {
       parent.classList.toggle("collapsed");
     });
   });
-  
-
 });
