@@ -154,7 +154,9 @@ export async function processAirport(airportKey) {
   /***********************
    * 5) SONO
    ***********************/
-  updateSono(airportKey, ap.activeRunway.name, map);
+  if (ap.activeRunway?.name) {
+    updateSono(airportKey, ap.activeRunway.name, map);
+  }
 
   /***********************
    * 6) FIDS avionique
@@ -227,8 +229,12 @@ document.addEventListener("DOMContentLoaded", async () => {
      * Rafraîchissement SONO
      ********************************************/
     setInterval(() => {
-      updateSono("EBCI", airports.EBCI.activeRunway, map);
-      updateSono("EBLG", airports.EBLG.activeRunway, map);
+      if (airports.EBCI.activeRunway?.name) {
+        updateSono("EBCI", airports.EBCI.activeRunway.name, map);
+      }
+      if (airports.EBLG.activeRunway?.name) {
+        updateSono("EBLG", airports.EBLG.activeRunway.name, map);
+      }
     }, 30000);
   });
 
@@ -252,46 +258,45 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
- /***********************
- * Filtre EBCI / EBLG / ALL
- ***********************/
-const sections = {
-  EBCI: [
-    document.getElementById("wind-rose-ebci"),
-    document.getElementById("metar-ebci"),
-    document.getElementById("station-ebci")
-  ],
-  EBLG: [
-    document.getElementById("wind-rose-eblg"),
-    document.getElementById("metar-eblg"),
-    document.getElementById("station-eblg")
-  ]
-};
+  /***********************
+   * Filtre EBCI / EBLG / ALL
+   ***********************/
+  const sections = {
+    EBCI: [
+      document.getElementById("wind-rose-ebci"),
+      document.getElementById("metar-ebci"),
+      document.getElementById("station-ebci")
+    ].filter(Boolean),
+    EBLG: [
+      document.getElementById("wind-rose-eblg"),
+      document.getElementById("metar-eblg"),
+      document.getElementById("station-eblg")
+    ].filter(Boolean)
+  };
 
-document.querySelectorAll(".sidebar-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
+  document.querySelectorAll(".sidebar-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
 
-    // Active button
-    document.querySelectorAll(".sidebar-btn")
-      .forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+      document.querySelectorAll(".sidebar-btn")
+        .forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
 
-    const target = btn.dataset.target;
+      const target = btn.dataset.target;
 
-    if (target === "EBCI") {
-      sections.EBCI.forEach(el => el.style.display = "block");
-      sections.EBLG.forEach(el => el.style.display = "none");
-    }
-    else if (target === "EBLG") {
-      sections.EBCI.forEach(el => el.style.display = "none");
-      sections.EBLG.forEach(el => el.style.display = "block");
-    }
-    else {
-      sections.EBCI.forEach(el => el.style.display = "block");
-      sections.EBLG.forEach(el => el.style.display = "block");
-    }
+      if (target === "EBCI") {
+        sections.EBCI.forEach(el => el.style.display = "block");
+        sections.EBLG.forEach(el => el.style.display = "none");
+      }
+      else if (target === "EBLG") {
+        sections.EBCI.forEach(el => el.style.display = "none");
+        sections.EBLG.forEach(el => el.style.display = "block");
+      }
+      else {
+        sections.EBCI.forEach(el => el.style.display = "block");
+        sections.EBLG.forEach(el => el.style.display = "block");
+      }
+    });
   });
-});
 
   /***********************
    * Collapse SONO IFR
