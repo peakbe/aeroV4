@@ -2,7 +2,7 @@
  * LAYOUT GLOBAL — Airbus MCDU Style
  ****************************************************/
 main {
-  display: flex; 
+  display: flex;
   position: relative;
   height: calc(100vh - 120px);
   background: #0a0f1c;
@@ -41,6 +41,14 @@ main {
   width: 340px;
   min-width: 340px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #0b1120;
+  color: #e2e8f0;
+  border-right: 1px solid #1e293b;
+  backdrop-filter: blur(6px);
+  overflow-y: auto;
+  padding: 0;
 }
 
 /****************************************************
