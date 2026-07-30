@@ -15,9 +15,7 @@ main {
  ****************************************************/
 #layout {
   display: flex;
-  flex-direction: column;   /* ✔ sidebar au-dessus, panels en dessous */
-  width: 340px;
-  min-width: 340px;
+  flex-direction: column;   /* sidebar au-dessus, panels en dessous */
   height: calc(100vh - 120px);
   overflow: hidden;
   position: relative;
