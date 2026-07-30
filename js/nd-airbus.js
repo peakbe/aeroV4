@@ -67,6 +67,10 @@ function generateNdSvg(ap) {
   const gs = ap.aircraft.gs;
   const alt = ap.aircraft.altFt;
   const rw = ap.activeRunway;
+  
+  const windDir = ap.metar?.wind_dir ?? "VRB";
+  const windSpd = ap.metar?.wind_speed ?? 0;
+  const windMs = ktToMs(windSpd);
 
   return `
   <svg width="300" height="300" viewBox="0 0 300 300">
@@ -87,6 +91,11 @@ function generateNdSvg(ap) {
     <!-- ALT -->
     <text x="260" y="150" fill="#0af" font-size="18" text-anchor="middle">
       ALT ${alt.toFixed(0)}
+    </text>
+    
+    <!-- WIND -->
+    <text x="150" y="80" fill="#0af" font-size="18" text-anchor="middle">
+      WIND ${windDir}° / ${windSpd} kt (${windMs} m/s)
     </text>
 
     <!-- LOC bar -->
@@ -126,6 +135,10 @@ function generatePfdSvg(ap) {
 /****************************************************
  * Mise à jour ND Airbus
  ****************************************************/
+function ktToMs(kt) {
+  return (kt * 0.514444).toFixed(1);
+}
+
 export function updateNdAirbus(apKey) {
   const ap = airports[apKey];
 
