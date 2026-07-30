@@ -445,3 +445,9 @@ wind-arrow.red { border-bottom-color: red; }
   font-size: 0.9em;
   margin-left: 4px;
 }
+
+.wind-ms {
+  color: #5ee7ff;
+  margin-left: 4px;
+  font-size: 0.9em;
+}
