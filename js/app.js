@@ -30,6 +30,7 @@ import { refreshILS } from "./ils.js";
 import { updateSono } from "./sono.js";
 
 import { updateFidsFlights } from "./fids.js";
+import { startFidsLive } from "./fids.js";
 
 import { initTabs } from "./tabs.js";
 
@@ -178,7 +179,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       processAirport("EBCI"),
       processAirport("EBLG")
     ]);
-
+ // démarrage du mode LIVE FIDS
+    startFidsLive();
+    
     /********************************************
      * Tracking AirLabs — ND Airbus
      ********************************************/
