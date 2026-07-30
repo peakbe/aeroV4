@@ -23,11 +23,11 @@ const airlineLogos = {
  * Format HH:MM cockpit IFR
  ****************************************************/
 function formatTime(t) {
-  if (!t) return "n/a";
+  if (!t) return "--:--";
   try {
     return t.split("T")[1].replace("Z", "").slice(0, 5);
   } catch {
-    return "n/a";
+    return "--:--";
   }
 }
 
@@ -262,4 +262,14 @@ export async function updateFidsFlights(airportKey) {
 
     depTbody.appendChild(tr);
   });
+}
+
+/****************************************************
+ * MODE LIVE — Rafraîchissement automatique
+ ****************************************************/
+export function startFidsLive() {
+  setInterval(() => {
+    updateFidsFlights("EBCI");
+    updateFidsFlights("EBLG");
+  }, 30000); // 30 sec
 }
