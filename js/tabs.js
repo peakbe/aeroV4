@@ -53,12 +53,6 @@ export function initTabs() {
         updateSono("EBLG", airports.EBLG.activeRunway, map);
       }
 
-      if (target === "tab-fids") {
-        // FIDS = rafraîchissement immédiat
-        updateFidsFlights("EBCI");
-        updateFidsFlights("EBLG");
-      }
-
       if (target === "tab-logs") {
         // LOGS = rien à fetch, juste scroll top
         const logs = document.getElementById("logs-console");
