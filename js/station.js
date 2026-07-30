@@ -67,6 +67,10 @@ function computeTrend(airportKey, station) {
 /****************************************************
  * Wind Chill — Airbus SD
  ****************************************************/
+function ktToMs(kt) {
+  return (kt * 0.514444).toFixed(1);
+}
+
 function computeWindChill(temp, windKt) {
   if (temp === null || windKt === null) return null;
 
@@ -96,6 +100,7 @@ export function updateStationUI(airportKey, station, metar) {
 
   const trend = computeTrend(airportKey, station);
   const windChill = computeWindChill(station.temp, metar?.wind_speed ?? null);
+  const windMs = metar?.wind_speed ? ktToMs(metar.wind_speed) : null;
 
   /****************************************************
    * Classification avionique (Airbus SD)
@@ -141,6 +146,17 @@ export function updateStationUI(airportKey, station, metar) {
           ${station.humidity ?? "n/a"}%
         </span>
       </div>
+      
+     <div class="station-line">
+  Vent :
+  <span style="color:#38bdf8">
+    ${metar?.wind_speed ?? "n/a"} kt
+  </span>
+  <span class="wind-ms">
+    (${windMs ?? "n/a"} m/s)
+  </span>
+</div>
+
 
       <div class="station-line">
         Pression :
