@@ -1,3 +1,14 @@
+/****************************************************
+ * IMPORTS nécessaires pour tabs.js
+ ****************************************************/
+import { processAirport } from "./app.js";
+import { updateSono } from "./sono.js";
+import { airports } from "./config.js";
+import { map } from "./map.js";
+
+/****************************************************
+ * Onglets MCDU — Cockpit IFR PRO+++
+ ****************************************************/
 export function initTabs() {
 
   const tabs = document.querySelectorAll(".mcdu-tab");
@@ -38,28 +49,23 @@ export function initTabs() {
        * 5) Rafraîchissement dynamique selon onglet
        ****************************************************/
       if (target === "tab-metar") {
-        // METAR = rafraîchissement cockpit
         processAirport("EBCI");
         processAirport("EBLG");
       }
 
       if (target === "tab-sono") {
-        // SONO = mise à jour immédiate
         updateSono("EBCI", airports.EBCI.activeRunway?.name, map);
         updateSono("EBLG", airports.EBLG.activeRunway?.name, map);
       }
 
       if (target === "tab-logs") {
-        // LOGS = scroll bottom
         const logs = document.getElementById("logs-console");
         if (logs) logs.scrollTop = logs.scrollHeight;
       }
 
       /****************************************************
-       * 6) IMPORTANT : suppression du bloc FIDS
-       *    (désormais géré par startFidsLive() dans app.js)
+       * 6) FIDS : plus rien ici (géré par startFidsLive)
        ****************************************************/
-      // ❌ plus aucun updateFidsFlights ici
     });
   });
 }
