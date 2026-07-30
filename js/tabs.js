@@ -12,9 +12,7 @@ export function initTabs() {
       /****************************************************
        * 1) Désactivation visuelle des onglets (MCDU)
        ****************************************************/
-      tabs.forEach(t => {
-        t.classList.remove("active");
-      });
+      tabs.forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
 
       /****************************************************
@@ -28,9 +26,7 @@ export function initTabs() {
        * 3) Scroll automatique en haut (Airbus MCDU)
        ****************************************************/
       const activePanel = document.getElementById(target);
-      if (activePanel) {
-        activePanel.scrollTop = 0;
-      }
+      if (activePanel) activePanel.scrollTop = 0;
 
       /****************************************************
        * 4) Mise à jour du mode IFR global
@@ -49,16 +45,21 @@ export function initTabs() {
 
       if (target === "tab-sono") {
         // SONO = mise à jour immédiate
-        updateSono("EBCI", airports.EBCI.activeRunway, map);
-        updateSono("EBLG", airports.EBLG.activeRunway, map);
+        updateSono("EBCI", airports.EBCI.activeRunway?.name, map);
+        updateSono("EBLG", airports.EBLG.activeRunway?.name, map);
       }
 
       if (target === "tab-logs") {
-        // LOGS = rien à fetch, juste scroll top
+        // LOGS = scroll bottom
         const logs = document.getElementById("logs-console");
         if (logs) logs.scrollTop = logs.scrollHeight;
       }
 
+      /****************************************************
+       * 6) IMPORTANT : suppression du bloc FIDS
+       *    (désormais géré par startFidsLive() dans app.js)
+       ****************************************************/
+      // ❌ plus aucun updateFidsFlights ici
     });
   });
 }
