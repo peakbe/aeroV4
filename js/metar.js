@@ -92,16 +92,19 @@ export function updateMetarUI(airportKey, metar, targetId) {
         METAR — ${airportKey}
       </div>
 
-      <div class="metar-line">
-        <span class="metar-label">WIND</span>
-        <span class="metar-value" style="color:${windColor}">
-          ${metar.wind_dir}° / ${metar.wind_speed} kt
-        </span>
-        ${metar.wind_gust ? `
-          <span class="metar-value" style="color:${gustColor}">
-            G${metar.wind_gust}
-          </span>` : ""}
-      </div>
+     <div class="metar-line">
+  <span class="metar-label">WIND</span>
+  <span class="metar-value" style="color:${windColor}">
+    ${metar.wind_dir}° / ${metar.wind_speed} kt 
+    <span class="wind-ms">(${windMs} m/s)</span>
+  </span>
+
+  ${metar.wind_gust ? `
+    <span class="metar-value" style="color:${gustColor}">
+      G${metar.wind_gust} kt 
+      <span class="wind-ms">(${gustMs} m/s)</span>
+    </span>` : ""}
+</div>
 
       ${metar.wind_var_from && metar.wind_var_to ? `
       <div class="metar-line">
