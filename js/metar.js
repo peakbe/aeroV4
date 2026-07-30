@@ -62,6 +62,10 @@ function classifyVis(vis) {
 /****************************************************
  * 3) AFFICHAGE METAR — Airbus MCDU PRO+++
  ****************************************************/
+function ktToMs(kt) {
+  return (kt * 0.514444).toFixed(1);
+}
+
 export function updateMetarUI(airportKey, metar, targetId) {
 
   if (window.isSonoTab()) return;
@@ -74,6 +78,9 @@ export function updateMetarUI(airportKey, metar, targetId) {
   const windColor = classifyWind(metar.wind_speed);
   const gustColor = classifyGust(metar.wind_gust);
   const visColor = classifyVis(metar.visib);
+  const windMs = ktToMs(metar.wind_speed || 0);
+  const gustMs = ktToMs(metar.wind_gust || 0);
+
 
   /****************************************************
    * Rendu cockpit IFR — Airbus MCDU
