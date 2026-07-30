@@ -439,3 +439,9 @@ wind-arrow.red { border-bottom-color: red; }
   justify-content: space-between;
   margin: 4px 0;
 }
+
+.wind-ms {
+  color: #38bdf8;      /* bleu Airbus */
+  font-size: 0.9em;
+  margin-left: 4px;
+}
