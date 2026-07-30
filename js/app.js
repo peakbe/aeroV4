@@ -94,6 +94,13 @@ function computeWindComponents(windDirDeg, windSpeedKt, runwayHeadingDeg) {
   return { headwind, crosswind, angle };
 }
 
+/****************************************************
+ * conversion kt vers Ms
+ ****************************************************/
+function ktToMs(kt) {
+  return (kt * 0.514444).toFixed(1);
+}
+
 function runwayColor(crosswind) {
   if (crosswind <= 10) return "runway-green";
   if (crosswind <= 20) return "runway-orange";
