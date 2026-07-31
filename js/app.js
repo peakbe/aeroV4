@@ -16,7 +16,7 @@ window.isSonoTab = function () {
 import { updateNdAirbus } from "./nd-airbus.js";
 import { refreshIlsNd } from "./ils-nd.js";
 
-import { airports, AVWX_API_KEY } from "./config.js";
+import { airports } from "./config.js";
 
 import { initMap, map, resetMapView } from "./map.js";
 
