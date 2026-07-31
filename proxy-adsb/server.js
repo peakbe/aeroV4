@@ -61,14 +61,23 @@ app.get("/adsb", async (req, res) => {
     const ADSB_KEY = process.env.ADSB_KEY;
 
     const url =
-      `https://adsbexchange.com/api/aircraft/json/lat/${lat}/lon/${lon}/dist/${dist}?api_key=${ADSB_KEY}`;
+      `https://adsbexchange-com1.p.rapidapi.com/v2/lat/${lat}/lon/${lon}/dist/${dist}/`;
 
-    const data = await fetchCached(url);
+    const r = await fetch(url, {
+      headers: {
+        "X-RapidAPI-Key": ADSB_KEY,
+        "X-RapidAPI-Host": "adsbexchange-com1.p.rapidapi.com"
+      }
+    });
+
+    const data = await r.json();
     res.json(data);
+
   } catch (e) {
     res.status(500).json({ error: "ADSB error", details: e.toString() });
   }
 });
+
 
 /****************************************************
  * OpenSky
