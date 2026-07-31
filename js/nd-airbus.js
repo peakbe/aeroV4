@@ -147,10 +147,15 @@ export function updateNdAirbus(apKey) {
 
   if (!ndDiv || !pfdDiv) return;
 
+  // 1) Génération du ND Airbus (SVG)
   ndDiv.innerHTML = generateNdSvg(ap);
+
+  // 2) Trajectoire ADSBexchange en cyan Airbus
+  drawNdTrajectory(ap.aircraft.icao);
+
+  // 3) Génération du PFD
   pfdDiv.innerHTML = generatePfdSvg(ap);
 }
-
 
 /****************************************************
  * Ligne de trajectoire cyan Airbus
