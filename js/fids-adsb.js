@@ -6,6 +6,7 @@
 import { airports } from "./config.js";
 import { updateNdAirbus } from "./nd-airbus.js";
 import { showFullFlightPath } from "./map.js";
+import { showOptimizedAdsbTrajectory } from "./adsb-trajectory.js";
 
 /****************************************************
  * Historique trajectoires ADSB (par ICAO)
@@ -203,18 +204,19 @@ export async function updateFidsFlights(airportKey) {
       <td class="${statusClass(f.status)}">${f.status}</td>
     `;
 
-    tr.addEventListener("click", () => {
-      airports[airportKey].aircraft.lat   = f.lat;
-      airports[airportKey].aircraft.lon   = f.lon;
-      airports[airportKey].aircraft.altFt = Number(f.altFt);
-      airports[airportKey].aircraft.hdg   = Number(f.track);
-      airports[airportKey].aircraft.gs    = Number(f.gsKt);
+   tr.addEventListener("click", () => {
+  airports[airportKey].aircraft.lat   = f.lat;
+  airports[airportKey].aircraft.lon   = f.lon;
+  airports[airportKey].aircraft.altFt = Number(f.altFt);
+  airports[airportKey].aircraft.hdg   = Number(f.track);
+  airports[airportKey].aircraft.gs    = Number(f.gsKt);
 
-      const hist = window.adsbHistory[String(f.icao)] || [{ lat: f.lat, lng: f.lon }];
-      showFullFlightPath(hist);
+  // Trajectoire ADSBexchange optimisée
+  showOptimizedAdsbTrajectory(f.icao);
 
-      updateNdAirbus(airportKey);
-    });
+  // Mise à jour ND Airbus
+  updateNdAirbus(airportKey);
+});
 
     arrTbody.appendChild(tr);
   });
@@ -239,18 +241,19 @@ export async function updateFidsFlights(airportKey) {
       <td class="${statusClass(f.status)}">${f.status}</td>
     `;
 
-    tr.addEventListener("click", () => {
-      airports[airportKey].aircraft.lat   = f.lat;
-      airports[airportKey].aircraft.lon   = f.lon;
-      airports[airportKey].aircraft.altFt = Number(f.altFt);
-      airports[airportKey].aircraft.hdg   = Number(f.track);
-      airports[airportKey].aircraft.gs    = Number(f.gsKt);
+   tr.addEventListener("click", () => {
+  airports[airportKey].aircraft.lat   = f.lat;
+  airports[airportKey].aircraft.lon   = f.lon;
+  airports[airportKey].aircraft.altFt = Number(f.altFt);
+  airports[airportKey].aircraft.hdg   = Number(f.track);
+  airports[airportKey].aircraft.gs    = Number(f.gsKt);
 
-      const hist = window.adsbHistory[String(f.icao)] || [{ lat: f.lat, lng: f.lon }];
-      showFullFlightPath(hist);
+  // Trajectoire ADSBexchange optimisée
+  showOptimizedAdsbTrajectory(f.icao);
 
-      updateNdAirbus(airportKey);
-    });
+  // Mise à jour ND Airbus
+  updateNdAirbus(airportKey);
+});
 
     depTbody.appendChild(tr);
   });
