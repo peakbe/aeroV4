@@ -2,7 +2,7 @@
  * FIDS — Airbus ECAM Flight Status PRO+++
  ****************************************************/
 
-import { AVWX_API_KEY, airports } from "./config.js";
+import { AIRLABS_API_KEY, airports } from "./config.js";
 import { updateNdAirbus } from "./nd-airbus.js";
 import { showFullFlightPath } from "./map.js";
 
@@ -98,7 +98,7 @@ function statusClass(status) {
  * Fusion Arrivées + Départs AirLabs
  ****************************************************/
 async function fetchAirlabs(icao) {
-  const key = AVWX_API_KEY;
+  const key = AIRLABS_API_KEY;
 
   const urlArr = `https://airlabs.co/api/v9/flights?arr_icao=${icao}&api_key=${key}`;
   const urlDep = `https://airlabs.co/api/v9/flights?dep_icao=${icao}&api_key=${key}`;
@@ -121,7 +121,7 @@ async function fetchAirlabs(icao) {
  * Trajectoire complète AirLabs
  ****************************************************/
 async function fetchFullTrack(flightIcao) {
-  const key = AVWX_API_KEY;
+  const key = AIRLABS_API_KEY;
   const url = `https://airlabs.co/api/v9/flights?flight_icao=${flightIcao}&api_key=${key}`;
 
   try {
