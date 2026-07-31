@@ -30,7 +30,7 @@ import { refreshILS } from "./ils.js";
 import { updateSono } from "./sono.js";
 
 import { updateFidsFlights } from "./fids.js";
-import { startFidsLive } from "./fids.js";
+import { startFidsLive } from "./fids-opensky.js";
 
 import { initTabs } from "./tabs.js";
 
