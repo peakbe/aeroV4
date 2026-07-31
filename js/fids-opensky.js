@@ -1,6 +1,6 @@
 /****************************************************
- * FIDS — OpenSky Network Airbus ECAM PRO+++
- * Vols en temps réel autour de EBCI / EBLG
+ * FIDS — OpenSky Network Airbus ECAM PRO+++ v2
+ * EBCI / EBLG — temps réel, trajectoires, filtres
  ****************************************************/
 
 import { airports } from "./config.js";
@@ -8,7 +8,7 @@ import { updateNdAirbus } from "./nd-airbus.js";
 import { showFullFlightPath } from "./map.js";
 
 /****************************************************
- * Bounding box OpenSky autour des aéroports
+ * Bounding box OpenSky optimisée autour des aéroports
  ****************************************************/
 const openskyBoxes = {
   EBCI: {
@@ -16,16 +16,28 @@ const openskyBoxes = {
     lamax: 50.60,
     lomin: 4.30,
     lomax: 4.60
-
   },
   EBLG: {
     lamin: 50.55,
     lamax: 50.75,
     lomin: 5.35,
     lomax: 5.55
-
   }
 };
+
+/****************************************************
+ * Historique trajectoires OpenSky (par icao24)
+ ****************************************************/
+window.flightHistory = window.flightHistory || {};
+
+function pushHistory(icao24, lat, lon) {
+  if (!icao24 || lat == null || lon == null) return;
+  const key = String(icao24);
+  if (!window.flightHistory[key]) window.flightHistory[key] = [];
+  const arr = window.flightHistory[key];
+  arr.push({ lat, lng: lon });
+  if (arr.length > 50) arr.shift(); // limite historique
+}
 
 /****************************************************
  * Format HH:MM cockpit IFR
@@ -45,45 +57,50 @@ function distanceNm(lat1, lon1, lat2, lon2) {
   const dLon = (lon2 - lon1) * Math.PI / 180;
 
   const a =
-    Math.sin(dLat/2)**2 +
-    Math.cos(lat1 * Math.PI/180) *
-    Math.cos(lat2 * Math.PI/180) *
-    Math.sin(dLon/2)**2;
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
 
-  const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return (d / 1852).toFixed(1);
+  const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return d / 1852;
 }
 
 /****************************************************
- * Classification simple ARR / DEP selon cap
+ * Classification ARR / DEP / ENR améliorée
  ****************************************************/
 function classifyArrivalDeparture(state, airportKey) {
   const ap = airports[airportKey];
   const rw = ap.runways[0]; // piste principale
 
+  const lat = state[6];
+  const lon = state[5];
   const track = state[10] || 0; // true_track
-  const dist = distanceNm(state[6], state[5], ap.lat, ap.lon);
+  const dist = distanceNm(lat, lon, ap.lat, ap.lon);
 
-  // Si l'avion est à moins de 30 NM
-  if (dist > 30) return "ENR";
+  if (!lat || !lon) return "ENR";
 
-  const diff = Math.abs(track - rw.heading);
-  const anti = Math.abs(track - ((rw.heading + 180) % 360));
+  // loin de l'aéroport → en route
+  if (dist > 80) return "ENR";
 
-  if (diff < 40) return "ARR";      // vers la piste
-  if (anti < 40) return "DEP";     // s'éloigne de la piste
+  const heading = rw.heading;
+  const diff = Math.abs(((track - heading + 180) % 360) - 180);
+  const anti = Math.abs(((track - ((heading + 180) % 360) + 180) % 360) - 180);
+
+  if (dist <= 40 && diff < 35) return "ARR";   // vers la piste
+  if (dist <= 40 && anti < 35) return "DEP";  // s'éloigne de la piste
 
   return "ENR";
 }
 
 /****************************************************
- * Statut avionique Airbus ECAM
+ * Statut avionique Airbus ECAM (classes CSS)
  ****************************************************/
 function statusClass(status) {
   return {
-    "ARR": "fids-status-arr",
-    "DEP": "fids-status-dep",
-    "ENR": "fids-status-enr"
+    ARR: "fids-status-arr",
+    DEP: "fids-status-dep",
+    ENR: "fids-status-enr"
   }[status] || "";
 }
 
@@ -109,9 +126,22 @@ async function fetchOpenSkyStates(airportKey) {
 }
 
 /****************************************************
+ * Filtre global FIDS : EBCI / EBLG / ALL
+ ****************************************************/
+window.fidsFilter = "ALL";
+
+export function setFidsFilter(filter) {
+  if (["EBCI", "EBLG", "ALL"].includes(filter)) {
+    window.fidsFilter = filter;
+  }
+}
+
+/****************************************************
  * FIDS Airbus ECAM — Mise à jour (OpenSky)
  ****************************************************/
 export async function updateFidsFlights(airportKey) {
+  const filter = window.fidsFilter;
+  if (filter !== "ALL" && filter !== airportKey) return;
 
   const arrTbody = document.getElementById(
     airportKey === "EBCI" ? "fids-arr-ebci" : "fids-arr-eblg"
@@ -123,8 +153,8 @@ export async function updateFidsFlights(airportKey) {
 
   if (!arrTbody || !depTbody) return;
 
-  arrTbody.innerHTML = "<tr><td colspan='8'>Loading OpenSky...</td></tr>";
-  depTbody.innerHTML = "<tr><td colspan='8'>Loading OpenSky...</td></tr>";
+  arrTbody.innerHTML = "<tr><td colspan='9'>Loading OpenSky...</td></tr>";
+  depTbody.innerHTML = "<tr><td colspan='9'>Loading OpenSky...</td></tr>";
 
   const ap = airports[airportKey];
   const states = await fetchOpenSkyStates(airportKey);
@@ -136,25 +166,33 @@ export async function updateFidsFlights(airportKey) {
   const departures = [];
 
   states.forEach(s => {
+    const icao24 = s[0];
     const callsign = (s[1] || "").trim() || "n/a";
     const originCountry = s[2] || "n/a";
     const time = formatTimeFromTimestamp(s[3]);
     const lat = s[6];
     const lon = s[5];
-    const alt = s[7] ? s[7] * 3.2808 : 0; // m → ft
-    const gs = s[9] ? s[9] * 1.94384 : 0; // m/s → kt
+    const altFt = s[7] ? s[7] * 3.2808 : 0; // m → ft
+    const gsMs = s[9] || 0;                 // m/s
+    const gsKt = gsMs * 1.94384;           // kt
     const track = s[10] || 0;
+
+    if (lat == null || lon == null) return;
 
     const distNm = distanceNm(lat, lon, ap.lat, ap.lon);
     const status = classifyArrivalDeparture(s, airportKey);
 
+    pushHistory(icao24, lat, lon);
+
     const row = {
+      icao24,
       time,
       callsign,
       originCountry,
-      distNm,
-      altFt: alt.toFixed(0),
-      gsKt: gs.toFixed(0),
+      distNm: distNm.toFixed(1),
+      altFt: altFt.toFixed(0),
+      gsMs: gsMs.toFixed(1),
+      gsKt: gsKt.toFixed(0),
       track: track.toFixed(0),
       lat,
       lon,
@@ -168,7 +206,7 @@ export async function updateFidsFlights(airportKey) {
   /****************************************************
    * ARRIVALS — Airbus ECAM (OpenSky)
    ****************************************************/
-  arrivals.sort((a, b) => a.distNm - b.distNm);
+  arrivals.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
 
   arrivals.forEach(f => {
     const tr = document.createElement("tr");
@@ -180,21 +218,20 @@ export async function updateFidsFlights(airportKey) {
       <td>${f.distNm} NM</td>
       <td>${f.altFt} ft</td>
       <td>${f.gsKt} kt</td>
+      <td>${f.gsMs} m/s</td>
       <td>${f.track}°</td>
       <td class="${statusClass(f.status)}">${f.status}</td>
     `;
 
     tr.addEventListener("click", () => {
-      airports[airportKey].aircraft.lat = f.lat;
-      airports[airportKey].aircraft.lon = f.lon;
+      airports[airportKey].aircraft.lat   = f.lat;
+      airports[airportKey].aircraft.lon   = f.lon;
       airports[airportKey].aircraft.altFt = Number(f.altFt);
-      airports[airportKey].aircraft.hdg = Number(f.track);
-      airports[airportKey].aircraft.gs = Number(f.gsKt);
+      airports[airportKey].aircraft.hdg   = Number(f.track);
+      airports[airportKey].aircraft.gs    = Number(f.gsKt);
 
-      // Pas de track complet avec OpenSky free → on montre juste le point
-      showFullFlightPath([
-        { lat: f.lat, lng: f.lon }
-      ]);
+      const hist = window.flightHistory[String(f.icao24)] || [{ lat: f.lat, lng: f.lon }];
+      showFullFlightPath(hist);
 
       updateNdAirbus(airportKey);
     });
@@ -205,7 +242,7 @@ export async function updateFidsFlights(airportKey) {
   /****************************************************
    * DEPARTURES — Airbus ECAM (OpenSky)
    ****************************************************/
-  departures.sort((a, b) => a.distNm - b.distNm);
+  departures.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
 
   departures.forEach(f => {
     const tr = document.createElement("tr");
@@ -217,20 +254,20 @@ export async function updateFidsFlights(airportKey) {
       <td>${f.distNm} NM</td>
       <td>${f.altFt} ft</td>
       <td>${f.gsKt} kt</td>
+      <td>${f.gsMs} m/s</td>
       <td>${f.track}°</td>
       <td class="${statusClass(f.status)}">${f.status}</td>
     `;
 
     tr.addEventListener("click", () => {
-      airports[airportKey].aircraft.lat = f.lat;
-      airports[airportKey].aircraft.lon = f.lon;
+      airports[airportKey].aircraft.lat   = f.lat;
+      airports[airportKey].aircraft.lon   = f.lon;
       airports[airportKey].aircraft.altFt = Number(f.altFt);
-      airports[airportKey].aircraft.hdg = Number(f.track);
-      airports[airportKey].aircraft.gs = Number(f.gsKt);
+      airports[airportKey].aircraft.hdg   = Number(f.track);
+      airports[airportKey].aircraft.gs    = Number(f.gsKt);
 
-      showFullFlightPath([
-        { lat: f.lat, lng: f.lon }
-      ]);
+      const hist = window.flightHistory[String(f.icao24)] || [{ lat: f.lat, lng: f.lon }];
+      showFullFlightPath(hist);
 
       updateNdAirbus(airportKey);
     });
@@ -239,10 +276,10 @@ export async function updateFidsFlights(airportKey) {
   });
 
   if (arrivals.length === 0) {
-    arrTbody.innerHTML = "<tr><td colspan='8'>No arrivals (OpenSky)</td></tr>";
+    arrTbody.innerHTML = "<tr><td colspan='9'>No arrivals (OpenSky)</td></tr>";
   }
   if (departures.length === 0) {
-    depTbody.innerHTML = "<tr><td colspan='8'>No departures (OpenSky)</td></tr>";
+    depTbody.innerHTML = "<tr><td colspan='9'>No departures (OpenSky)</td></tr>";
   }
 }
 
