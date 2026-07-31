@@ -110,10 +110,7 @@ function statusClass(status) {
 async function fetchOpenSkyStates(airportKey) {
   const box = openskyBoxes[airportKey];
 
-  const url =
-    `https://opensky-network.org/api/states/all` +
-    `?lamin=${box.lamin}&lomin=${box.lomin}` +
-    `&lamax=${box.lamax}&lomax=${box.lomax}`;
+ const url = `/opensky?lamin=${box.lamin}&lomin=${box.lomin}&lamax=${box.lamax}&lomax=${box.lomax}`;
 
   try {
     const r = await fetch(url);
