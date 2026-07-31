@@ -1,11 +1,10 @@
 /****************************************************
- * FIDS — ADSBexchange Airbus ECAM PRO+++ v1
+ * FIDS — Multi‑source PRO+++ (ADSB + OpenSky + AirLabs)
  * EBCI / EBLG — temps réel, trajectoires, filtres
  ****************************************************/
 
 import { airports } from "./config.js";
 import { updateNdAirbus } from "./nd-airbus.js";
-import { showFullFlightPath } from "./map.js";
 import { showOptimizedAdsbTrajectory } from "./adsb-trajectory.js";
 
 /****************************************************
@@ -19,7 +18,7 @@ function pushHistory(icao, lat, lon) {
   if (!window.adsbHistory[key]) window.adsbHistory[key] = [];
   const arr = window.adsbHistory[key];
   arr.push({ lat, lng: lon });
-  if (arr.length > 80) arr.shift(); // limite historique
+  if (arr.length > 80) arr.shift();
 }
 
 /****************************************************
@@ -50,11 +49,11 @@ function distanceNm(lat1, lon1, lat2, lon2) {
 }
 
 /****************************************************
- * Classification ARR / DEP / ENR améliorée
+ * Classification ARR / DEP / ENR
  ****************************************************/
 function classifyArrivalDeparture(track, lat, lon, airportKey) {
   const ap = airports[airportKey];
-  const rw = ap.runways[0]; // piste principale
+  const rw = ap.runways[0];
 
   const dist = distanceNm(lat, lon, ap.lat, ap.lon);
   if (dist > 80) return "ENR";
@@ -92,22 +91,54 @@ export function setFidsFilter(filter) {
 }
 
 /****************************************************
- * Fetch ADSBexchange autour d'un aéroport
- * (lat / lon / radius en NM)
+ * Normalisation multi‑source (ADSB / OpenSky / AirLabs)
+ ****************************************************/
+function normalizeAircraftList(raw) {
+  // ADSBexchange: { ac: [...] }
+  if (Array.isArray(raw?.ac)) return raw.ac;
+
+  // ADSBexchange variante: { aircraft: [...] }
+  if (Array.isArray(raw?.aircraft)) return raw.aircraft;
+
+  // OpenSky: { states: [...] }
+  if (Array.isArray(raw?.states)) {
+    return raw.states.map(s => ({
+      icao: s[0],
+      call: s[1],
+      country: s[2],
+      lat: s[6],
+      lon: s[5],
+      alt_baro: s[7],
+      gs: s[9],
+      track: s[10],
+      seen_pos: 0
+    }));
+  }
+
+  // AirLabs: { response: { aircraft: [...] } } (exemple)
+  if (Array.isArray(raw?.response?.aircraft)) return raw.response.aircraft;
+
+  // Fallback: si raw est déjà un tableau
+  if (Array.isArray(raw)) return raw;
+
+  return [];
+}
+
+/****************************************************
+ * Fetch ADSBexchange via proxy Render
  ****************************************************/
 async function fetchAdsbAroundAirport(airportKey) {
   const ap = airports[airportKey];
-
-  // rayon 80 NM autour de l'aéroport
   const radiusNm = 80;
 
-const url =
-  `https://aerov4.onrender.com/adsb?lat=${ap.lat}&lon=${ap.lon}&dist=${radiusNm}`;
+  const url =
+    `https://aerov4.onrender.com/adsb?lat=${ap.lat}&lon=${ap.lon}&dist=${radiusNm}`;
 
   try {
     const r = await fetch(url);
     const data = await r.json();
-    return data.ac || [];
+    console.log("ADSB RAW:", data);
+    return normalizeAircraftList(data);
   } catch (e) {
     console.warn("ADSBexchange error:", e);
     return [];
@@ -115,7 +146,80 @@ const url =
 }
 
 /****************************************************
- * FIDS Airbus ECAM — Mise à jour (ADSBexchange)
+ * Fetch OpenSky (via proxy, si tu en as un)
+ ****************************************************/
+async function fetchOpenSkyAroundAirport(airportKey) {
+  const ap = airports[airportKey];
+  const radiusNm = 80;
+
+  // À adapter à ton proxy OpenSky si tu le remets
+  const url =
+    `https://aerov4.onrender.com/opensky?lat=${ap.lat}&lon=${ap.lon}&dist=${radiusNm}`;
+
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
+    console.log("OpenSky RAW:", data);
+    return normalizeAircraftList(data);
+  } catch (e) {
+    console.warn("OpenSky error:", e);
+    return [];
+  }
+}
+
+/****************************************************
+ * Fetch AirLabs (si tu as déjà une intégration)
+ ****************************************************/
+async function fetchAirLabsAroundAirport(airportKey) {
+  const ap = airports[airportKey];
+  const radiusNm = 80;
+
+  // Exemple: à adapter à ton endpoint réel
+  const url =
+    `https://aerov4.onrender.com/airlabs?lat=${ap.lat}&lon=${ap.lon}&dist=${radiusNm}`;
+
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
+    console.log("AirLabs RAW:", data);
+    return normalizeAircraftList(data);
+  } catch (e) {
+    console.warn("AirLabs error:", e);
+    return [];
+  }
+}
+
+/****************************************************
+ * Multi‑source : ADSB → OpenSky → AirLabs
+ ****************************************************/
+async function fetchMultiSourceAroundAirport(airportKey) {
+  // 1) ADSBexchange
+  let list = await fetchAdsbAroundAirport(airportKey);
+  if (list.length > 0) {
+    console.log("Source: ADSBexchange");
+    return list;
+  }
+
+  // 2) OpenSky
+  list = await fetchOpenSkyAroundAirport(airportKey);
+  if (list.length > 0) {
+    console.log("Source: OpenSky");
+    return list;
+  }
+
+  // 3) AirLabs
+  list = await fetchAirLabsAroundAirport(airportKey);
+  if (list.length > 0) {
+    console.log("Source: AirLabs");
+    return list;
+  }
+
+  console.log("No aircraft from any source");
+  return [];
+}
+
+/****************************************************
+ * FIDS Airbus ECAM — Mise à jour (multi‑source)
  ****************************************************/
 export async function updateFidsFlights(airportKey) {
   const filter = window.fidsFilter;
@@ -131,11 +235,11 @@ export async function updateFidsFlights(airportKey) {
 
   if (!arrTbody || !depTbody) return;
 
-  arrTbody.innerHTML = "<tr><td colspan='9'>Loading ADSBexchange...</td></tr>";
-  depTbody.innerHTML = "<tr><td colspan='9'>Loading ADSBexchange...</td></tr>";
+  arrTbody.innerHTML = "<tr><td colspan='9'>Loading flights...</td></tr>";
+  depTbody.innerHTML = "<tr><td colspan='9'>Loading flights...</td></tr>";
 
   const ap = airports[airportKey];
-  const aircraft = await fetchAdsbAroundAirport(airportKey);
+  const aircraft = await fetchMultiSourceAroundAirport(airportKey);
 
   arrTbody.innerHTML = "";
   depTbody.innerHTML = "";
@@ -144,20 +248,21 @@ export async function updateFidsFlights(airportKey) {
   const departures = [];
 
   aircraft.forEach(a => {
-    const icao = a.icao || a.hex || "n/a";
-    const callsign = (a.call || a.flight || "").trim() || "n/a";
-    const originCountry = a.country || "n/a";
-    const ts = a.seen_pos || a.seen || 0;
-    const time = formatTime(Math.floor(Date.now() / 1000 - ts)); // approx
+    const icao = a.icao || a.icao24 || a.hex || "n/a";
+    const callsign = (a.call || a.flight || a.callsign || "").trim() || "n/a";
+    const originCountry = a.country || a.origin_country || "n/a";
 
-    const lat = a.lat;
-    const lon = a.lon;
+    const ts = a.seen_pos || a.seen || a.t || 0;
+    const time = formatTime(ts ? ts : Math.floor(Date.now() / 1000));
+
+    const lat = a.lat ?? a.latitude ?? (Array.isArray(a.pos) ? a.pos[0] : null);
+    const lon = a.lon ?? a.longitude ?? (Array.isArray(a.pos) ? a.pos[1] : null);
     if (lat == null || lon == null) return;
 
-    const altFt = a.alt_baro || a.alt_geom || 0; // déjà en ft
-    const gsKt = a.gs || a.speed || 0;           // kt
-    const gsMs = gsKt * 0.514444;                // m/s
-    const track = a.track || a.heading || 0;
+    const altFt = a.alt_baro ?? a.alt_geom ?? a.alt ?? 0;
+    const gsKt = a.gs ?? a.speed ?? a.spd ?? 0;
+    const gsMs = gsKt * 0.514444;
+    const track = a.track ?? a.heading ?? a.hdg ?? 0;
 
     const distNm = distanceNm(lat, lon, ap.lat, ap.lon);
     const status = classifyArrivalDeparture(track, lat, lon, airportKey);
@@ -184,7 +289,7 @@ export async function updateFidsFlights(airportKey) {
   });
 
   /****************************************************
-   * ARRIVALS — Airbus ECAM (ADSBexchange)
+   * ARRIVALS
    ****************************************************/
   arrivals.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
 
@@ -203,25 +308,22 @@ export async function updateFidsFlights(airportKey) {
       <td class="${statusClass(f.status)}">${f.status}</td>
     `;
 
-   tr.addEventListener("click", () => {
-  airports[airportKey].aircraft.lat   = f.lat;
-  airports[airportKey].aircraft.lon   = f.lon;
-  airports[airportKey].aircraft.altFt = Number(f.altFt);
-  airports[airportKey].aircraft.hdg   = Number(f.track);
-  airports[airportKey].aircraft.gs    = Number(f.gsKt);
+    tr.addEventListener("click", () => {
+      airports[airportKey].aircraft.lat   = f.lat;
+      airports[airportKey].aircraft.lon   = f.lon;
+      airports[airportKey].aircraft.altFt = Number(f.altFt);
+      airports[airportKey].aircraft.hdg   = Number(f.track);
+      airports[airportKey].aircraft.gs    = Number(f.gsKt);
 
-  // Trajectoire ADSBexchange optimisée
-  showOptimizedAdsbTrajectory(f.icao);
-
-  // Mise à jour ND Airbus
-  updateNdAirbus(airportKey);
-});
+      showOptimizedAdsbTrajectory(f.icao);
+      updateNdAirbus(airportKey);
+    });
 
     arrTbody.appendChild(tr);
   });
 
   /****************************************************
-   * DEPARTURES — Airbus ECAM (ADSBexchange)
+   * DEPARTURES
    ****************************************************/
   departures.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
 
@@ -240,33 +342,30 @@ export async function updateFidsFlights(airportKey) {
       <td class="${statusClass(f.status)}">${f.status}</td>
     `;
 
-   tr.addEventListener("click", () => {
-  airports[airportKey].aircraft.lat   = f.lat;
-  airports[airportKey].aircraft.lon   = f.lon;
-  airports[airportKey].aircraft.altFt = Number(f.altFt);
-  airports[airportKey].aircraft.hdg   = Number(f.track);
-  airports[airportKey].aircraft.gs    = Number(f.gsKt);
+    tr.addEventListener("click", () => {
+      airports[airportKey].aircraft.lat   = f.lat;
+      airports[airportKey].aircraft.lon   = f.lon;
+      airports[airportKey].aircraft.altFt = Number(f.altFt);
+      airports[airportKey].aircraft.hdg   = Number(f.track);
+      airports[airportKey].aircraft.gs    = Number(f.gsKt);
 
-  // Trajectoire ADSBexchange optimisée
-  showOptimizedAdsbTrajectory(f.icao);
-
-  // Mise à jour ND Airbus
-  updateNdAirbus(airportKey);
-});
+      showOptimizedAdsbTrajectory(f.icao);
+      updateNdAirbus(airportKey);
+    });
 
     depTbody.appendChild(tr);
   });
 
   if (arrivals.length === 0) {
-    arrTbody.innerHTML = "<tr><td colspan='9'>No arrivals (ADSBexchange)</td></tr>";
+    arrTbody.innerHTML = "<tr><td colspan='9'>No arrivals (multi‑source)</td></tr>";
   }
   if (departures.length === 0) {
-    depTbody.innerHTML = "<tr><td colspan='9'>No departures (ADSBexchange)</td></tr>";
+    depTbody.innerHTML = "<tr><td colspan='9'>No departures (multi‑source)</td></tr>";
   }
 }
 
 /****************************************************
- * MODE LIVE — Rafraîchissement automatique (ADSB)
+ * MODE LIVE — Rafraîchissement automatique
  ****************************************************/
 export function startFidsLive() {
   updateFidsFlights("EBCI");
@@ -275,5 +374,5 @@ export function startFidsLive() {
   setInterval(() => {
     updateFidsFlights("EBCI");
     updateFidsFlights("EBLG");
-  }, 30000); // 30 sec
+  }, 30000);
 }
