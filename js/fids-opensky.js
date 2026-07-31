@@ -12,16 +12,18 @@ import { showFullFlightPath } from "./map.js";
  ****************************************************/
 const openskyBoxes = {
   EBCI: {
-    lamin: 50.40,
-    lamax: 50.52,
-    lomin: 4.40,
-    lomax: 4.52
+    lamin: 50.30,
+    lamax: 50.60,
+    lomin: 4.30,
+    lomax: 4.60
+
   },
   EBLG: {
-    lamin: 50.60,
-    lamax: 50.68,
-    lomin: 5.40,
-    lomax: 5.50
+    lamin: 50.55,
+    lamax: 50.75,
+    lomin: 5.35,
+    lomax: 5.55
+
   }
 };
 
