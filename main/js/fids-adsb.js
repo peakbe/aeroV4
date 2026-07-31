@@ -101,9 +101,8 @@ async function fetchAdsbAroundAirport(airportKey) {
   // rayon 80 NM autour de l'aéroport
   const radiusNm = 80;
 
-  // NOTE: URL typique ADSBexchange (peut varier selon ton plan)
-  const url =
-    `https://adsbexchange.com/api/aircraft/json/lat/${ap.lat}/lon/${ap.lon}/dist/${radiusNm}`;
+const url =
+  `https://aerov4.onrender.com/adsb?lat=${ap.lat}&lon=${ap.lon}&dist=${radiusNm}`;
 
   try {
     const r = await fetch(url);
