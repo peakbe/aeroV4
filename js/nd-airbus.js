@@ -150,3 +150,33 @@ export function updateNdAirbus(apKey) {
   ndDiv.innerHTML = generateNdSvg(ap);
   pfdDiv.innerHTML = generatePfdSvg(ap);
 }
+
+
+/****************************************************
+ * Ligne de trajectoire cyan Airbus
+ ****************************************************/
+export function drawNdTrajectory(icao) {
+  const key = String(icao);
+  const hist = (window.adsbHistory && window.adsbHistory[key]) || [];
+
+  if (!hist.length) return;
+
+  const ctx = window.ndCtx; // ton canvas ND Airbus
+  if (!ctx) return;
+
+  ctx.save();
+
+  ctx.strokeStyle = "#00ffff"; // cyan Airbus
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+
+  hist.forEach((p, idx) => {
+    const xy = ndProject(p.lat, p.lng); // ta fonction de projection ND
+    if (idx === 0) ctx.moveTo(xy.x, xy.y);
+    else ctx.lineTo(xy.x, xy.y);
+  });
+
+  ctx.stroke();
+  ctx.restore();
+}
