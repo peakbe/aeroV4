@@ -451,3 +451,16 @@ wind-arrow.red { border-bottom-color: red; }
   margin-left: 4px;
   font-size: 0.9em;
 }
+
+#nd-EBCI, #nd-EBLG {
+  width: 300px;
+  height: 300px;
+  position: relative;
+  margin: 10px auto;
+}
+
+#pfd-EBCI, #pfd-EBLG {
+  width: 300px;
+  height: 200px;
+  margin: 10px auto;
+}
