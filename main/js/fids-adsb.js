@@ -120,94 +120,67 @@ function normalizeAircraftList(raw) {
 /****************************************************
  * Fetch ADSBexchange via proxy Render
  ****************************************************/
-async function fetchAdsbAroundAirport(airportKey) {
-  const ap = airports[airportKey];
-  const radiusNm = 80;
-
+async function fetchAdsbAroundAirport(ap) {
   const url =
-    `https://aerov4.onrender.com/adsb?lat=${ap.lat}&lon=${ap.lon}&dist=${radiusNm}`;
+    `https://aerov4.onrender.com/adsb?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
 
   try {
     const r = await fetch(url);
     const data = await r.json();
-    console.log("ADSB RAW:", data);
     return normalizeAircraftList(data);
-  } catch (e) {
-    console.warn("ADSBexchange error:", e);
+  } catch {
     return [];
   }
 }
 
 /****************************************************
- * Fetch OpenSky (via proxy, si tu en as un)
+ * Fetch OpenSky (via proxy)
  ****************************************************/
-async function fetchOpenSkyAroundAirport(airportKey) {
-  const ap = airports[airportKey];
-  const radiusNm = 80;
-
-  // À adapter à ton proxy OpenSky si tu le remets
+async function fetchOpenSkyAroundAirport(ap) {
   const url =
-    `https://aerov4.onrender.com/opensky?lat=${ap.lat}&lon=${ap.lon}&dist=${radiusNm}`;
+    `https://aerov4.onrender.com/opensky?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
 
   try {
     const r = await fetch(url);
     const data = await r.json();
-    console.log("OpenSky RAW:", data);
     return normalizeAircraftList(data);
-  } catch (e) {
-    console.warn("OpenSky error:", e);
+  } catch {
     return [];
   }
 }
 
 /****************************************************
- * Fetch AirLabs (si tu as déjà une intégration)
+ * Fetch AirLabs via proxy Render
  ****************************************************/
-async function fetchAirLabsAroundAirport(airportKey) {
-  const ap = airports[airportKey];
-  const radiusNm = 80;
-
-  // Exemple: à adapter à ton endpoint réel
+async function fetchAirLabsAroundAirport(ap) {
   const url =
-    `https://aerov4.onrender.com/airlabs?lat=${ap.lat}&lon=${ap.lon}&dist=${radiusNm}`;
+    `https://aerov4.onrender.com/airlabs?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
 
   try {
     const r = await fetch(url);
     const data = await r.json();
-    console.log("AirLabs RAW:", data);
     return normalizeAircraftList(data);
-  } catch (e) {
-    console.warn("AirLabs error:", e);
+  } catch {
     return [];
   }
 }
+
 
 /****************************************************
  * Multi‑source : ADSB → OpenSky → AirLabs
  ****************************************************/
 async function fetchMultiSourceAroundAirport(airportKey) {
-  // 1) ADSBexchange
-  let list = await fetchAdsbAroundAirport(airportKey);
-  if (list.length > 0) {
-    console.log("Source: ADSBexchange");
-    return list;
-  }
+  const ap = airports[airportKey];
 
-  // 2) OpenSky
-  list = await fetchOpenSkyAroundAirport(airportKey);
-  if (list.length > 0) {
-    console.log("Source: OpenSky");
-    return list;
-  }
+  let list = await fetchAdsbAroundAirport(ap);
+  if (list.length > 0) return list;
 
-  // 3) AirLabs
-  list = await fetchAirLabsAroundAirport(airportKey);
-  if (list.length > 0) {
-    console.log("Source: AirLabs");
-    return list;
-  }
+  list = await fetchOpenSkyAroundAirport(ap);
+  if (list.length > 0) return list;
 
-  console.log("No aircraft from any source");
+  list = await fetchAirLabsAroundAirport(ap);
+  if (list.length > 0) return list;
+
   return [];
 }
 
