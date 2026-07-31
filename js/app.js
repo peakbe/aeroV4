@@ -29,8 +29,7 @@ import { refreshILS } from "./ils.js";
 
 import { updateSono } from "./sono.js";
 
-import { updateFidsFlights } from "./fids.js";
-import { startFidsLive } from "./fids-opensky.js";
+import { updateFidsFlights, startFidsLive } from "./fids-opensky.js";
 
 import { initTabs } from "./tabs.js";
 
@@ -190,50 +189,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     startFidsLive();
     
     /********************************************
-     * Tracking AirLabs — ND Airbus
+     * Tracking AirLabs — ND Airbus - supprimé
      ********************************************/
-    setInterval(async () => {
-      try {
-        // EBCI
-        const urlEbci = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&arr_iata=CRL`;
-        const resEbci = await fetch(urlEbci);
-        const dataEbci = await resEbci.json();
-
-        if (dataEbci.response && dataEbci.response.length > 0) {
-          const f = dataEbci.response[0];
-
-          airports.EBCI.aircraft.lat   = f.lat;
-          airports.EBCI.aircraft.lon   = f.lng;
-          airports.EBCI.aircraft.altFt = f.alt;
-          airports.EBCI.aircraft.hdg   = f.dir;
-          airports.EBCI.aircraft.gs    = f.speed;
-
-          refreshIlsNd();
-          updateNdAirbus("EBCI");
-        }
-
-        // EBLG
-        const urlEblg = `https://airlabs.co/api/v9/flights?api_key=${AVWX_API_KEY}&arr_iata=LGG`;
-        const resEblg = await fetch(urlEblg);
-        const dataEblg = await resEblg.json();
-
-        if (dataEblg.response && dataEblg.response.length > 0) {
-          const f = dataEblg.response[0];
-
-          airports.EBLG.aircraft.lat   = f.lat;
-          airports.EBLG.aircraft.lon   = f.lng;
-          airports.EBLG.aircraft.altFt = f.alt;
-          airports.EBLG.aircraft.hdg   = f.dir;
-          airports.EBLG.aircraft.gs    = f.speed;
-
-          refreshIlsNd();
-          updateNdAirbus("EBLG");
-        }
-
-      } catch (err) {
-        console.error("AirLabs error:", err);
-      }
-    }, 5000);
+    
 
     /********************************************
      * Rafraîchissement SONO
@@ -249,12 +207,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   /********************************************
-   * Rafraîchissement FIDS
+   * Rafraîchissement FIDS - supprimé
    ********************************************/
-  setInterval(() => {
-    updateFidsFlights("EBCI");
-    updateFidsFlights("EBLG");
-  }, 30000);
+ 
 
   /***********************
    * Reset MAP
