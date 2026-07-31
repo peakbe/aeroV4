@@ -2,7 +2,7 @@
  * CONFIG — Cockpit IFR Airbus PRO+++
  ****************************************************/
 
-export const AVWX_API_KEY = "ersegQzkf2Dfal-o26B4b5uzMrXBeHK2jOpOaY7nffc";
+export const AIRLABS_API_KEY = "04cb1c09-8abb-468a-95fa-ee90c3c2b651";
 
 export const airports = {
 
