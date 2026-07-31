@@ -26,6 +26,33 @@ async function fetchJson(url) {
 }
 
 /****************************************************
+ * Cache intelligent (30 sec)
+ ****************************************************/
+const cache = new Map();
+
+function cacheKey(url) {
+  return url;
+}
+
+async function fetchCached(url) {
+  const key = cacheKey(url);
+  const now = Date.now();
+
+  if (cache.has(key)) {
+    const entry = cache.get(key);
+    if (now - entry.time < 30000) {
+      console.log("[CACHE HIT]", url);
+      return entry.data;
+    }
+  }
+
+  console.log("[CACHE MISS]", url);
+  const data = await fetchJson(url);
+  cache.set(key, { time: now, data });
+  return data;
+}
+
+/****************************************************
  * ADSBexchange
  ****************************************************/
 app.get("/adsb", async (req, res) => {
@@ -36,7 +63,7 @@ app.get("/adsb", async (req, res) => {
     const url =
       `https://adsbexchange.com/api/aircraft/json/lat/${lat}/lon/${lon}/dist/${dist}?api_key=${ADSB_KEY}`;
 
-    const data = await fetchJson(url);
+    const data = await fetchCached(url);
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: "ADSB error", details: e.toString() });
@@ -50,12 +77,10 @@ app.get("/opensky", async (req, res) => {
   try {
     const { lat, lon, dist } = req.query;
 
-    const url =
-      `https://opensky-network.org/api/states/all`;
+    const url = `https://opensky-network.org/api/states/all`;
 
-    const raw = await fetchJson(url);
+    const raw = await fetchCached(url);
 
-    // Filtrage local (80 NM)
     const states = raw.states || [];
     const filtered = states.filter(s => {
       const slat = s[6];
@@ -92,7 +117,7 @@ app.get("/airlabs", async (req, res) => {
     const url =
       `https://airlabs.co/api/v9/flights?lat=${lat}&lng=${lon}&distance=${dist}&api_key=${AIRLABS_KEY}`;
 
-    const data = await fetchJson(url);
+    const data = await fetchCached(url);
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: "AirLabs error", details: e.toString() });
@@ -102,4 +127,5 @@ app.get("/airlabs", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Proxy multi-source running on port ${PORT}`);
 });
+
 
