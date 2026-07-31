@@ -94,20 +94,17 @@ export function setFidsFilter(filter) {
  * Normalisation multi‑source (ADSB / OpenSky / AirLabs)
  ****************************************************/
 function normalizeAircraftList(raw) {
-  // ADSBexchange: { ac: [...] }
   if (Array.isArray(raw?.ac)) return raw.ac;
-
-  // ADSBexchange variante: { aircraft: [...] }
   if (Array.isArray(raw?.aircraft)) return raw.aircraft;
+  if (Array.isArray(raw?.response?.aircraft)) return raw.response.aircraft;
 
-  // OpenSky: { states: [...] }
   if (Array.isArray(raw?.states)) {
     return raw.states.map(s => ({
       icao: s[0],
       call: s[1],
       country: s[2],
-      lat: s[6],
       lon: s[5],
+      lat: s[6],
       alt_baro: s[7],
       gs: s[9],
       track: s[10],
@@ -115,10 +112,6 @@ function normalizeAircraftList(raw) {
     }));
   }
 
-  // AirLabs: { response: { aircraft: [...] } } (exemple)
-  if (Array.isArray(raw?.response?.aircraft)) return raw.response.aircraft;
-
-  // Fallback: si raw est déjà un tableau
   if (Array.isArray(raw)) return raw;
 
   return [];
