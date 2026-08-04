@@ -282,18 +282,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   /***********************
    * Filtre EBCI / EBLG / ALL
    ***********************/
-  const sections = {
-    EBCI: [
-      document.getElementById("wind-rose-ebci"),
-      document.getElementById("metar-ebci"),
-      document.getElementById("station-ebci")
-    ].filter(Boolean),
-    EBLG: [
-      document.getElementById("wind-rose-eblg"),
-      document.getElementById("metar-eblg"),
-      document.getElementById("station-eblg")
-    ].filter(Boolean)
-  };
+ const panels = {
+  EBCI: [
+    document.getElementById("wind-rose-ebci")?.parentElement,
+    document.getElementById("metar-ebci")?.parentElement,
+    document.getElementById("station-ebci")?.parentElement
+  ],
+  EBLG: [
+    document.getElementById("wind-rose-eblg")?.parentElement,
+    document.getElementById("metar-eblg")?.parentElement,
+    document.getElementById("station-eblg")?.parentElement
+  ]
+};
 
   document.querySelectorAll(".sidebar-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -304,18 +304,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const target = btn.dataset.target;
 
-      if (target === "EBCI") {
-        sections.EBCI.forEach(el => el.style.display = "block");
-        sections.EBLG.forEach(el => el.style.display = "none");
-      }
-      else if (target === "EBLG") {
-        sections.EBCI.forEach(el => el.style.display = "none");
-        sections.EBLG.forEach(el => el.style.display = "block");
-      }
-      else {
-        sections.EBCI.forEach(el => el.style.display = "block");
-        sections.EBLG.forEach(el => el.style.display = "block");
-      }
+     if (target === "EBCI") {
+  panels.EBCI.forEach(el => el.style.display = "block");
+  panels.EBLG.forEach(el => el.style.display = "none");
+}
+else if (target === "EBLG") {
+  panels.EBCI.forEach(el => el.style.display = "none");
+  panels.EBLG.forEach(el => el.style.display = "block");
+}
+else {
+  panels.EBCI.forEach(el => el.style.display = "block");
+  panels.EBLG.forEach(el => el.style.display = "block");
+}
     });
   });
 
