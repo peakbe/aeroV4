@@ -118,6 +118,22 @@ function normalizeAircraftList(raw) {
 }
 
 /****************************************************
+ * Fetch Airlabs via proxy Render
+ ****************************************************/
+async function fetchAviationStackAroundAirport(ap) {
+  const url =
+    `https://aerov4.onrender.com/aviationstack?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
+
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
+    return normalizeAircraftList(data);
+  } catch {
+    return [];
+  }
+}
+
+/****************************************************
  * Fetch ADSBexchange via proxy Render
  ****************************************************/
 async function fetchAdsbAroundAirport(ap) {
@@ -179,6 +195,9 @@ async function fetchMultiSourceAroundAirport(airportKey) {
   if (list.length > 0) return list;
 
   list = await fetchAirLabsAroundAirport(ap);
+  if (list.length > 0) return list;
+
+  list = await fetchAviationStackAroundAirport(ap);
   if (list.length > 0) return list;
 
   return [];
