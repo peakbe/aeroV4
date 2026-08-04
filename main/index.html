@@ -24,13 +24,26 @@
 
 <main>
 
-  <!-- CARTE ND AIRBUS -->
-  <div id="map"></div>
+  <!-- COLONNE ND AIRBUS -->
+  <div id="nd-column">
 
- <!-- CONTENEUR LATERAL -->
-  <div id="layout">
+    <div class="mcdu-section">
+      <h3 class="mcdu-subtitle">ND Airbus — EBCI</h3>
+      <div id="nd-EBCI"></div>
+      <div id="pfd-EBCI"></div>
+    </div>
 
-    <!-- SIDEBAR -->
+    <div class="mcdu-section">
+      <h3 class="mcdu-subtitle">ND Airbus — EBLG</h3>
+      <div id="nd-EBLG"></div>
+      <div id="pfd-EBLG"></div>
+    </div>
+
+  </div>
+
+  <!-- COLONNE SIDEBAR -->
+  <div id="sidebar-column">
+
     <div id="sidebar">
 
       <div class="sidebar-controls">
@@ -39,7 +52,6 @@
         <button class="sidebar-btn" data-target="ALL">Tous</button>
       </div>
 
-      <!-- Onglets MCDU -->
       <div class="sidebar-tabs">
         <button class="mcdu-tab active" data-tab="tab-metar">METAR</button>
         <button class="mcdu-tab" data-tab="tab-sono">SONO</button>
@@ -49,7 +61,11 @@
 
     </div>
 
-    <!-- PANELS -->
+  </div>
+
+  <!-- COLONNE PANELS -->
+  <div id="panels-column">
+
     <div id="panels">
 
       <!-- PANEL METAR -->
