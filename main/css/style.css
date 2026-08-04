@@ -465,3 +465,22 @@ wind-arrow.red { border-bottom-color: red; }
   margin-left: 4px;
   font-size: 0.9em;
 }
+
+.pfd-box {
+  width: 320px;
+  height: 240px;
+  background: #000;
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  margin-top: 10px;
+  position: relative;
+}
+
+.pfd-tape {
+  position: absolute;
+  top: 0;
+  width: 60px;
+  height: 100%;
+  background: #0f172a;
+  border-right: 2px solid #1e293b;
+}
