@@ -1,5 +1,5 @@
 /****************************************************
- * FIDS — Multi‑source PRO+++ (ADSB + OpenSky + AirLabs)
+ * FIDS — Multi‑source PRO+++ (AviationStack + ADSB + OpenSky + AirLabs)
  * EBCI / EBLG — temps réel, trajectoires, filtres
  ****************************************************/
 
@@ -91,13 +91,18 @@ export function setFidsFilter(filter) {
 }
 
 /****************************************************
- * Normalisation multi‑source (ADSB / OpenSky / AirLabs)
+ * Normalisation multi‑source (AviationStack + ADSB / OpenSky / AirLabs)
  ****************************************************/
 function normalizeAircraftList(raw) {
+
+  /********** ADSBexchange **********/
   if (Array.isArray(raw?.ac)) return raw.ac;
   if (Array.isArray(raw?.aircraft)) return raw.aircraft;
+
+  /********** AirLabs **********/
   if (Array.isArray(raw?.response?.aircraft)) return raw.response.aircraft;
 
+  /********** OpenSky **********/
   if (Array.isArray(raw?.states)) {
     return raw.states.map(s => ({
       icao: s[0],
@@ -112,13 +117,36 @@ function normalizeAircraftList(raw) {
     }));
   }
 
+  /********** AviationStack PRO+++ **********/
+  if (Array.isArray(raw?.data)) {
+    return raw.data
+      .filter(f => f.live?.latitude && f.live?.longitude) // seulement les vols avec position
+      .map(f => ({
+        icao: f.flight?.icao || f.flight?.iata || f.flight?.number || "n/a",
+        call: f.flight?.iata || f.flight?.number || "n/a",
+        country: f.airline?.name || "n/a",
+
+        lat: f.live?.latitude,
+        lon: f.live?.longitude,
+
+        alt_baro: f.live?.altitude ?? 0,
+        gs: f.live?.speed_horizontal ?? 0,
+        track: f.live?.direction ?? 0,
+
+        seen_pos: f.live?.updated
+          ? Math.floor(new Date(f.live.updated).getTime() / 1000)
+          : 0
+      }));
+  }
+
+  /********** Fallback **********/
   if (Array.isArray(raw)) return raw;
 
   return [];
 }
 
 /****************************************************
- * Fetch Airlabs via proxy Render
+ * Fetch AviationStack via proxy Render
  ****************************************************/
 async function fetchAviationStackAroundAirport(ap) {
   const url =
