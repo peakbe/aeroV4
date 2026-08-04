@@ -15,7 +15,7 @@ main {
  ****************************************************/
 #layout {
   display: flex;
-  flex-direction: column;   /* sidebar à gauche, panels à droite */
+  flex-direction: row;   /* sidebar à gauche, panels à droite */
   height: calc(100vh - 120px);
   overflow: hidden;
   position: relative;
