@@ -39,6 +39,8 @@ import { fetchStationInfo, updateStationUI } from "./station.js";
 
 import { updateRunwayHUD } from "./hud.js";
 
+import { drawPFD } from "./pfd.js";
+
 /****************************************************
  * Détection piste active (computeRunway)
  ****************************************************/
@@ -107,6 +109,50 @@ function runwayColor(crosswind) {
 }
 
 /****************************************************
+ * PFD — Génération avionique Airbus PRO+++
+ ****************************************************/
+function updatePFD(airportKey, metar, ilsData) {
+
+  const canvas =
+    airportKey === "EBCI"
+      ? document.getElementById("pfd-canvas-EBCI")
+      : document.getElementById("pfd-canvas-EBLG");
+
+  if (!canvas) return;
+
+  // Données METAR
+  const windDir = Number(metar?.wind_dir) || 0;
+  const windSpd = Number(metar?.wind_speed) || 0;
+
+  // Données ILS
+  const locDev = ilsData?.locDev || 0;
+  const gsDev = ilsData?.gsDev || 0;
+
+  // Données avion (AirLabs ou FIDS)
+  const speed = window.airlabs?.[airportKey]?.speed || 140;
+  const altitude = window.airlabs?.[airportKey]?.altitude || 3000;
+  const vsi = window.airlabs?.[airportKey]?.vsi || 200;
+  const pitch = window.airlabs?.[airportKey]?.pitch || 2;
+  const bank = window.airlabs?.[airportKey]?.bank || 5;
+
+  const data = {
+    pitch,
+    bank,
+    speed,
+    altitude,
+    vsi,
+    locDev,
+    gsDev,
+    ap: true,
+    athr: true,
+    loc: ilsData?.locActive || false,
+    gs: ilsData?.gsActive || false
+  };
+
+  drawPFD(canvas, data);
+}
+
+/****************************************************
  * Processus principal par aéroport — Version PRO+++
  ****************************************************/
 export async function processAirport(airportKey) {
@@ -157,16 +203,21 @@ export async function processAirport(airportKey) {
    * 4) ILS dynamique
    ***********************/
   refreshILS();
+  
+  /***********************
+   * 5) PFD Airbus PRO+++
+   ***********************/
+  updatePFD(airportKey, metar, window.ilsData?.[airportKey]);
 
   /***********************
-   * 5) SONO
+   * 6) SONO
    ***********************/
   if (ap.activeRunway?.name) {
     updateSono(airportKey, ap.activeRunway.name, map);
   }
 
   /***********************
-   * 6) FIDS avionique
+   * 7) FIDS avionique
    ***********************/
   updateFidsFlights(airportKey);
 }
@@ -185,12 +236,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       processAirport("EBCI"),
       processAirport("EBLG")
     ]);
+    
  // démarrage du mode LIVE FIDS
     startFidsLive();
     
     /********************************************
-     * Tracking AirLabs — ND Airbus - supprimé
-     ********************************************/
+   * Rafraîchissement PFD — FULL GLASS COCKPIT
+   ********************************************/
+  setInterval(() => {
+    updatePFD("EBCI", airports.EBCI.lastMetar, window.ilsData?.EBCI);
+    updatePFD("EBLG", airports.EBLG.lastMetar, window.ilsData?.EBLG);
+  }, 2000);
     
 
     /********************************************
