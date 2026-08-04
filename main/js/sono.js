@@ -163,7 +163,6 @@ export function updateSono(airportKey, activeRunway, map) {
   const sono = document.getElementById(
     airportKey === "EBCI" ? "sono-status-ebci" : "sono-status-eblg"
   );
-
   if (!sono) return;
 
   const color =
@@ -171,17 +170,21 @@ export function updateSono(airportKey, activeRunway, map) {
     windSpd <= 15 ? "orange" :
     "red";
 
-  // Conversion kt → m/s
   const windMs = (windSpd * 0.514444).toFixed(1);
 
-  // Affichage unique pour EBCI + EBLG
-  const sonoText = `Vent ${windDir}° / ${windMs} m/s — Piste ${activeRunway.name}`;
+  // Sécurisation : si activeRunway est un string, on l'utilise tel quel
+  const runwayName = typeof activeRunway === "string"
+    ? activeRunway
+    : activeRunway?.name || "N/A";
+
+  const sonoText = `Vent ${windDir}° / ${windMs} m/s — Piste ${runwayName}`;
 
   sono.innerHTML = `
     <div class="sono-line" style="color:${color}">
       ${sonoText}
     </div>
   `;
+}
 
    /***********************
  * Indicateur de vent dans le header collapsible
