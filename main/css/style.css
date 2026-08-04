@@ -508,3 +508,7 @@ wind-arrow.red { border-bottom-color: red; }
   min-width: 360px;
   flex: 1;
 }
+
+.mcdu-section {
+  display: block;
+}
