@@ -282,42 +282,48 @@ document.addEventListener("DOMContentLoaded", async () => {
   /***********************
    * Filtre EBCI / EBLG / ALL
    ***********************/
- const panels = {
+ const filterGroups = {
   EBCI: [
     document.getElementById("wind-rose-ebci")?.parentElement,
     document.getElementById("metar-ebci")?.parentElement,
-    document.getElementById("station-ebci")?.parentElement
+    document.getElementById("station-ebci")?.parentElement,
+    document.getElementById("sono-status-ebci")?.parentElement?.parentElement,
+    document.getElementById("fids-arr-ebci")?.parentElement?.parentElement,
+    document.getElementById("runway-ebci")?.parentElement
   ],
   EBLG: [
     document.getElementById("wind-rose-eblg")?.parentElement,
     document.getElementById("metar-eblg")?.parentElement,
-    document.getElementById("station-eblg")?.parentElement
+    document.getElementById("station-eblg")?.parentElement,
+    document.getElementById("sono-status-eblg")?.parentElement?.parentElement,
+    document.getElementById("fids-arr-eblg")?.parentElement?.parentElement,
+    document.getElementById("runway-eblg")?.parentElement
   ]
 };
 
-  document.querySelectorAll(".sidebar-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
+ document.querySelectorAll(".sidebar-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
 
-      document.querySelectorAll(".sidebar-btn")
-        .forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
+    document.querySelectorAll(".sidebar-btn")
+      .forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
 
-      const target = btn.dataset.target;
+    const target = btn.dataset.target;
 
-     if (target === "EBCI") {
-  panels.EBCI.forEach(el => el.style.display = "block");
-  panels.EBLG.forEach(el => el.style.display = "none");
-}
-else if (target === "EBLG") {
-  panels.EBCI.forEach(el => el.style.display = "none");
-  panels.EBLG.forEach(el => el.style.display = "block");
-}
-else {
-  panels.EBCI.forEach(el => el.style.display = "block");
-  panels.EBLG.forEach(el => el.style.display = "block");
-}
-    });
+    if (target === "EBCI") {
+      filterGroups.EBCI.forEach(el => el && (el.style.display = "block"));
+      filterGroups.EBLG.forEach(el => el && (el.style.display = "none"));
+    }
+    else if (target === "EBLG") {
+      filterGroups.EBCI.forEach(el => el && (el.style.display = "none"));
+      filterGroups.EBLG.forEach(el => el && (el.style.display = "block"));
+    }
+    else {
+      filterGroups.EBCI.forEach(el => el && (el.style.display = "block"));
+      filterGroups.EBLG.forEach(el => el && (el.style.display = "block"));
+    }
   });
+});
 
   /***********************
    * Collapse SONO IFR
