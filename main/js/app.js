@@ -300,8 +300,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("runway-eblg")?.parentElement
   ]
 };
+  
+const filterND = {
+  EBCI: [
+    document.querySelector('.nd-box:nth-child(1)')
+  ],
+  EBLG: [
+    document.querySelector('.nd-box:nth-child(2)')
+  ]
+};
 
- document.querySelectorAll(".sidebar-btn").forEach(btn => {
+document.querySelectorAll(".sidebar-btn").forEach(btn => {
   btn.addEventListener("click", () => {
 
     document.querySelectorAll(".sidebar-btn")
@@ -311,16 +320,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     const target = btn.dataset.target;
 
     if (target === "EBCI") {
+
+      // METAR / SONO / FIDS
       filterGroups.EBCI.forEach(el => el && (el.style.display = "block"));
       filterGroups.EBLG.forEach(el => el && (el.style.display = "none"));
+
+      // ND + PFD
+      filterND.EBCI.forEach(el => el && (el.style.display = "block"));
+      filterND.EBLG.forEach(el => el && (el.style.display = "none"));
     }
+
     else if (target === "EBLG") {
+
+      // METAR / SONO / FIDS
       filterGroups.EBCI.forEach(el => el && (el.style.display = "none"));
       filterGroups.EBLG.forEach(el => el && (el.style.display = "block"));
+
+      // ND + PFD
+      filterND.EBCI.forEach(el => el && (el.style.display = "none"));
+      filterND.EBLG.forEach(el => el && (el.style.display = "block"));
     }
+
     else {
+
+      // METAR / SONO / FIDS
       filterGroups.EBCI.forEach(el => el && (el.style.display = "block"));
       filterGroups.EBLG.forEach(el => el && (el.style.display = "block"));
+
+      // ND + PFD
+      filterND.EBCI.forEach(el => el && (el.style.display = "block"));
+      filterND.EBLG.forEach(el => el && (el.style.display = "block"));
     }
   });
 });
