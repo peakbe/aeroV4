@@ -465,3 +465,54 @@ wind-arrow.red { border-bottom-color: red; }
   height: 200px;
   margin: 10px auto;
 }
+/****************************************************
+ * LAYOUT GLOBAL — 3 colonnes Airbus
+ ****************************************************/
+main {
+  display: flex;
+  flex-direction: row;
+  height: calc(100vh - 120px);
+  background: #0a0f1c;
+  color: #e2e8f0;
+  font-family: Consolas, monospace;
+}
+
+/****************************************************
+ * COLONNE ND AIRBUS — Gauche
+ ****************************************************/
+#nd-column {
+  width: 360px;
+  min-width: 360px;
+  overflow-y: auto;
+  padding: 10px;
+  background: #0b1120;
+  border-right: 1px solid #1e293b;
+}
+
+/****************************************************
+ * COLONNE SIDEBAR — Centre
+ ****************************************************/
+#sidebar-column {
+  width: 340px;
+  min-width: 340px;
+  background: #0b1120;
+  border-right: 1px solid #1e293b;
+  display: flex;
+  flex-direction: column;
+}
+
+#sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/****************************************************
+ * COLONNE PANELS — Droite
+ ****************************************************/
+#panels-column {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
