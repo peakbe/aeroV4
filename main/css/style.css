@@ -512,3 +512,22 @@ wind-arrow.red { border-bottom-color: red; }
 .mcdu-section {
   display: block;
 }
+
+/****************************************************
+ * // Style Airbus PRO+++ pour le titre sur la carte
+ ****************************************************/
+#map-title {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #5ee7ff;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  z-index: 5000;
+  backdrop-filter: blur(4px);
+  border: 1px solid #1e293b;
+}
