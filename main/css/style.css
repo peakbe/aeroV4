@@ -516,3 +516,24 @@ main {
   overflow-y: auto;
   padding: 12px;
 }
+/****************************************************
+ * ND AIRBUS — COTE A COTE
+ ****************************************************/
+#nd-row {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  padding: 10px;
+  background: #0b1120;
+  border-bottom: 1px solid #1e293b;
+}
+
+.nd-box {
+  width: 320px;
+  min-width: 320px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 10px;
+}
+
