@@ -53,6 +53,25 @@ async function fetchCached(url) {
 }
 
 /****************************************************
+ * AviationStack
+ ****************************************************/
+app.get("/aviationstack", async (req, res) => {
+  try {
+    const { lat, lon, dist } = req.query;
+    const KEY = process.env.AVIATIONSTACK_KEY;
+
+    const url =
+      `http://api.aviationstack.com/v1/flights?access_key=${KEY}&lat=${lat}&lon=${lon}&distance=${dist}`;
+
+    const data = await fetchJson(url);
+    res.json(data);
+
+  } catch (e) {
+    res.status(500).json({ error: "AviationStack error", details: e.toString() });
+  }
+});
+
+/****************************************************
  * ADSBexchange
  ****************************************************/
 app.get("/adsb", async (req, res) => {
