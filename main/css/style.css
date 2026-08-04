@@ -30,6 +30,7 @@ main {
   display: flex;
   flex-direction: row;
   flex-shrink: 0;
+  width: 660px; /* 2 x 320 + gap */
   gap: 20px;
   padding: 10px;
   background: #0b1120;
@@ -38,7 +39,8 @@ main {
 
 .nd-box {
   width: 320px;
-  min-width: 280px;
+  min-width: 320px;
+  flex-shrink: 0;
   flex: 1;
   background: #0f172a;
   border: 1px solid #1e293b;
