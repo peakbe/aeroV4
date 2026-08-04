@@ -8,6 +8,7 @@ main {
   background: #0a0f1c;
   color: #e2e8f0;
   font-family: Consolas, monospace;
+  overflow-x: auto;
 }
 
 /****************************************************
@@ -28,6 +29,7 @@ main {
 #nd-row {
   display: flex;
   flex-direction: row;
+  flex-shrink: 0;
   gap: 20px;
   padding: 10px;
   background: #0b1120;
@@ -36,7 +38,8 @@ main {
 
 .nd-box {
   width: 320px;
-  min-width: 320px;
+  min-width: 280px;
+  flex: 1;
   background: #0f172a;
   border: 1px solid #1e293b;
   border-radius: 6px;
@@ -116,6 +119,7 @@ main {
 #panels-column {
   flex: 1;
   overflow-y: auto;
+  min-width: 360px;
   padding: 12px;
 }
 
