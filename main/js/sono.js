@@ -263,4 +263,5 @@ if (airportKey === "EBLG" && !sonoRenderedEBLG) {
  * Application des règles SONO
  ***********************/
 applySonoRules(airportKey, activeRunway, map);
+}
 
