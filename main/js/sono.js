@@ -14,9 +14,9 @@ function runwayHeading(rwy) {
   return parseInt(rwy) * 10; // RWY 24 → 240°
 }
 
-/* -------------------------------------------------
-   0) Markers Leaflet — création dynamique (optimisée)
---------------------------------------------------*/
+/****************************************************
+ * 0) Markers Leaflet — création dynamique
+ ****************************************************/
 let sonoLayerEBCI = null;
 let sonoLayerEBLG = null;
 
@@ -25,7 +25,6 @@ let sonoRenderedEBLG = false;
 
 function renderSonoMarkers(airportKey, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
-
   const group = L.layerGroup();
 
   list.forEach(s => {
@@ -52,9 +51,9 @@ function renderSonoMarkers(airportKey, map) {
   group.addTo(map);
 }
 
-/* -------------------------------------------------
-   1) Rendu UI MCDU (optimisé)
---------------------------------------------------*/
+/****************************************************
+ * 1) Rendu UI MCDU
+ ****************************************************/
 let sonoListRenderedEBCI = false;
 let sonoListRenderedEBLG = false;
 
@@ -70,9 +69,9 @@ export function updateSonoListUI(airportKey) {
     .join("");
 }
 
-/* -------------------------------------------------
-   2) Règles d’affichage
---------------------------------------------------*/
+/****************************************************
+ * 2) Règles d’affichage SONO
+ ****************************************************/
 const RULES_EBCI = {
   "24": { green: ["F101","F102","F103","F104","F105","F106","F107","F108","F109","F110","F111","F112","F114","F116","F117","F118","F119"], red: [] },
   "06": { green: ["F101","F102","F103","F104","F105","F106","F107","F108","F109","F110","F111","F112","F119"], red: ["F114","F116","F117","F118"] }
@@ -83,9 +82,9 @@ const RULES_EBLG = {
   "04": { green: ["F001","F002","F003","F007","F008","F009","F011","F013","F014","F015"], red: ["F004","F005","F006","F010","F012","F016","F017"] }
 };
 
-/* -------------------------------------------------
-   3) Application des règles (sécurisée)
---------------------------------------------------*/
+/****************************************************
+ * 3) Application des règles SONO
+ ****************************************************/
 export function applySonoRules(airportKey, activeRunway, map) {
   const rules = airportKey === "EBCI" ? RULES_EBCI : RULES_EBLG;
   if (!rules[activeRunway]) return;
@@ -133,24 +132,11 @@ export function applySonoRules(airportKey, activeRunway, map) {
   });
 }
 
-/* -------------------------------------------------
-   4) Masquage SONO
---------------------------------------------------*/
-function hideSono(airportKey, map) {
-  const layer = airportKey === "EBCI" ? sonoLayerEBCI : sonoLayerEBLG;
-  if (layer) map.removeLayer(layer);
-
-  const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
-  list.forEach(s => {
-    const el = document.getElementById(`sono-${s.id}`);
-    if (el) el.style.color = "#444";
-  });
-}
-
-/* -------------------------------------------------
-   5) Fonction principale — Optimisée PRO+++
---------------------------------------------------*/
+/****************************************************
+ * 4) Fonction principale — PRO+++
+ ****************************************************/
 export function updateSono(airportKey, activeRunway, map) {
+
   const ap = airports[airportKey];
   if (!ap) return;
 
@@ -160,10 +146,10 @@ export function updateSono(airportKey, activeRunway, map) {
   const windDir = metar.wind_dir;
   const windSpd = metar.wind_speed;
 
-  const sono = document.getElementById(
+  const sonoPanel = document.getElementById(
     airportKey === "EBCI" ? "sono-status-ebci" : "sono-status-eblg"
   );
-  if (!sono) return;
+  if (!sonoPanel) return;
 
   const color =
     windSpd <= 8 ? "lime" :
@@ -172,96 +158,87 @@ export function updateSono(airportKey, activeRunway, map) {
 
   const windMs = (windSpd * 0.514444).toFixed(1);
 
-  // Sécurisation : si activeRunway est un string, on l'utilise tel quel
   const runwayName = typeof activeRunway === "string"
     ? activeRunway
     : activeRunway?.name || "N/A";
 
-  const sonoText = `Vent ${windDir}° / ${windMs} m/s — Piste ${runwayName}`;
-
-  sono.innerHTML = `
+  /***********************
+   * Affichage SONO
+   ***********************/
+  sonoPanel.innerHTML = `
     <div class="sono-line" style="color:${color}">
-      ${sonoText}
+      Vent ${windDir}° / ${windMs} m/s — Piste ${runwayName}
     </div>
   `;
-}
 
-   /***********************
- * Indicateur de vent dans le header collapsible
- ***********************/
-const indicatorId = airportKey === "EBCI"
-  ? "wind-indicator-ebci"
-  : "wind-indicator-eblg";
+  /***********************
+   * Indicateur vent IFR
+   ***********************/
+  const indicatorId = airportKey === "EBCI"
+    ? "wind-indicator-ebci"
+    : "wind-indicator-eblg";
 
-const indicator = document.getElementById(indicatorId);
+  const indicator = document.getElementById(indicatorId);
 
-if (indicator) {
-  indicator.textContent = `${windDir}° / ${windMs} m/s — RWY ${activeRunway.name}`;
+  if (indicator) {
+    indicator.textContent = `${windDir}° / ${windMs} m/s — RWY ${runwayName}`;
 
-  // Classification IFR selon l’angle vent/piste
-  const runwayHeading = parseInt(activeRunway) * 10; // RWY 24 → 240°
-  const diff = Math.abs(runwayHeading - windDir);
+    const heading = runwayHeading(runwayName);
+    const diff = Math.abs(heading - windDir);
 
-  if (diff < 30) {
-    indicator.className = "wind-indicator lime";   // vent de face
-  } else if (diff < 90) {
-    indicator.className = "wind-indicator orange"; // vent travers
-  } else {
-    indicator.className = "wind-indicator red";    // vent arrière
+    indicator.className =
+      diff < 30 ? "wind-indicator lime" :
+      diff < 90 ? "wind-indicator orange" :
+      "wind-indicator red";
   }
-}
-  
-/***********************
- * Flèche de vent animée IFR
- ***********************/
-const arrowId = airportKey === "EBCI"
-  ? "wind-arrow-ebci"
-  : "wind-arrow-eblg";
 
-const arrow = document.getElementById(arrowId);
+  /***********************
+   * Flèche vent IFR
+   ***********************/
+  const arrowId = airportKey === "EBCI"
+    ? "wind-arrow-ebci"
+    : "wind-arrow-eblg";
 
-if (arrow) {
-  arrow.style.transform = `rotate(${windDir}deg)`;
+  const arrow = document.getElementById(arrowId);
 
-  const runwayHeading = parseInt(activeRunway) * 10;
-  const diff = Math.abs(runwayHeading - windDir);
+  if (arrow) {
+    arrow.style.transform = `rotate(${windDir}deg)`;
 
-  if (diff < 30) {
-    arrow.className = "wind-arrow lime";
-  } else if (diff < 90) {
-    arrow.className = "wind-arrow orange";
-  } else {
-    arrow.className = "wind-arrow red";
+    const heading = runwayHeading(runwayName);
+    const diff = Math.abs(heading - windDir);
+
+    arrow.className =
+      diff < 30 ? "wind-arrow lime" :
+      diff < 90 ? "wind-arrow orange" :
+      "wind-arrow red";
   }
-}
 
-/***********************
- * Génération liste SONO
- ***********************/
-if (airportKey === "EBCI" && !sonoListRenderedEBCI) {
-  updateSonoListUI("EBCI");
-  sonoListRenderedEBCI = true;
-}
-if (airportKey === "EBLG" && !sonoListRenderedEBLG) {
-  updateSonoListUI("EBLG");
-  sonoListRenderedEBLG = true;
-}
+  /***********************
+   * Génération liste SONO
+   ***********************/
+  if (airportKey === "EBCI" && !sonoListRenderedEBCI) {
+    updateSonoListUI("EBCI");
+    sonoListRenderedEBCI = true;
+  }
+  if (airportKey === "EBLG" && !sonoListRenderedEBLG) {
+    updateSonoListUI("EBLG");
+    sonoListRenderedEBLG = true;
+  }
 
-/***********************
- * Génération markers SONO
- ***********************/
-if (airportKey === "EBCI" && !sonoRenderedEBCI) {
-  renderSonoMarkers("EBCI", map);
-  sonoRenderedEBCI = true;
-}
-if (airportKey === "EBLG" && !sonoRenderedEBLG) {
-  renderSonoMarkers("EBLG", map);
-  sonoRenderedEBLG = true;
-}
+  /***********************
+   * Markers SONO
+   ***********************/
+  if (airportKey === "EBCI" && !sonoRenderedEBCI) {
+    renderSonoMarkers("EBCI", map);
+    sonoRenderedEBCI = true;
+  }
+  if (airportKey === "EBLG" && !sonoRenderedEBLG) {
+    renderSonoMarkers("EBLG", map);
+    sonoRenderedEBLG = true;
+  }
 
-/***********************
- * Application des règles SONO
- ***********************/
-applySonoRules(airportKey, activeRunway, map);
+  /***********************
+   * Règles SONO
+   ***********************/
+  applySonoRules(airportKey, runwayName, map);
 }
-
