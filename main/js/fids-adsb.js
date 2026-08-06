@@ -341,42 +341,48 @@ export function startFidsLive() {
     updateFidsFlights("EBLG");
   }, 30000);
 }
-/****************************************************
- * RUNWAY + WIND — Calcul composantes (Airbus style)
- ****************************************************/
-function computeRunwayWind(runway, windDir, windSpeed) {
-  const rwHeading = runway * 10; // RWY 24 → 240°
-  const angle = Math.abs(rwHeading - windDir);
 
+/****************************************************
+ * PARTIE 3 — RUNWAY + WIND (à partir du METAR AVWX)
+ ****************************************************/
+import { airports } from "./config.js";
+import { fetchMetar } from "./metar.js";
+
+/****************************************************
+ * Calcul composantes vent (Airbus style)
+ ****************************************************/
+function computeWindComponents(runwayHeading, windDir, windSpeed) {
+  if (!windDir || windDir === "VRB") {
+    return {
+      headwind: 0,
+      crosswind: 0,
+      angle: 0
+    };
+  }
+
+  const angle = Math.abs(runwayHeading - windDir);
   const headwind = Math.round(windSpeed * Math.cos(angle * Math.PI / 180));
   const crosswind = Math.round(windSpeed * Math.sin(angle * Math.PI / 180));
 
-  return {
-    runway: runway.toString(),
-    windDir,
-    windSpeed,
-    headwind,
-    crosswind,
-    angle
-  };
+  return { headwind, crosswind, angle };
 }
 
 /****************************************************
- * RUNWAY + WIND — Config simple EBCI / EBLG
+ * Mise à jour panneau RUNWAY FIDS (EBCI / EBLG)
  ****************************************************/
-const RUNWAY_CONFIG = {
-  EBCI: { runway: 24, windDir: 240, windSpeed: 8 },
-  EBLG: { runway: 22, windDir: 230, windSpeed: 11 }
-};
+export async function updateRunwayPanel(airportKey) {
+  const ap = airports[airportKey];
+  const runway = ap.activeRunway; // déjà fourni par ton config.js
 
-/****************************************************
- * RUNWAY + WIND — Mise à jour affichage FIDS
- ****************************************************/
-export function updateRunwayWind(airportKey) {
-  const cfg = RUNWAY_CONFIG[airportKey];
-  if (!cfg) return;
+  const metar = await fetchMetar(airportKey);
+  if (!metar || !runway) return;
 
-  const rw = computeRunwayWind(cfg.runway, cfg.windDir, cfg.windSpeed);
+  const runwayHeading = runway.heading; // ex: RWY 24 → 240°
+  const windDir = metar.wind_dir === "VRB" ? null : Number(metar.wind_dir);
+  const windSpeed = Number(metar.wind_speed || 0);
+
+  const { headwind, crosswind, angle } =
+    computeWindComponents(runwayHeading, windDir, windSpeed);
 
   const el = document.getElementById(
     airportKey === "EBCI" ? "runway-ebci" : "runway-eblg"
@@ -384,29 +390,30 @@ export function updateRunwayWind(airportKey) {
   if (!el) return;
 
   el.innerHTML = `
-    RUNWAY ${rw.runway}<br>
-    WIND ${rw.windDir}° / ${rw.windSpeed} kt<br>
-    HEADWIND ${rw.headwind} kt<br>
-    CROSSWIND ${rw.crosswind} kt<br>
-    ANGLE ${rw.angle}°
+    RUNWAY ${runway.name}<br>
+    WIND ${metar.wind_dir}° / ${metar.wind_speed} kt<br>
+    HEADWIND ${headwind} kt<br>
+    CROSSWIND ${crosswind} kt<br>
+    ANGLE ${angle}°
   `;
 }
 
 /****************************************************
- * MODE LIVE — Intégration runway + FIDS
+ * Intégration dans le mode LIVE
  ****************************************************/
 export function startFidsLive() {
-  updateRunwayWind("EBCI");
-  updateRunwayWind("EBLG");
+  updateRunwayPanel("EBCI");
+  updateRunwayPanel("EBLG");
 
   updateFidsFlights("EBCI");
   updateFidsFlights("EBLG");
 
   setInterval(() => {
-    updateRunwayWind("EBCI");
-    updateRunwayWind("EBLG");
+    updateRunwayPanel("EBCI");
+    updateRunwayPanel("EBLG");
 
     updateFidsFlights("EBCI");
     updateFidsFlights("EBLG");
   }, 30000);
 }
+
