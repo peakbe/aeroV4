@@ -345,7 +345,6 @@ export function startFidsLive() {
 /****************************************************
  * PARTIE 3 — RUNWAY + WIND (à partir du METAR AVWX)
  ****************************************************/
-import { airports } from "./config.js";
 import { fetchMetar } from "./metar.js";
 
 /****************************************************
