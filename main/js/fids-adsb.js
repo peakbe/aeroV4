@@ -94,7 +94,7 @@ export function setFidsFilter(filter) {
  * Fetch OpenSky (API directe)
  ****************************************************/
 async function fetchOpenSky(ap) {
-  const url = "https://opensky-proxy-xqu0.onrender.com/states";
+  const url = "https://opensky-proxy-xqu0.onrender.com";
 
 
   try {
