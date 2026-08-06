@@ -8,8 +8,18 @@ app.use(cors());
 const USER = "peak";
 const PASS = "u7Q.CjCQSAS.zE";
 
+// Cache en mémoire
+let cacheData = null;
+let cacheTime = 0;
+const CACHE_DURATION = 5000; // 5 secondes
+
 app.get("/opensky", async (req, res) => {
-  const { lat, lon, dist } = req.query;
+  const now = Date.now();
+
+  // Si cache encore valide → renvoyer immédiatement
+  if (cacheData && (now - cacheTime < CACHE_DURATION)) {
+    return res.json(cacheData);
+  }
 
   const url = `https://opensky-network.org/api/states/all`;
 
@@ -27,7 +37,13 @@ app.get("/opensky", async (req, res) => {
     clearTimeout(timeout);
 
     const data = await r.json();
+
+    // Mise à jour du cache
+    cacheData = data;
+    cacheTime = now;
+
     res.json(data);
+
   } catch (err) {
     res.json({ error: "opensky_failed", details: err.toString() });
   }
