@@ -330,19 +330,6 @@ export async function updateFidsFlights(airportKey) {
 }
 
 /****************************************************
- * MODE LIVE — Rafraîchissement automatique
- ****************************************************/
-export function startFidsLive() {
-  updateFidsFlights("EBCI");
-  updateFidsFlights("EBLG");
-
-  setInterval(() => {
-    updateFidsFlights("EBCI");
-    updateFidsFlights("EBLG");
-  }, 30000);
-}
-
-/****************************************************
  * PARTIE 3 — RUNWAY + WIND (à partir du METAR AVWX)
  ****************************************************/
 import { fetchMetar } from "./metar.js";
