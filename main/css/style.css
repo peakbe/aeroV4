@@ -538,3 +538,46 @@ wind-arrow.red { border-bottom-color: red; }
   pointer-events: none; /* ne bloque pas la carte */
 }
 
+/* FIDS ECAM — Ligne - Style ECAM Airbus*/
+.fids-row {
+  display: grid;
+  grid-template-columns: 60px 80px 90px 70px 70px 60px 60px 60px 60px;
+  gap: 6px;
+  padding: 4px 0;
+  font-family: monospace;
+  font-size: 14px;
+  color: #e2e8f0;
+  border-bottom: 1px solid #333;
+}
+
+/* FIDS ECAM — Statuts */
+.fids-status-arr {
+  color: #00ff00; /* ECAM green */
+  font-weight: bold;
+}
+
+.fids-status-dep {
+  color: #00bfff; /* ECAM cyan */
+  font-weight: bold;
+}
+
+.fids-status-enr {
+  color: #ffaa00; /* ECAM amber */
+  font-weight: bold;
+}
+
+/* FIDS ECAM — Ligne sélectionnée */
+.fids-row:hover {
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+}
+
+.fids-selected {
+  background: rgba(0,150,255,0.15);
+}
+
+/* FIDS ECAM — Table */
+.fids-table {
+  width: 100%;
+  border-collapse: collapse;
+}
