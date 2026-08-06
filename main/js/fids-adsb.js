@@ -330,6 +330,11 @@ tr.innerHTML = `
 `;
 
     tr.addEventListener("click", () => {
+
+       // Sélection visuelle ECAM
+  document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
+  tr.classList.add("fids-selected");
+      
       airports[airportKey].aircraft.lat   = f.lat;
       airports[airportKey].aircraft.lon   = f.lon;
       airports[airportKey].aircraft.altFt = Number(f.altFt);
@@ -366,6 +371,11 @@ tr.innerHTML = `
 `;
 
     tr.addEventListener("click", () => {
+      
+       // Sélection visuelle ECAM
+  document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
+  tr.classList.add("fids-selected");
+      
       airports[airportKey].aircraft.lat   = f.lat;
       airports[airportKey].aircraft.lon   = f.lon;
       airports[airportKey].aircraft.altFt = Number(f.altFt);
