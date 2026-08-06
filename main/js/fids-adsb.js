@@ -182,7 +182,7 @@ async function fetchAdsbAroundAirport(ap) {
  ****************************************************/
 async function fetchOpenSkyAroundAirport(ap) {
   const url =
-    `https://aerov4.onrender.com/opensky?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
+    `http://localhost:3000/opensky?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
 
   try {
     const controller = new AbortController();
