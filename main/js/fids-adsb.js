@@ -315,17 +315,19 @@ export async function updateFidsFlights(airportKey) {
   arrivals.forEach(f => {
     const tr = document.createElement("tr");
 
-    tr.innerHTML = `
-      <td>${f.time}</td>
-      <td>${f.callsign}</td>
-      <td>${f.originCountry}</td>
-      <td>${f.distNm} NM</td>
-      <td>${f.altFt} ft</td>
-      <td>${f.gsKt} kt</td>
-      <td>${f.gsMs} m/s</td>
-      <td>${f.track}°</td>
-      <td class="${statusClass(f.status)}">${f.status}</td>
-    `;
+   tr.className = "fids-row";
+
+tr.innerHTML = `
+  <div>${f.time}</div>
+  <div>${f.callsign}</div>
+  <div>${f.originCountry}</div>
+  <div>${f.distNm}</div>
+  <div>${f.altFt}</div>
+  <div>${f.gsKt}</div>
+  <div>${f.gsMs}</div>
+  <div>${f.track}</div>
+  <div class="${statusClass(f.status)}">${f.status}</div>
+`;
 
     tr.addEventListener("click", () => {
       airports[airportKey].aircraft.lat   = f.lat;
@@ -349,17 +351,19 @@ export async function updateFidsFlights(airportKey) {
   departures.forEach(f => {
     const tr = document.createElement("tr");
 
-    tr.innerHTML = `
-      <td>${f.time}</td>
-      <td>${f.callsign}</td>
-      <td>${f.originCountry}</td>
-      <td>${f.distNm} NM</td>
-      <td>${f.altFt} ft</td>
-      <td>${f.gsKt} kt</td>
-      <td>${f.gsMs} m/s</td>
-      <td>${f.track}°</td>
-      <td class="${statusClass(f.status)}">${f.status}</td>
-    `;
+    tr.className = "fids-row";
+
+tr.innerHTML = `
+  <div>${f.time}</div>
+  <div>${f.callsign}</div>
+  <div>${f.originCountry}</div>
+  <div>${f.distNm}</div>
+  <div>${f.altFt}</div>
+  <div>${f.gsKt}</div>
+  <div>${f.gsMs}</div>
+  <div>${f.track}</div>
+  <div class="${statusClass(f.status)}">${f.status}</div>
+`;
 
     tr.addEventListener("click", () => {
       airports[airportKey].aircraft.lat   = f.lat;
