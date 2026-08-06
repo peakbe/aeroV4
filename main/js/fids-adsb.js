@@ -185,7 +185,12 @@ async function fetchOpenSkyAroundAirport(ap) {
     `https://aerov4.onrender.com/opensky?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
 
   try {
-    const r = await fetch(url);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+
+    const r = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+
     const data = await r.json();
     return normalizeAircraftList(data);
   } catch {
@@ -216,18 +221,19 @@ async function fetchAirLabsAroundAirport(ap) {
 async function fetchMultiSourceAroundAirport(airportKey) {
   const ap = airports[airportKey];
 
+  // 1) ADSBexchange (rapide, souvent fiable)
   let list = await fetchAdsbAroundAirport(ap);
   if (list.length > 0) return list;
 
+  // 2) OpenSky (parfois KO → timeout)
   list = await fetchOpenSkyAroundAirport(ap);
   if (list.length > 0) return list;
 
-  list = await fetchAirLabsAroundAirport(ap);
-  if (list.length > 0) return list;
-
+  // 3) AviationStack (fiable, bon fallback)
   list = await fetchAviationStackAroundAirport(ap);
   if (list.length > 0) return list;
 
+  // 4) Aucun avion trouvé
   return [];
 }
 
