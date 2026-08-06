@@ -1,5 +1,5 @@
 /****************************************************
- * FIDS — Multi‑source PRO+++ (AviationStack + ADSB + OpenSky + AirLabs)
+ * FIDS — Pipeline simplifié (OpenSky + AirLabs)
  * EBCI / EBLG — temps réel, trajectoires, filtres
  ****************************************************/
 
@@ -91,154 +91,108 @@ export function setFidsFilter(filter) {
 }
 
 /****************************************************
- * Normalisation multi‑source (AviationStack + ADSB / OpenSky / AirLabs)
+ * Fetch OpenSky (API directe)
  ****************************************************/
-function normalizeAircraftList(raw) {
+async function fetchOpenSky(ap) {
+  const url = "https://opensky-network.org/api/states/all";
 
-  /********** ADSBexchange **********/
-  if (Array.isArray(raw?.ac)) return raw.ac;
-  if (Array.isArray(raw?.aircraft)) return raw.aircraft;
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
 
-  /********** AirLabs **********/
-  if (Array.isArray(raw?.response?.aircraft)) return raw.response.aircraft;
+    if (!data.states) return [];
 
-  /********** OpenSky **********/
-  if (Array.isArray(raw?.states)) {
-    return raw.states.map(s => ({
-      icao: s[0],
-      call: s[1],
-      country: s[2],
-      lon: s[5],
-      lat: s[6],
-      alt_baro: s[7],
-      gs: s[9],
-      track: s[10],
-      seen_pos: 0
+    return data.states
+      .map(s => ({
+        icao: s[0],
+        callsign: s[1],
+        originCountry: s[2],
+        lon: s[5],
+        lat: s[6],
+        altFt: Math.round(s[7] || 0),
+        gsKt: Math.round(s[9] || 0),
+        track: Math.round(s[10] || 0)
+      }))
+      .filter(a => a.lat && a.lon);
+  } catch {
+    return [];
+  }
+}
+
+/****************************************************
+ * Fetch AirLabs (API directe)
+ ****************************************************/
+async function fetchAirLabs(ap) {
+  const url = `https://airlabs.co/api/v9/flights?api_key=04cb1c09-8abb-468a-95fa-ee90c3c2b651`;
+
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
+
+    if (!data.response) return [];
+
+    return data.response.map(f => ({
+      icao: f.hex,
+      callsign: f.flight_iata,
+      airline: f.airline_iata,
+      origin: f.dep_iata,
+      destination: f.arr_iata,
+      status: f.status
     }));
-  }
-
-  /********** AviationStack PRO+++ **********/
-  if (Array.isArray(raw?.data)) {
-    return raw.data
-      .filter(f => f.live?.latitude && f.live?.longitude) // seulement les vols avec position
-      .map(f => ({
-        icao: f.flight?.icao || f.flight?.iata || f.flight?.number || "n/a",
-        call: f.flight?.iata || f.flight?.number || "n/a",
-        country: f.airline?.name || "n/a",
-
-        lat: f.live?.latitude,
-        lon: f.live?.longitude,
-
-        alt_baro: f.live?.altitude ?? 0,
-        gs: f.live?.speed_horizontal ?? 0,
-        track: f.live?.direction ?? 0,
-
-        seen_pos: f.live?.updated
-          ? Math.floor(new Date(f.live.updated).getTime() / 1000)
-          : 0
-      }));
-  }
-
-  /********** Fallback **********/
-  if (Array.isArray(raw)) return raw;
-
-  return [];
-}
-
-/****************************************************
- * Fetch AviationStack via proxy Render
- ****************************************************/
-async function fetchAviationStackAroundAirport(ap) {
-  const url =
-    `https://aerov4.onrender.com/aviationstack?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
-
-  try {
-    const r = await fetch(url);
-    const data = await r.json();
-    return normalizeAircraftList(data);
   } catch {
     return [];
   }
 }
-
 /****************************************************
- * Fetch ADSBexchange via proxy Render
+ * Fusion OpenSky + AirLabs
  ****************************************************/
-async function fetchAdsbAroundAirport(ap) {
-  const url =
-    `https://aerov4.onrender.com/adsb?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
+function mergeSources(osList, alList) {
+  const map = new Map();
 
-  try {
-    const r = await fetch(url);
-    const data = await r.json();
-    return normalizeAircraftList(data);
-  } catch {
-    return [];
-  }
+  // OpenSky → base
+  osList.forEach(a => {
+    map.set(a.icao, {
+      icao: a.icao,
+      callsign: a.callsign || "n/a",
+      originCountry: a.originCountry || "n/a",
+      lat: a.lat,
+      lon: a.lon,
+      altFt: a.altFt,
+      gsKt: a.gsKt,
+      gsMs: a.gsKt * 0.514444,
+      track: a.track,
+      time: formatTime(Math.floor(Date.now() / 1000))
+    });
+  });
+
+  // AirLabs → enrichissement
+  alList.forEach(f => {
+    if (map.has(f.icao)) {
+      const a = map.get(f.icao);
+      a.airline = f.airline || "n/a";
+      a.origin = f.origin || "n/a";
+      a.destination = f.destination || "n/a";
+      a.statusAirLabs = f.status || "n/a";
+    }
+  });
+
+  return [...map.values()];
 }
 
 /****************************************************
- * Fetch OpenSky (via proxy)
+ * Pipeline simplifié : OpenSky + AirLabs
  ****************************************************/
-async function fetchOpenSkyAroundAirport(ap) {
-  const url =
-    `http://localhost:3000/opensky?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
-
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000);
-
-    const r = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
-
-    const data = await r.json();
-    return normalizeAircraftList(data);
-  } catch {
-    return [];
-  }
-}
-
-/****************************************************
- * Fetch AirLabs via proxy Render
- ****************************************************/
-async function fetchAirLabsAroundAirport(ap) {
-  const url =
-    `https://aerov4.onrender.com/airlabs?lat=${ap.lat}&lon=${ap.lon}&dist=80`;
-
-  try {
-    const r = await fetch(url);
-    const data = await r.json();
-    return normalizeAircraftList(data);
-  } catch {
-    return [];
-  }
-}
-
-
-/****************************************************
- * Multi‑source : ADSB → OpenSky → AirLabs
- ****************************************************/
-async function fetchMultiSourceAroundAirport(airportKey) {
+async function fetchAroundAirport(airportKey) {
   const ap = airports[airportKey];
 
-  // 1) ADSBexchange (rapide, souvent fiable)
-  let list = await fetchAdsbAroundAirport(ap);
-  if (list.length > 0) return list;
+  const os = await fetchOpenSky(ap);
+  const al = await fetchAirLabs(ap);
 
-  // 2) OpenSky (parfois KO → timeout)
-  list = await fetchOpenSkyAroundAirport(ap);
-  if (list.length > 0) return list;
-
-  // 3) AviationStack (fiable, bon fallback)
-  list = await fetchAviationStackAroundAirport(ap);
-  if (list.length > 0) return list;
-
-  // 4) Aucun avion trouvé
-  return [];
+  return mergeSources(os, al);
 }
 
 /****************************************************
- * FIDS Airbus ECAM — Mise à jour (multi‑source)
+ * FIDS Airbus ECAM — Mise à jour
  ****************************************************/
 export async function updateFidsFlights(airportKey) {
   const filter = window.fidsFilter;
@@ -258,7 +212,7 @@ export async function updateFidsFlights(airportKey) {
   depTbody.innerHTML = "<tr><td colspan='9'>Loading flights...</td></tr>";
 
   const ap = airports[airportKey];
-  const aircraft = await fetchMultiSourceAroundAirport(airportKey);
+  const aircraft = await fetchAroundAirport(airportKey);
 
   arrTbody.innerHTML = "";
   depTbody.innerHTML = "";
@@ -267,39 +221,23 @@ export async function updateFidsFlights(airportKey) {
   const departures = [];
 
   aircraft.forEach(a => {
-    const icao = a.icao || a.icao24 || a.hex || "n/a";
-    const callsign = (a.call || a.flight || a.callsign || "").trim() || "n/a";
-    const originCountry = a.country || a.origin_country || "n/a";
+    const distNm = distanceNm(a.lat, a.lon, ap.lat, ap.lon);
+    const status = classifyArrivalDeparture(a.track, a.lat, a.lon, airportKey);
 
-    const ts = a.seen_pos || a.seen || a.t || 0;
-    const time = formatTime(ts ? ts : Math.floor(Date.now() / 1000));
-
-    const lat = a.lat ?? a.latitude ?? (Array.isArray(a.pos) ? a.pos[0] : null);
-    const lon = a.lon ?? a.longitude ?? (Array.isArray(a.pos) ? a.pos[1] : null);
-    if (lat == null || lon == null) return;
-
-    const altFt = a.alt_baro ?? a.alt_geom ?? a.alt ?? 0;
-    const gsKt = a.gs ?? a.speed ?? a.spd ?? 0;
-    const gsMs = gsKt * 0.514444;
-    const track = a.track ?? a.heading ?? a.hdg ?? 0;
-
-    const distNm = distanceNm(lat, lon, ap.lat, ap.lon);
-    const status = classifyArrivalDeparture(track, lat, lon, airportKey);
-
-    pushHistory(icao, lat, lon);
+    pushHistory(a.icao, a.lat, a.lon);
 
     const row = {
-      icao,
-      time,
-      callsign,
-      originCountry,
+      icao: a.icao,
+      time: a.time,
+      callsign: a.callsign,
+      originCountry: a.originCountry,
       distNm: distNm.toFixed(1),
-      altFt: Number(altFt).toFixed(0),
-      gsMs: gsMs.toFixed(1),
-      gsKt: Number(gsKt).toFixed(0),
-      track: Number(track).toFixed(0),
-      lat,
-      lon,
+      altFt: Number(a.altFt).toFixed(0),
+      gsMs: a.gsMs.toFixed(1),
+      gsKt: Number(a.gsKt).toFixed(0),
+      track: Number(a.track).toFixed(0),
+      lat: a.lat,
+      lon: a.lon,
       status
     };
 
@@ -314,27 +252,24 @@ export async function updateFidsFlights(airportKey) {
 
   arrivals.forEach(f => {
     const tr = document.createElement("tr");
+    tr.className = "fids-row";
 
-   tr.className = "fids-row";
-
-tr.innerHTML = `
-  <div>${f.time}</div>
-  <div>${f.callsign}</div>
-  <div>${f.originCountry}</div>
-  <div>${f.distNm}</div>
-  <div>${f.altFt}</div>
-  <div>${f.gsKt}</div>
-  <div>${f.gsMs}</div>
-  <div>${f.track}</div>
-  <div class="${statusClass(f.status)}">${f.status}</div>
-`;
+    tr.innerHTML = `
+      <div>${f.time}</div>
+      <div>${f.callsign}</div>
+      <div>${f.originCountry}</div>
+      <div>${f.distNm}</div>
+      <div>${f.altFt}</div>
+      <div>${f.gsKt}</div>
+      <div>${f.gsMs}</div>
+      <div>${f.track}</div>
+      <div class="${statusClass(f.status)}">${f.status}</div>
+    `;
 
     tr.addEventListener("click", () => {
+      document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
+      tr.classList.add("fids-selected");
 
-       // Sélection visuelle ECAM
-  document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
-  tr.classList.add("fids-selected");
-      
       airports[airportKey].aircraft.lat   = f.lat;
       airports[airportKey].aircraft.lon   = f.lon;
       airports[airportKey].aircraft.altFt = Number(f.altFt);
@@ -355,27 +290,24 @@ tr.innerHTML = `
 
   departures.forEach(f => {
     const tr = document.createElement("tr");
-
     tr.className = "fids-row";
 
-tr.innerHTML = `
-  <div>${f.time}</div>
-  <div>${f.callsign}</div>
-  <div>${f.originCountry}</div>
-  <div>${f.distNm}</div>
-  <div>${f.altFt}</div>
-  <div>${f.gsKt}</div>
-  <div>${f.gsMs}</div>
-  <div>${f.track}</div>
-  <div class="${statusClass(f.status)}">${f.status}</div>
-`;
+    tr.innerHTML = `
+      <div>${f.time}</div>
+      <div>${f.callsign}</div>
+      <div>${f.originCountry}</div>
+      <div>${f.distNm}</div>
+      <div>${f.altFt}</div>
+      <div>${f.gsKt}</div>
+      <div>${f.gsMs}</div>
+      <div>${f.track}</div>
+      <div class="${statusClass(f.status)}">${f.status}</div>
+    `;
 
     tr.addEventListener("click", () => {
-      
-       // Sélection visuelle ECAM
-  document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
-  tr.classList.add("fids-selected");
-      
+      document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
+      tr.classList.add("fids-selected");
+
       airports[airportKey].aircraft.lat   = f.lat;
       airports[airportKey].aircraft.lon   = f.lon;
       airports[airportKey].aircraft.altFt = Number(f.altFt);
@@ -390,10 +322,10 @@ tr.innerHTML = `
   });
 
   if (arrivals.length === 0) {
-    arrTbody.innerHTML = "<tr><td colspan='9'>No arrivals (multi‑source)</td></tr>";
+    arrTbody.innerHTML = "<tr><td colspan='9'>No arrivals</td></tr>";
   }
   if (departures.length === 0) {
-    depTbody.innerHTML = "<tr><td colspan='9'>No departures (multi‑source)</td></tr>";
+    depTbody.innerHTML = "<tr><td colspan='9'>No departures</td></tr>";
   }
 }
 
