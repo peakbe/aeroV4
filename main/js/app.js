@@ -200,3 +200,20 @@ export async function processAirport(airportKey) {
    ***********************/
   updateFidsFlights(airportKey);
 }
+
+/****************************************************
+ * Bootstrap Cockpit IFR PRO+++
+ ****************************************************/
+window.addEventListener("DOMContentLoaded", () => {
+
+  // 1) UI
+  initTabs();
+  initMap();
+
+  // 2) Cockpit IFR — EBCI par défaut
+  processAirport("EBCI");
+
+  // 3) FIDS Live
+  startFidsLive("EBCI");
+
+});
