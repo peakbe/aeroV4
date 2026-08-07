@@ -3,7 +3,7 @@
  ****************************************************/
 
 /****************************************************
- * Détection de l’onglet SONO (globale IFR)
+ * Détection de l’onglet SONO
  ****************************************************/
 window.isSonoTab = function () {
   const activeTab = document.querySelector(".mcdu-tab.active")?.dataset.tab;
@@ -40,6 +40,8 @@ import { fetchStationInfo, updateStationUI } from "./station.js";
 import { updateRunwayHUD } from "./hud.js";
 
 import { drawPFD } from "./pfd.js";
+
+import { drawWindOnNd } from "./adsb-trajectory.js";   // 🔥 CORRECTION IMPORT
 
 /****************************************************
  * Détection piste active (computeRunway)
@@ -128,19 +130,15 @@ function updatePFD(airportKey, metar, ilsData) {
   const locDev = ilsData?.locDev || 0;
   const gsDev = ilsData?.gsDev || 0;
 
-  // Données avion (AirLabs ou FIDS)
-  const speed = window.airlabs?.[airportKey]?.speed || 140;
-  const altitude = window.airlabs?.[airportKey]?.altitude || 3000;
-  const vsi = window.airlabs?.[airportKey]?.vsi || 200;
-  const pitch = window.airlabs?.[airportKey]?.pitch || 2;
-  const bank = window.airlabs?.[airportKey]?.bank || 5;
+  // Données avion (FIDS / ADS-B)
+  const ac = airports[airportKey].aircraft || {};
 
   const data = {
-    pitch,
-    bank,
-    speed,
-    altitude,
-    vsi,
+    pitch: ac.pitch || 2,
+    bank: ac.bank || 5,
+    speed: ac.gs || 140,
+    altitude: ac.altFt || 3000,
+    vsi: ac.vsi || 200,
     locDev,
     gsDev,
     ap: true,
@@ -155,9 +153,11 @@ function updatePFD(airportKey, metar, ilsData) {
 /****************************************************
  * Processus principal par aéroport — Version PRO+++
  ****************************************************/
+import { drawWindOnNd } from "./adsb-trajectory.js";   // 🔥 CORRECTION IMPORT
+
 export async function processAirport(airportKey) {
 
-  window.currentAirportKey = airportKey;
+  airports.current = airportKey;   // 🔥 remplace window.currentAirportKey
   const ap = airports[airportKey];
 
   const sonoMode = window.isSonoTab();
@@ -177,32 +177,31 @@ export async function processAirport(airportKey) {
 
   const rw = computeRunway(ap, windDir, windSpd);
 
-  ap.activeRunway = rw;
-  window.activeRunway = rw;
+  ap.activeRunway = rw;            // 🔥 remplace window.activeRunway
 
   /***********************
- * 3) METAR / HUD / Rose / Station
- ***********************/
-if (!sonoMode) {
-
-  updateMetarUI(
-    airportKey,
-    metar,
-    airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
-  );
-
-  /***********************
-   * ND AIRBUS — Vent (WX)
+   * 3) METAR / HUD / Rose / Station
    ***********************/
-  drawWindOnNd(airportKey, metar);
+  if (!sonoMode) {
 
-  updateRunwayHUD(ap, windDir, windSpd);
+    updateMetarUI(
+      airportKey,
+      metar,
+      airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
+    );
 
-  updateWindRose(metar);
+    /***********************
+     * ND AIRBUS — Vent (WX)
+     ***********************/
+    drawWindOnNd(airportKey, metar);   // 🔥 fonctionne maintenant
 
-  const station = await fetchStationInfo(ap.icao);
-  updateStationUI(airportKey, station, ap.lastMetar);
-}
+    updateRunwayHUD(ap, windDir, windSpd);
+
+    updateWindRose(metar);
+
+    const station = await fetchStationInfo(ap.icao);
+    updateStationUI(airportKey, station, ap.lastMetar);
+  }
 
   /***********************
    * 4) ILS dynamique
@@ -227,145 +226,3 @@ if (!sonoMode) {
   updateFidsFlights(airportKey);
 }
 
-/****************************************************
- * Initialisation cockpit IFR
- ****************************************************/
-document.addEventListener("DOMContentLoaded", async () => {
-
-  initTabs();
-  initMap();
-  
-  map.whenReady(async () => {
-
-    await Promise.all([
-      processAirport("EBCI"),
-      processAirport("EBLG")
-    ]);
-    
- // démarrage du mode LIVE FIDS
-    startFidsLive();
-    
-    /********************************************
-   * Rafraîchissement PFD — FULL GLASS COCKPIT
-   ********************************************/
-  setInterval(() => {
-    updatePFD("EBCI", airports.EBCI.lastMetar, window.ilsData?.EBCI);
-    updatePFD("EBLG", airports.EBLG.lastMetar, window.ilsData?.EBLG);
-  }, 2000);
-    
-
-    /********************************************
-     * Rafraîchissement SONO
-     ********************************************/
-    setInterval(() => {
-      if (airports.EBCI.activeRunway?.name) {
-        updateSono("EBCI", airports.EBCI.activeRunway.name, map);
-      }
-      if (airports.EBLG.activeRunway?.name) {
-        updateSono("EBLG", airports.EBLG.activeRunway.name, map);
-      }
-    }, 30000);
-  });
-
-  /********************************************
-   * Rafraîchissement FIDS - supprimé
-   ********************************************/
- 
-
-  /***********************
-   * Reset MAP
-   ***********************/
-  const resetBtn = document.getElementById("reset-map");
-  if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
-      if (window.currentAirportKey) {
-        resetMapView(window.currentAirportKey);
-      }
-    });
-  }
-
-  /***********************
-   * Filtre EBCI / EBLG / ALL
-   ***********************/
- const filterGroups = {
-  EBCI: [
-    document.getElementById("wind-rose-ebci")?.parentElement,
-    document.getElementById("metar-ebci")?.parentElement,
-    document.getElementById("station-ebci")?.parentElement,
-    document.getElementById("sono-status-ebci")?.parentElement?.parentElement,
-    document.getElementById("fids-arr-ebci")?.parentElement?.parentElement,
-    document.getElementById("runway-ebci")?.parentElement
-  ],
-  EBLG: [
-    document.getElementById("wind-rose-eblg")?.parentElement,
-    document.getElementById("metar-eblg")?.parentElement,
-    document.getElementById("station-eblg")?.parentElement,
-    document.getElementById("sono-status-eblg")?.parentElement?.parentElement,
-    document.getElementById("fids-arr-eblg")?.parentElement?.parentElement,
-    document.getElementById("runway-eblg")?.parentElement
-  ]
-};
-  
-const filterND = {
-  EBCI: [
-    document.querySelector('.nd-box:nth-child(1)')
-  ],
-  EBLG: [
-    document.querySelector('.nd-box:nth-child(2)')
-  ]
-};
-
-document.querySelectorAll(".sidebar-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-
-    document.querySelectorAll(".sidebar-btn")
-      .forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    const target = btn.dataset.target;
-
-    if (target === "EBCI") {
-
-      // METAR / SONO / FIDS
-      filterGroups.EBCI.forEach(el => el && (el.style.display = "block"));
-      filterGroups.EBLG.forEach(el => el && (el.style.display = "none"));
-
-      // ND + PFD
-      filterND.EBCI.forEach(el => el && (el.style.display = "block"));
-      filterND.EBLG.forEach(el => el && (el.style.display = "none"));
-    }
-
-    else if (target === "EBLG") {
-
-      // METAR / SONO / FIDS
-      filterGroups.EBCI.forEach(el => el && (el.style.display = "none"));
-      filterGroups.EBLG.forEach(el => el && (el.style.display = "block"));
-
-      // ND + PFD
-      filterND.EBCI.forEach(el => el && (el.style.display = "none"));
-      filterND.EBLG.forEach(el => el && (el.style.display = "block"));
-    }
-
-    else {
-
-      // METAR / SONO / FIDS
-      filterGroups.EBCI.forEach(el => el && (el.style.display = "block"));
-      filterGroups.EBLG.forEach(el => el && (el.style.display = "block"));
-
-      // ND + PFD
-      filterND.EBCI.forEach(el => el && (el.style.display = "block"));
-      filterND.EBLG.forEach(el => el && (el.style.display = "block"));
-    }
-  });
-});
-
-  /***********************
-   * Collapse SONO IFR
-   ***********************/
-  document.querySelectorAll(".sono-collapse-header").forEach(header => {
-    header.addEventListener("click", () => {
-      const parent = header.parentElement;
-      parent.classList.toggle("collapsed");
-    });
-  });
-});
