@@ -5,6 +5,7 @@
  ****************************************************/
 
 import { airports } from "./config.js";
+import { computeWindComponents } from "./wind-components.js";
 
 /****************************************************
  * 1) Utils géométriques
@@ -112,12 +113,35 @@ function generateNdSvg(apKey) {
   const gs  = ac.gs  || 0;
   const alt = ac.altFt || 0;
 
-  const windDir = ap.metar?.wind_dir ?? "VRB";
+  const windDirRaw = ap.metar?.wind_dir ?? "VRB";
   const windSpd = ap.metar?.wind_speed ?? 0;
+  const windDir = windDirRaw === "VRB" ? null : Number(windDirRaw);
   const windMs  = (windSpd * 0.514444).toFixed(1);
 
   const locDots = computeLocDots(ap);
   const gsDots  = computeGsDots(ap);
+
+  const { headwind, crosswind, angle } =
+    computeWindComponents(rw.heading, windDir, windSpd);
+
+  const tailwind = headwind < 0 ? Math.abs(headwind) : 0;
+  const tailwindWarning = tailwind >= 10; // seuil Airbus-like
+
+  // Flèche vent sur la rose ND
+  let windArrow = "";
+  if (windDir !== null) {
+    const rad = toRad(windDir);
+    const x1 = 150 + 80 * Math.sin(rad);
+    const y1 = 150 - 80 * Math.cos(rad);
+    const x2 = 150 + 110 * Math.sin(rad);
+    const y2 = 150 - 110 * Math.cos(rad);
+
+    windArrow = `
+      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+            stroke="#00e5ff" stroke-width="2"/>
+      <circle cx="${x2}" cy="${y2}" r="3" fill="#00e5ff"/>
+    `;
+  }
 
   return `
   <svg width="300" height="300" viewBox="0 0 300 300">
@@ -136,6 +160,9 @@ function generateNdSvg(apKey) {
       return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#555" stroke-width="1"/>`;
     }).join("")}
 
+    <!-- Flèche vent ND -->
+    ${windArrow}
+
     <!-- Heading -->
     <text x="150" y="40" fill="#00e5ff" font-size="22" text-anchor="middle">
       HDG ${hdg.toFixed(0)}
@@ -151,18 +178,30 @@ function generateNdSvg(apKey) {
       ALT ${alt.toFixed(0)}
     </text>
 
-    <!-- Vent -->
-    <text x="150" y="80" fill="#00e5ff" font-size="18" text-anchor="middle">
-      WIND ${windDir}° / ${windSpd} kt (${windMs} m/s)
+    <!-- Vent brut -->
+    <text x="150" y="80" fill="#00e5ff" font-size="16" text-anchor="middle">
+      WIND ${windDirRaw}° / ${windSpd} kt (${windMs} m/s)
     </text>
 
+    <!-- Composantes vent -->
+    <text x="150" y="100" fill="#00e5ff" font-size="14" text-anchor="middle">
+      HW ${headwind} kt  CW ${crosswind} kt  ANG ${angle}°
+    </text>
+
+    <!-- Tailwind warning -->
+    ${tailwindWarning ? `
+      <text x="150" y="120" fill="#ff4444" font-size="14" text-anchor="middle">
+        TAILWIND ${tailwind} kt
+      </text>
+    ` : ""}
+
     <!-- LOC bar -->
-    <rect x="140" y="100" width="20" height="100" fill="#222"/>
-    <rect x="140" y="${150 + locDots * 10}" width="20" height="5" fill="#00e5ff"/>
+    <rect x="140" y="140" width="20" height="100" fill="#222"/>
+    <rect x="140" y="${190 + locDots * 10}" width="20" height="5" fill="#00e5ff"/>
 
     <!-- GS bar -->
-    <rect x="100" y="140" width="100" height="20" fill="#222"/>
-    <rect x="${150 + gsDots * 10}" y="140" width="5" height="20" fill="#ffaa00"/>
+    <rect x="100" y="180" width="100" height="20" fill="#222"/>
+    <rect x="${150 + gsDots * 10}" y="180" width="5" height="20" fill="#ffaa00"/>
 
     <!-- Avion maître -->
     <polygon points="150,130 145,150 155,150" fill="#ffffff"/>
