@@ -198,10 +198,10 @@ export function showOptimizedAdsbTrajectory(icao) {
     opacity: 0.9
   }).addTo(window.ndMap);
 
-  /****************************************************
+ /****************************************************
  * ND AIRBUS — Vecteur de vent (METAR AVWX)
  ****************************************************/
-export function drawWindOnNd(airportKey, metar) {
+function drawWindOnNd(airportKey, metar) {
   if (!window.ndMap || !window.L || !metar) return;
 
   const ap = airports[airportKey];
@@ -210,8 +210,7 @@ export function drawWindOnNd(airportKey, metar) {
 
   if (!dir || !speed) return;
 
-  // Taille du vecteur vent sur ND Airbus
-  const len = 0.08; // plus long que la flèche avion
+  const len = 0.08; // longueur du vecteur vent
   const angle = dir * Math.PI / 180;
 
   const dx = len * Math.sin(angle);
@@ -226,14 +225,14 @@ export function drawWindOnNd(airportKey, metar) {
     window.ndMap.removeLayer(window.ndWindVector[airportKey]);
   }
 
-  // Dessiner le vecteur vent
+  // Dessiner vecteur vent
   window.ndWindVector[airportKey] = window.L.polyline([start, end], {
-    color: "#ffcc00",   // jaune Airbus
+    color: "#ffcc00",
     weight: 4,
     opacity: 0.9
   }).addTo(window.ndMap);
 
-  // Label vent (direction + vitesse)
+  // Label vent
   const labelHtml = `
     <div style="
       color:white;
@@ -247,13 +246,11 @@ export function drawWindOnNd(airportKey, metar) {
     </div>
   `;
 
-  // Supprimer ancien label
   window.ndWindLabel = window.ndWindLabel || {};
   if (window.ndWindLabel[airportKey]) {
     window.ndMap.removeLayer(window.ndWindLabel[airportKey]);
   }
 
-  // Ajouter label
   window.ndWindLabel[airportKey] = window.L.marker(start, {
     icon: window.L.divIcon({
       className: "nd-wind-label",
@@ -261,6 +258,10 @@ export function drawWindOnNd(airportKey, metar) {
     })
   }).addTo(window.ndMap);
 }
+
+// Rendre la fonction accessible globalement
+window.drawWindOnNd = drawWindOnNd;
+
 
   /****************************************************
    * Label vitesse + altitude
