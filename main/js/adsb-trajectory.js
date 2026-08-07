@@ -152,6 +152,15 @@ export function showOptimizedAdsbTrajectory(icao) {
 
   window.adsbTrajectories[key] = poly;
 
+  // Vecteurs prédictifs (future path)
+const future = computeFuturePath(last.lat, last.lon, last.track, last.gsKt);
+window.L.polyline(future, {
+  color: "#8888ff",
+  weight: 2,
+  dashArray: "4,4",
+  opacity: 0.7
+}).addTo(window.ndMap);
+  
   /****************************************************
    * Flèche directionnelle (heading)
    ****************************************************/
