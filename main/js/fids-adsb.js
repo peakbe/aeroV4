@@ -1,8 +1,9 @@
 /****************************************************
- * FIDS — Pipeline OpenSky + AirLabs
+ * FIDS — Pipeline OpenSky + AirLabs PRO+++
  ****************************************************/
 
-import { airports } from "./config.js";
+import { airports, AIRLABS_API_KEY } from "./config.js";
+import { distanceNm } from "./utils.js";
 import { updateNdAirbus } from "./nd-airbus.js";
 import { showOptimizedAdsbTrajectory, pushHistory } from "./adsb-trajectory.js";
 import { fetchMetar } from "./metar.js";
@@ -22,35 +23,20 @@ export function setFidsFilter(filter) {
  * Format HH:MM cockpit IFR
  ****************************************************/
 function formatTime(ts) {
-  if (!ts) return "--:--";
-  const d = new Date(ts * 1000);
-  return d.toTimeString().slice(0, 5);
+  try {
+    const d = new Date(ts);
+    return d.toTimeString().slice(0, 5);
+  } catch {
+    return "--:--";
+  }
 }
 
 /****************************************************
- * Distance NM
- ****************************************************/
-function distanceNm(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-    Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2;
-
-  const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return d / 1852;
-}
-
-/****************************************************
- * Classification ARR / DEP / ENR
+ * Classification ARR / DEP / ENR — Airbus ECAM
  ****************************************************/
 function classifyArrivalDeparture(track, lat, lon, airportKey) {
   const ap = airports[airportKey];
-  const rw = ap.runways[0];
+  const rw = ap.activeRunway || ap.runways[0];
 
   const dist = distanceNm(lat, lon, ap.lat, ap.lon);
   if (dist > 80) return "ENR";
@@ -66,17 +52,6 @@ function classifyArrivalDeparture(track, lat, lon, airportKey) {
 }
 
 /****************************************************
- * Statut avionique Airbus ECAM
- ****************************************************/
-function statusClass(status) {
-  return {
-    ARR: "fids-status-arr",
-    DEP: "fids-status-dep",
-    ENR: "fids-status-enr"
-  }[status] || "";
-}
-
-/****************************************************
  * Fetch Airplanes.live
  ****************************************************/
 async function fetchAirplanesLive(ap) {
@@ -89,6 +64,7 @@ async function fetchAirplanesLive(ap) {
     if (!data.ac) return [];
 
     return data.ac
+      .filter(ac => ac.lat && ac.lon)
       .map(ac => ({
         icao: ac.hex,
         callsign: ac.flight || "n/a",
@@ -100,9 +76,8 @@ async function fetchAirplanesLive(ap) {
         gsMs: (ac.gs || 0) * 0.514444,
         track: Math.round(ac.track || 0),
         type: ac.type || "n/a",
-        time: formatTime(Math.floor(Date.now() / 1000))
-      }))
-      .filter(a => a.lat && a.lon);
+        time: formatTime(Date.now())
+      }));
   } catch {
     return [];
   }
@@ -112,7 +87,7 @@ async function fetchAirplanesLive(ap) {
  * Fetch AirLabs
  ****************************************************/
 async function fetchAirLabs(ap) {
-  const url = `https://airlabs.co/api/v9/flights?api_key=04cb1c09-8abb-468a-95fa-ee90c3c2b651`;
+  const url = `https://airlabs.co/api/v9/flights?api_key=${AIRLABS_API_KEY}`;
 
   try {
     const r = await fetch(url);
@@ -134,7 +109,7 @@ async function fetchAirLabs(ap) {
 }
 
 /****************************************************
- * Fusion Airplanes.live + AirLabs
+ * Fusion Airplanes.live + AirLabs — robuste
  ****************************************************/
 function mergeSources(aliveList, airlabsList) {
   const map = new Map();
@@ -142,13 +117,14 @@ function mergeSources(aliveList, airlabsList) {
   aliveList.forEach(a => map.set(a.icao, { ...a }));
 
   airlabsList.forEach(f => {
-    if (map.has(f.icao)) {
-      const a = map.get(f.icao);
-      a.airline = f.airline;
-      a.origin = f.origin;
-      a.destination = f.destination;
-      a.statusAirLabs = f.status;
-    }
+    if (!f.icao) return;
+    if (!map.has(f.icao)) return;
+
+    const a = map.get(f.icao);
+    a.airline = f.airline;
+    a.origin = f.origin;
+    a.destination = f.destination;
+    a.statusAirLabs = f.status;
   });
 
   return [...map.values()];
@@ -167,14 +143,22 @@ export async function fetchAroundAirport(airportKey) {
 }
 
 /****************************************************
- * FIDS Airbus ECAM — Mise à jour
+ * FIDS Airbus ECAM — Mise à jour (partie 2)
  ****************************************************/
 import { airports } from "./config.js";
-import { fidsFilter } from "./fids-adsb.js";   // partie 1
-import { fetchAroundAirport } from "./fids-adsb.js"; 
+import { fidsFilter, fetchAroundAirport } from "./fids-adsb.js";
 import { updateNdAirbus } from "./nd-airbus.js";
 import { showOptimizedAdsbTrajectory, pushHistory, drawWindOnNd } from "./adsb-trajectory.js";
 import { fetchMetar } from "./metar.js";
+import { computeWindComponents } from "./wind-components.js"; // à adapter au bon fichier
+
+function statusClass(status) {
+  return {
+    ARR: "fids-status-arr",
+    DEP: "fids-status-dep",
+    ENR: "fids-status-enr"
+  }[status] || "";
+}
 
 export async function updateFidsFlights(airportKey) {
 
@@ -189,8 +173,8 @@ export async function updateFidsFlights(airportKey) {
 
   if (!arrTbody || !depTbody) return;
 
-  arrTbody.innerHTML = "<tr><td colspan='9'>Loading flights...</td></tr>";
-  depTbody.innerHTML = "<tr><td colspan='9'>Loading flights...</td></tr>";
+  arrTbody.innerHTML = "<tr><td colspan='10'>Loading flights...</td></tr>";
+  depTbody.innerHTML = "<tr><td colspan='10'>Loading flights...</td></tr>";
 
   const ap = airports[airportKey];
   const aircraft = await fetchAroundAirport(airportKey);
@@ -205,7 +189,9 @@ export async function updateFidsFlights(airportKey) {
     const distNm = distanceNm(a.lat, a.lon, ap.lat, ap.lon);
     const status = classifyArrivalDeparture(a.track, a.lat, a.lon, airportKey);
 
-    pushHistory(a.icao, a.lat, a.lon, a.gsKt, a.altFt, a.track);
+    if (a.lat && a.lon) {
+      pushHistory(a.icao, a.lat, a.lon, a.gsKt, a.altFt, a.track);
+    }
 
     const row = {
       icao: a.icao,
@@ -243,16 +229,16 @@ export async function updateFidsFlights(airportKey) {
     tr.className = "fids-row";
 
     tr.innerHTML = `
-      <div>${f.time}</div>
-      <div>${f.callsign}</div>
-      <div>${f.airline || "n/a"}</div>
-      <div>${f.origin || "n/a"}</div>
-      <div>${f.distNm}</div>
-      <div>${f.altFt}</div>
-      <div>${f.gsKt}</div>
-      <div>${f.gsMs}</div>
-      <div>${f.track}</div>
-      <div class="${statusClass(f.status)}">${f.status}</div>
+      <td>${f.time}</td>
+      <td>${f.callsign}</td>
+      <td>${f.airline}</td>
+      <td>${f.origin}</td>
+      <td>${f.distNm}</td>
+      <td>${f.altFt}</td>
+      <td>${f.gsKt}</td>
+      <td>${f.gsMs}</td>
+      <td>${f.track}</td>
+      <td class="${statusClass(f.status)}">${f.status}</td>
     `;
 
     tr.addEventListener("click", () => {
@@ -268,7 +254,7 @@ export async function updateFidsFlights(airportKey) {
       };
 
       showOptimizedAdsbTrajectory(f.icao);
-      updateNdAirbus(aircraft);
+      updateNdAirbus([f]); // ND centré sur l’avion sélectionné
     });
 
     arrTbody.appendChild(tr);
@@ -284,16 +270,16 @@ export async function updateFidsFlights(airportKey) {
     tr.className = "fids-row";
 
     tr.innerHTML = `
-      <div>${f.time}</div>
-      <div>${f.callsign}</div>
-      <div>${f.airline || "n/a"}</div>
-      <div>${f.origin || "n/a"}</div>
-      <div>${f.distNm}</div>
-      <div>${f.altFt}</div>
-      <div>${f.gsKt}</div>
-      <div>${f.gsMs}</div>
-      <div>${f.track}</div>
-      <div class="${statusClass(f.status)}">${f.status}</div>
+      <td>${f.time}</td>
+      <td>${f.callsign}</td>
+      <td>${f.airline}</td>
+      <td>${f.origin}</td>
+      <td>${f.distNm}</td>
+      <td>${f.altFt}</td>
+      <td>${f.gsKt}</td>
+      <td>${f.gsMs}</td>
+      <td>${f.track}</td>
+      <td class="${statusClass(f.status)}">${f.status}</td>
     `;
 
     tr.addEventListener("click", () => {
@@ -309,17 +295,17 @@ export async function updateFidsFlights(airportKey) {
       };
 
       showOptimizedAdsbTrajectory(f.icao);
-      updateNdAirbus(aircraft);
+      updateNdAirbus([f]);
     });
 
     depTbody.appendChild(tr);
   });
 
   if (arrivals.length === 0) {
-    arrTbody.innerHTML = "<tr><td colspan='9'>No arrivals</td></tr>";
+    arrTbody.innerHTML = "<tr><td colspan='10'>No arrivals</td></tr>";
   }
   if (departures.length === 0) {
-    depTbody.innerHTML = "<tr><td colspan='9'>No departures</td></tr>";
+    depTbody.innerHTML = "<tr><td colspan='10'>No departures</td></tr>";
   }
 }
 
@@ -374,3 +360,4 @@ export function startFidsLive() {
     updateFidsFlights("EBLG");
   }, 30000);
 }
+
