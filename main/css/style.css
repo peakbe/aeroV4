@@ -1,82 +1,102 @@
 /****************************************************
- * LAYOUT GLOBAL — 3 colonnes Airbus
+ * LAYOUT GLOBAL — Grille Airbus 3 colonnes
  ****************************************************/
-main {
-  display: flex;
-  flex-direction: row;
-  height: calc(100vh - 120px);
+#cockpit-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr 360px; /* ND/PFD | MAP | MCDU */
+  grid-template-rows: 100%;
+  height: calc(100vh - 0px);
   background: #0a0f1c;
   color: #e2e8f0;
   font-family: Consolas, monospace;
-  overflow-x: auto;
+  overflow: hidden;
 }
 
 /****************************************************
- * CARTE LEAFLET — Colonne gauche
+ * COLONNE GAUCHE — ND + PFD
  ****************************************************/
-#map {
-  width: 400px;
-  min-width: 400px;
-  height: 100%;
-  flex-shrink: 0;
-  filter: saturate(130%) brightness(1.1);
-  z-index: 0;
-}
-
-/****************************************************
- * ND AIRBUS — COTE A COTE (colonne centrale)
- ****************************************************/
-#nd-row {
-  display: flex;
-  flex-direction: row;
-  flex-shrink: 0;
-  width: 660px; /* 2 x 320 + gap */
-  gap: 20px;
-  padding: 10px;
+#col-left {
   background: #0b1120;
   border-right: 1px solid #1e293b;
+  padding: 12px;
+  overflow-y: auto;
 }
 
-.nd-box {
-  width: 320px;
-  min-width: 320px;
-  flex-shrink: 0;
-  flex: 1;
+.cockpit-title {
+  font-size: 18px;
+  color: #5ee7ff;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.nd-pfd-row {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.nd-pfd-box {
   background: #0f172a;
   border: 1px solid #1e293b;
   border-radius: 6px;
   padding: 10px;
 }
 
+.nd-display {
+  width: 320px;
+  height: 320px;
+  background: #0a0f1c;
+  border: 1px solid #1e293b;
+  margin-bottom: 10px;
+}
+
+.pfd-display {
+  background: #0a0f1c;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+}
+
 /****************************************************
- * SIDEBAR — Colonne centrale (à droite des ND)
+ * COLONNE CENTRALE — CARTE LEAFLET
+ ****************************************************/
+#col-map {
+  position: relative;
+  background: #0a0f1c;
+  border-right: 1px solid #1e293b;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  filter: saturate(130%) brightness(1.1);
+}
+
+#nd-map-title {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(10, 15, 28, 0.85);
+  padding: 8px 12px;
+  border: 1px solid #1e293b;
+  border-radius: 4px;
+  color: #5ee7ff;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+/****************************************************
+ * COLONNE DROITE — SIDEBAR Airbus
  ****************************************************/
 #sidebar {
-  width: 340px;
-  min-width: 340px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
   background: #0b1120;
   border-right: 1px solid #1e293b;
-  overflow-y: auto;
   padding: 0;
-  gap: 0;
-}
-
-#sidebar-column {
-  width: 340px;
-  min-width: 340px;
-  background: #0b1120;
-  border-right: 1px solid #1e293b;
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
+  overflow-y: auto;
 }
 
-/****************************************************
- * SIDEBAR — Contrôles EBCI / EBLG / ALL
- ****************************************************/
 .sidebar-controls {
   display: flex;
   gap: 6px;
@@ -93,6 +113,7 @@ main {
   color: #94a3b8;
   cursor: pointer;
   border-radius: 4px;
+  text-align: center;
 }
 
 .sidebar-btn.active {
@@ -126,21 +147,16 @@ main {
 }
 
 /****************************************************
- * PANELS — Colonne droite
+ * PANELS — Colonne MCDU
  ****************************************************/
 #panels-column {
-  flex: 1;
+  background: #0a0f1c;
   overflow-y: auto;
-  min-width: 360px;
   padding: 12px;
 }
 
 #panels {
-  position: relative;
-  z-index: 10;
-  flex: 1;
   padding: 12px;
-  overflow-y: auto;
 }
 
 .tab-panel {
@@ -352,7 +368,7 @@ main {
 }
 
 /****************************************************
- * SONO — Collapses IFR
+ * SONO — Collapses IFR Airbus
  ****************************************************/
 .sono-collapse {
   border: 2px solid #0ff;
@@ -416,10 +432,10 @@ main {
 
 .wind-arrow.lime { border-bottom-color: lime; }
 .wind-arrow.orange { border-bottom-color: orange; }
-wind-arrow.red { border-bottom-color: red; }
+.wind-arrow.red { border-bottom-color: red; }
 
 /****************************************************
- * METAR — Couleurs IFR
+ * METAR — Couleurs IFR Airbus
  ****************************************************/
 .metar-green { color: #00ff00; }
 .metar-orange { color: orange; }
@@ -432,7 +448,7 @@ wind-arrow.red { border-bottom-color: red; }
 }
 
 /****************************************************
- * HUD - AIRBUS PFD
+ * HUD — AIRBUS PFD STYLE
  ****************************************************/
 .hud-runway-block {
   background: #0f172a;
@@ -471,17 +487,14 @@ wind-arrow.red { border-bottom-color: red; }
 }
 
 .wind-ms {
-  color: #38bdf8;
-  font-size: 0.9em;
-  margin-left: 4px;
-}
-
-.wind-ms {
   color: #5ee7ff;
   margin-left: 4px;
   font-size: 0.9em;
 }
 
+/****************************************************
+ * PFD — Airbus PRO+++
+ ****************************************************/
 .pfd-box {
   width: 320px;
   height: 240px;
@@ -501,6 +514,9 @@ wind-arrow.red { border-bottom-color: red; }
   border-right: 2px solid #1e293b;
 }
 
+/****************************************************
+ * SIDEBAR / PANELS — Ajustements Airbus
+ ****************************************************/
 #sidebar {
   flex: 1;
   overflow-y: auto;
@@ -516,7 +532,7 @@ wind-arrow.red { border-bottom-color: red; }
 }
 
 /****************************************************
- * // Style Airbus PRO+++ pour le titre sur la carte
+ * TITRE SUR CARTE — Airbus PRO+++
  ****************************************************/
 #nd-map-title {
   position: absolute;
@@ -535,10 +551,12 @@ wind-arrow.red { border-bottom-color: red; }
   line-height: 1.3;
 
   z-index: 5000;
-  pointer-events: none; /* ne bloque pas la carte */
+  pointer-events: none;
 }
 
-/* FIDS ECAM — Ligne - Style ECAM Airbus*/
+/****************************************************
+ * FIDS — ECAM Airbus Style
+ ****************************************************/
 .fids-row {
   display: grid;
   grid-template-columns: 60px 80px 90px 70px 70px 60px 60px 60px 60px;
@@ -550,7 +568,6 @@ wind-arrow.red { border-bottom-color: red; }
   border-bottom: 1px solid #333;
 }
 
-/* FIDS ECAM — Statuts */
 .fids-status-arr {
   color: #00ff00; /* ECAM green */
   font-weight: bold;
@@ -566,7 +583,6 @@ wind-arrow.red { border-bottom-color: red; }
   font-weight: bold;
 }
 
-/* FIDS ECAM — Ligne sélectionnée */
 .fids-row:hover {
   background: rgba(255,255,255,0.05);
   cursor: pointer;
@@ -576,8 +592,823 @@ wind-arrow.red { border-bottom-color: red; }
   background: rgba(0,150,255,0.15);
 }
 
-/* FIDS ECAM — Table */
 .fids-table {
   width: 100%;
   border-collapse: collapse;
+}
+/****************************************************
+ * ND AIRBUS — Cadre général
+ ****************************************************/
+.nd-display {
+  width: 320px;
+  height: 320px;
+  background: #000;
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+/****************************************************
+ * ND — Rose (ticks 30°)
+ ****************************************************/
+.nd-tick {
+  stroke: #334155;
+  stroke-width: 1px;
+}
+
+.nd-tick-major {
+  stroke: #475569;
+  stroke-width: 2px;
+}
+
+/****************************************************
+ * ND — Texte (HDG, GS, ALT)
+ ****************************************************/
+.nd-text {
+  fill: #5ee7ff;
+  font-size: 14px;
+  font-family: Consolas, monospace;
+  text-anchor: middle;
+}
+
+/****************************************************
+ * ND — Flèche vent PRO+++
+ ****************************************************/
+.nd-wind-arrow {
+  stroke-width: 2px;
+  fill: none;
+}
+
+.nd-wind-dot {
+  r: 3px;
+}
+
+/* Couleurs dangerosité */
+.nd-wind-normal { stroke: #00e5ff; fill: #00e5ff; }
+.nd-wind-cross { stroke: #ffaa00; fill: #ffaa00; }
+.nd-wind-tail  { stroke: #ff4444; fill: #ff4444; }
+
+/****************************************************
+ * ND — Composantes vent (HW / CW / ANG)
+ ****************************************************/
+.nd-wind-info {
+  fill: #38bdf8;
+  font-size: 13px;
+  text-anchor: middle;
+}
+
+/****************************************************
+ * ND — XW LEFT / RIGHT
+ ****************************************************/
+.nd-xw {
+  fill: #5ee7ff;
+  font-size: 14px;
+  text-anchor: middle;
+  font-weight: bold;
+}
+
+/****************************************************
+ * ND — Warnings vent
+ ****************************************************/
+.nd-warning {
+  font-size: 14px;
+  text-anchor: middle;
+  font-weight: bold;
+}
+
+.nd-warning-cross { fill: #ffaa00; }
+.nd-warning-tail  { fill: #ff4444; }
+
+/****************************************************
+ * ND — LOC / GS bars
+ ****************************************************/
+.nd-loc-bar,
+.nd-gs-bar {
+  fill: #0f172a;
+  stroke: #1e293b;
+  stroke-width: 1px;
+}
+
+.nd-loc-dot {
+  fill: #00e5ff;
+}
+
+.nd-gs-dot {
+  fill: #ffaa00;
+}
+
+/****************************************************
+ * ND — Avion maître
+ ****************************************************/
+.nd-aircraft {
+  fill: #ffffff;
+  stroke: #ffffff;
+  stroke-width: 1px;
+}
+
+/****************************************************
+ * ND — Runway label
+ ****************************************************/
+.nd-runway {
+  fill: #ffffff;
+  font-size: 18px;
+  text-anchor: middle;
+  font-weight: bold;
+}
+/****************************************************
+ * PFD — Cadre général
+ ****************************************************/
+.pfd-display {
+  width: 320px;
+  height: 240px;
+  background: #000;
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+/****************************************************
+ * PFD — Horizon artificiel
+ ****************************************************/
+.pfd-horizon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 240px;
+  overflow: hidden;
+}
+
+.pfd-sky {
+  background: #4da6ff;
+  width: 100%;
+  height: 50%;
+}
+
+.pfd-ground {
+  background: #b5651d;
+  width: 100%;
+  height: 50%;
+}
+
+/****************************************************
+ * PFD — Ligne d’horizon
+ ****************************************************/
+.pfd-horizon-line {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  height: 2px;
+  background: #ffffff;
+}
+
+/****************************************************
+ * PFD — Bank indicator (arc)
+ ****************************************************/
+.pfd-bank-arc {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 140px;
+  height: 70px;
+  margin-left: -70px;
+  border: 2px solid #ffffff;
+  border-bottom: none;
+  border-radius: 140px 140px 0 0;
+}
+
+/****************************************************
+ * PFD — Bank pointer
+ ****************************************************/
+.pfd-bank-pointer {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 14px solid #ffffff;
+  margin-left: -8px;
+}
+
+/****************************************************
+ * PFD — Pitch ladder
+ ****************************************************/
+.pfd-pitch-line {
+  position: absolute;
+  left: 50%;
+  width: 60px;
+  height: 2px;
+  background: #ffffff;
+  margin-left: -30px;
+}
+
+.pfd-pitch-text {
+  position: absolute;
+  left: 50%;
+  color: #ffffff;
+  font-size: 12px;
+  margin-left: 40px;
+}
+
+/****************************************************
+ * PFD — Flight Director (FD)
+ ****************************************************/
+.pfd-fd-bar {
+  position: absolute;
+  width: 80px;
+  height: 4px;
+  background: #ff00ff;
+  left: 50%;
+  margin-left: -40px;
+}
+
+.pfd-fd-vbar {
+  position: absolute;
+  width: 4px;
+  height: 80px;
+  background: #ff00ff;
+  left: 50%;
+  margin-left: -2px;
+}
+
+/****************************************************
+ * PFD — Speed tape
+ ****************************************************/
+.pfd-speed-tape {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: 100%;
+  background: #0f172a;
+  border-right: 2px solid #1e293b;
+}
+
+.pfd-speed-value {
+  position: absolute;
+  left: 10px;
+  top: 110px;
+  color: #00eaff;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/****************************************************
+ * PFD — Altitude tape
+ ****************************************************/
+.pfd-alt-tape {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 60px;
+  height: 100%;
+  background: #0f172a;
+  border-left: 2px solid #1e293b;
+}
+
+.pfd-alt-value {
+  position: absolute;
+  right: 10px;
+  top: 110px;
+  color: #00eaff;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/****************************************************
+ * PFD — VSI
+ ****************************************************/
+.pfd-vsi {
+  position: absolute;
+  right: 70px;
+  top: 10px;
+  color: #38bdf8;
+  font-size: 14px;
+}
+
+/****************************************************
+ * PFD — LOC / GS diamonds
+ ****************************************************/
+.pfd-loc {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  width: 20px;
+  height: 100px;
+  margin-left: -10px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+}
+
+.pfd-loc-dot {
+  width: 20px;
+  height: 5px;
+  background: #00eaff;
+  position: absolute;
+}
+
+.pfd-gs {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  width: 100px;
+  height: 20px;
+  margin-left: -50px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+}
+
+.pfd-gs-dot {
+  width: 5px;
+  height: 20px;
+  background: #ffaa00;
+  position: absolute;
+}
+
+/****************************************************
+ * PFD — AP / ATHR annunciators
+ ****************************************************/
+.pfd-annunciators {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  margin-left: -60px;
+  width: 120px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.pfd-ann {
+  color: #00ff00;
+  font-size: 14px;
+  font-weight: bold;
+}
+/****************************************************
+ * HUD RUNWAY — Airbus PRO+++
+ ****************************************************/
+.hud-runway-block {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  padding: 12px 14px;
+  border-radius: 6px;
+  color: #e2e8f0;
+  margin-bottom: 14px;
+  box-shadow: inset 0 0 12px rgba(0,255,255,0.08);
+}
+
+.hud-title {
+  font-size: 17px;
+  font-weight: bold;
+  color: #5ee7ff;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.hud-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.hud-label {
+  color: #38bdf8;
+}
+
+.hud-value {
+  font-weight: bold;
+  color: #e2e8f0;
+}
+
+.hud-wind {
+  margin-bottom: 10px;
+}
+
+.hud-warn {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.hud-warn-cross { color: #ffaa00; }
+.hud-warn-tail  { color: #ff4444; }
+
+.hud-runway-name {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 10px;
+  color: #ffffff;
+}
+/****************************************************
+ * ECAM — Airbus PRO+++
+ ****************************************************/
+.ecam-block {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  color: #e2e8f0;
+  box-shadow: inset 0 0 12px rgba(0,255,255,0.08);
+}
+
+.ecam-title {
+  font-size: 17px;
+  font-weight: bold;
+  color: #00eaff;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.ecam-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.ecam-label {
+  color: #38bdf8;
+}
+
+.ecam-value {
+  font-weight: bold;
+  color: #e2e8f0;
+}
+
+/****************************************************
+ * ECAM — Couleurs Airbus
+ ****************************************************/
+.ecam-green  { color: #00ff00; font-weight: bold; }
+.ecam-cyan   { color: #00eaff; font-weight: bold; }
+.ecam-amber  { color: #ffaa00; font-weight: bold; }
+.ecam-red    { color: #ff4444; font-weight: bold; }
+
+/****************************************************
+ * ECAM — Séparateur
+ ****************************************************/
+.ecam-sep {
+  border: none;
+  border-bottom: 1px solid #334155;
+  margin: 10px 0;
+}
+/****************************************************
+ * MCDU — Airbus PRO+++
+ ****************************************************/
+.mcdu-box {
+  background: #0f172a;
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  padding: 12px;
+  width: 340px;
+  margin-bottom: 20px;
+  color: #e2e8f0;
+}
+
+.mcdu-header {
+  font-size: 17px;
+  font-weight: bold;
+  color: #5ee7ff;
+  text-align: center;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.mcdu-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.mcdu-left {
+  color: #38bdf8;
+}
+
+.mcdu-right {
+  color: #e2e8f0;
+  font-weight: bold;
+}
+
+/****************************************************
+ * MCDU — Scratchpad
+ ****************************************************/
+.mcdu-scratchpad {
+  background: #000;
+  border: 1px solid #1e293b;
+  padding: 6px;
+  margin-top: 10px;
+  font-size: 15px;
+  color: #00eaff;
+  text-align: left;
+  min-height: 24px;
+}
+
+/****************************************************
+ * MCDU — Touches LSK
+ ****************************************************/
+.mcdu-lsk-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.mcdu-lsk {
+  width: 40px;
+  height: 24px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.mcdu-lsk:hover {
+  background: #334155;
+  color: #5ee7ff;
+}
+
+/****************************************************
+ * MCDU — Page title
+ ****************************************************/
+.mcdu-page-title {
+  font-size: 15px;
+  color: #00eaff;
+  text-align: center;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+/****************************************************
+ * ECAM — DOORS (Airbus PRO+++)
+ ****************************************************/
+.ecam-doors {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  color: #e2e8f0;
+}
+
+.ecam-doors-title {
+  font-size: 17px;
+  font-weight: bold;
+  color: #00eaff;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.ecam-door-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.ecam-door-open {
+  color: #ffaa00;
+  font-weight: bold;
+}
+
+.ecam-door-closed {
+  color: #00ff00;
+  font-weight: bold;
+}
+
+/****************************************************
+ * ECAM — WHEELS (Airbus PRO+++)
+ ****************************************************/
+.ecam-wheels {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+
+.ecam-wheels-title {
+  font-size: 17px;
+  font-weight: bold;
+  color: #00eaff;
+  margin-bottom: 10px;
+}
+
+.ecam-wheel-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.ecam-brake-temp {
+  color: #ffaa00;
+  font-weight: bold;
+}
+
+.ecam-gear-down {
+  color: #00ff00;
+  font-weight: bold;
+}
+
+.ecam-gear-up {
+  color: #ff4444;
+  font-weight: bold;
+}
+
+/****************************************************
+ * ECAM — PRESS (Airbus PRO+++)
+ ****************************************************/
+.ecam-press {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+
+.ecam-press-title {
+  font-size: 17px;
+  font-weight: bold;
+  color: #00eaff;
+  margin-bottom: 10px;
+}
+
+.ecam-press-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.ecam-cabin-alt {
+  color: #38bdf8;
+  font-weight: bold;
+}
+
+.ecam-diff-press {
+  color: #e2e8f0;
+  font-weight: bold;
+}
+
+/****************************************************
+ * ECAM — APU (Airbus PRO+++)
+ ****************************************************/
+.ecam-apu {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+
+.ecam-apu-title {
+  font-size: 17px;
+  font-weight: bold;
+  color: #00eaff;
+  margin-bottom: 10px;
+}
+
+.ecam-apu-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.ecam-apu-on {
+  color: #00ff00;
+  font-weight: bold;
+}
+
+.ecam-apu-off {
+  color: #ff4444;
+  font-weight: bold;
+}
+
+.ecam-apu-temp {
+  color: #ffaa00;
+  font-weight: bold;
+}
+/****************************************************
+ * TCAS — Airbus PRO+++
+ ****************************************************/
+.tcas-display {
+  width: 320px;
+  height: 320px;
+  background: #000;
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tcas-traffic {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #00eaff;
+  border-radius: 50%;
+}
+
+.tcas-traffic-prox {
+  background: #ffaa00;
+}
+
+.tcas-traffic-alert {
+  background: #ff4444;
+}
+
+.tcas-range {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #5ee7ff;
+  font-size: 14px;
+}
+
+/****************************************************
+ * RADAR MÉTÉO — Airbus PRO+++
+ ****************************************************/
+.wx-radar {
+  width: 320px;
+  height: 320px;
+  background: #000;
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.wx-cell {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.wx-green { background: #00ff00; }
+.wx-yellow { background: #ffff00; }
+.wx-red   { background: #ff0000; }
+
+.wx-scan-line {
+  position: absolute;
+  width: 2px;
+  height: 320px;
+  background: #5ee7ff;
+  left: 50%;
+  transform-origin: bottom;
+  opacity: 0.4;
+}
+/****************************************************
+ * CHRONO — Airbus PRO+++
+ ****************************************************/
+.chrono-box {
+  width: 120px;
+  height: 60px;
+  background: #0f172a;
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  padding: 6px;
+  color: #e2e8f0;
+  font-family: Consolas, monospace;
+  position: relative;
+  text-align: center;
+}
+
+.chrono-time {
+  font-size: 22px;
+  font-weight: bold;
+  color: #00eaff;
+}
+
+.chrono-label {
+  font-size: 12px;
+  color: #38bdf8;
+  margin-top: 2px;
+}
+
+.chrono-btn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  padding: 2px 6px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chrono-btn:hover {
+  background: #334155;
+  color: #5ee7ff;
 }
