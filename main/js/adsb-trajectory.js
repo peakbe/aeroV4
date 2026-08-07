@@ -165,6 +165,40 @@ window.L.polyline(future, {
    * Flèche directionnelle (heading)
    ****************************************************/
   const last = pts[pts.length - 1];
+
+  /****************************************************
+ * VECTEURS PREDICTIFS — FUTURE PATH (Airbus style)
+ ****************************************************/
+const future = computeFuturePath(
+  last.lat,
+  last.lon,
+  last.track,
+  last.gsKt,
+  5,      // minutes de projection
+  30      // pas de 30 secondes
+);
+
+if (window.adsbFuturePath && window.adsbFuturePath[key]) {
+  window.ndMap.removeLayer(window.adsbFuturePath[key]);
+}
+
+window.adsbFuturePath = window.adsbFuturePath || {};
+window.adsbFuturePath[key] = window.L.polyline(future, {
+  color: "#8888ff",
+  weight: 2,
+  dashArray: "4,4",
+  opacity: 0.7
+}).addTo(window.ndMap);
+
+  // Polyligne principale (dégradé vitesse)
+const poly = window.L.polyline(latlngs, {
+  color,
+  weight: 3,
+  opacity: 0.85
+}).addTo(window.ndMap);
+window.adsbTrajectories[key] = poly;
+
+  // Flèche directionnelle
   const arrowCoords = createArrow(last.lat, last.lon, last.track);
 
   if (window.adsbArrows[key]) {
