@@ -22,7 +22,6 @@ import { initMap, map, resetMapView } from "./map.js";
 
 import { fetchMetar, updateMetarUI } from "./metar.js";
 import { fetchTaf, updateTafUI } from "./taf.js";
-import { drawWindOnNd } from "./adsb-trajectory.js";
 
 import { updateWindRose } from "./windrose.js";
 
