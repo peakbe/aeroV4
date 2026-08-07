@@ -1,25 +1,34 @@
 /****************************************************
- * ADS-B TRAJECTORY — Dégradé vitesse + multi-avions
- * Compatible Airplanes.live + ND Airbus (Leaflet)
+ * ADS-B TRAJECTORY — PRO+++
+ * Dégradé vitesse + flèches directionnelles + labels
+ * Multi-avions simultanés — Airplanes.live + Leaflet
  ****************************************************/
 
-// Historique global
 window.adsbHistory = window.adsbHistory || {};
-window.adsbTrajectories = window.adsbTrajectories || {}; // multi-avions
+window.adsbTrajectories = window.adsbTrajectories || {};
+window.adsbLabels = window.adsbLabels || {};
+window.adsbArrows = window.adsbArrows || {};
 
 /****************************************************
  * Ajout d’un point dans l’historique
  ****************************************************/
-export function pushHistory(icao, lat, lon, gsKt) {
+export function pushHistory(icao, lat, lon, gsKt, altFt, track) {
   if (!icao || lat == null || lon == null) return;
 
   const key = String(icao);
   if (!window.adsbHistory[key]) window.adsbHistory[key] = [];
 
-  const arr = window.adsbHistory[key];
-  arr.push({ lat, lon, gsKt });
+  window.adsbHistory[key].push({
+    lat,
+    lon,
+    gsKt,
+    altFt,
+    track
+  });
 
-  if (arr.length > 150) arr.shift(); // mémoire max
+  if (window.adsbHistory[key].length > 150) {
+    window.adsbHistory[key].shift();
+  }
 }
 
 /****************************************************
@@ -35,7 +44,7 @@ function filterPoints(points) {
 }
 
 /****************************************************
- * Lissage trajectoire (Airplanes.live → points irréguliers)
+ * Lissage trajectoire
  ****************************************************/
 function smoothPoints(points) {
   if (points.length < 3) return points;
@@ -49,7 +58,9 @@ function smoothPoints(points) {
     out.push({
       lat: (p0.lat + p1.lat + p2.lat) / 3,
       lon: (p0.lon + p1.lon + p2.lon) / 3,
-      gsKt: (p0.gsKt + p1.gsKt + p2.gsKt) / 3
+      gsKt: (p0.gsKt + p1.gsKt + p2.gsKt) / 3,
+      altFt: (p0.altFt + p1.altFt + p2.altFt) / 3,
+      track: (p0.track + p1.track + p2.track) / 3
     });
   }
   return out;
@@ -64,6 +75,45 @@ function speedColor(gsKt) {
   if (gsKt < 350) return "#00ff55";   // vert
   if (gsKt < 450) return "#ffee00";   // jaune
   return "#ff3300";                   // rouge
+}
+
+/****************************************************
+ * Flèche directionnelle (heading)
+ ****************************************************/
+function createArrow(lat, lon, track) {
+  const size = 0.03; // taille flèche ND Airbus
+  const angle = track * Math.PI / 180;
+
+  const dx = size * Math.sin(angle);
+  const dy = size * Math.cos(angle);
+
+  return [
+    [lat, lon],
+    [lat + dy, lon + dx]
+  ];
+}
+
+/****************************************************
+ * Labels vitesse + altitude
+ ****************************************************/
+function createLabel(lat, lon, gsKt, altFt) {
+  return window.L.marker([lat, lon], {
+    icon: window.L.divIcon({
+      className: "adsb-label",
+      html: `
+        <div style="
+          color:white;
+          font-size:10px;
+          background:rgba(0,0,0,0.55);
+          padding:2px 4px;
+          border-radius:3px;
+          border:1px solid #00ffff;
+        ">
+          ${gsKt} kt<br>${altFt} ft
+        </div>
+      `
+    })
+  });
 }
 
 /****************************************************
@@ -88,7 +138,7 @@ export function showOptimizedAdsbTrajectory(icao) {
   const avgSpeed = pts.reduce((a, p) => a + (p.gsKt || 0), 0) / pts.length;
   const color = speedColor(avgSpeed);
 
-  // Supprimer ancienne trajectoire de cet avion uniquement
+  // Supprimer ancienne trajectoire de cet avion
   if (window.adsbTrajectories[key]) {
     window.ndMap.removeLayer(window.adsbTrajectories[key]);
   }
@@ -101,4 +151,30 @@ export function showOptimizedAdsbTrajectory(icao) {
   }).addTo(window.ndMap);
 
   window.adsbTrajectories[key] = poly;
+
+  /****************************************************
+   * Flèche directionnelle (heading)
+   ****************************************************/
+  const last = pts[pts.length - 1];
+  const arrowCoords = createArrow(last.lat, last.lon, last.track);
+
+  if (window.adsbArrows[key]) {
+    window.ndMap.removeLayer(window.adsbArrows[key]);
+  }
+
+  window.adsbArrows[key] = window.L.polyline(arrowCoords, {
+    color: "#ffffff",
+    weight: 2,
+    opacity: 0.9
+  }).addTo(window.ndMap);
+
+  /****************************************************
+   * Label vitesse + altitude
+   ****************************************************/
+  if (window.adsbLabels[key]) {
+    window.ndMap.removeLayer(window.adsbLabels[key]);
+  }
+
+  window.adsbLabels[key] = createLabel(last.lat, last.lon, last.gsKt, last.altFt);
+  window.adsbLabels[key].addTo(window.ndMap);
 }
