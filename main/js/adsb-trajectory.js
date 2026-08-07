@@ -199,6 +199,70 @@ export function showOptimizedAdsbTrajectory(icao) {
   }).addTo(window.ndMap);
 
   /****************************************************
+ * ND AIRBUS — Vecteur de vent (METAR AVWX)
+ ****************************************************/
+export function drawWindOnNd(airportKey, metar) {
+  if (!window.ndMap || !window.L || !metar) return;
+
+  const ap = airports[airportKey];
+  const dir = metar.wind_dir === "VRB" ? null : Number(metar.wind_dir);
+  const speed = Number(metar.wind_speed || 0);
+
+  if (!dir || !speed) return;
+
+  // Taille du vecteur vent sur ND Airbus
+  const len = 0.08; // plus long que la flèche avion
+  const angle = dir * Math.PI / 180;
+
+  const dx = len * Math.sin(angle);
+  const dy = len * Math.cos(angle);
+
+  const start = [ap.lat, ap.lon];
+  const end = [ap.lat + dy, ap.lon + dx];
+
+  // Supprimer ancien vecteur vent
+  window.ndWindVector = window.ndWindVector || {};
+  if (window.ndWindVector[airportKey]) {
+    window.ndMap.removeLayer(window.ndWindVector[airportKey]);
+  }
+
+  // Dessiner le vecteur vent
+  window.ndWindVector[airportKey] = window.L.polyline([start, end], {
+    color: "#ffcc00",   // jaune Airbus
+    weight: 4,
+    opacity: 0.9
+  }).addTo(window.ndMap);
+
+  // Label vent (direction + vitesse)
+  const labelHtml = `
+    <div style="
+      color:white;
+      font-size:11px;
+      background:rgba(0,0,0,0.55);
+      padding:3px 5px;
+      border-radius:3px;
+      border:1px solid #ffaa00;
+    ">
+      WIND ${dir}° / ${speed} kt
+    </div>
+  `;
+
+  // Supprimer ancien label
+  window.ndWindLabel = window.ndWindLabel || {};
+  if (window.ndWindLabel[airportKey]) {
+    window.ndMap.removeLayer(window.ndWindLabel[airportKey]);
+  }
+
+  // Ajouter label
+  window.ndWindLabel[airportKey] = window.L.marker(start, {
+    icon: window.L.divIcon({
+      className: "nd-wind-label",
+      html: labelHtml
+    })
+  }).addTo(window.ndMap);
+}
+
+  /****************************************************
    * Label vitesse + altitude
    ****************************************************/
   if (window.adsbLabels[key]) {
