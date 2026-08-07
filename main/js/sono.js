@@ -5,17 +5,8 @@
 import { airports } from "./config.js";
 import { sonometersEBCI, sonometersEBLG } from "./sono-data.js";
 
-window.sonoEnabled = true;
-
 /****************************************************
- * Utilitaire IFR — Conversion RWY → Heading
- ****************************************************/
-function runwayHeading(rwy) {
-  return parseInt(rwy) * 10; // RWY 24 → 240°
-}
-
-/****************************************************
- * 0) Markers Leaflet — création dynamique
+ * État interne (ES‑Modules, pas de globals)
  ****************************************************/
 let sonoLayerEBCI = null;
 let sonoLayerEBLG = null;
@@ -23,6 +14,26 @@ let sonoLayerEBLG = null;
 let sonoRenderedEBCI = false;
 let sonoRenderedEBLG = false;
 
+let sonoListRenderedEBCI = false;
+let sonoListRenderedEBLG = false;
+
+/****************************************************
+ * Utilitaire IFR — Conversion RWY → Heading
+ ****************************************************/
+function runwayHeading(rwy) {
+  if (!rwy) return 0;
+
+  // RWY peut être "24", "24L", "RWY 24", objet runway, etc.
+  const name = typeof rwy === "string"
+    ? rwy.replace(/[^0-9]/g, "")
+    : rwy.name?.replace(/[^0-9]/g, "") || "0";
+
+  return parseInt(name) * 10;
+}
+
+/****************************************************
+ * Markers Leaflet — création dynamique
+ ****************************************************/
 function renderSonoMarkers(airportKey, map) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
   const group = L.layerGroup();
@@ -52,11 +63,8 @@ function renderSonoMarkers(airportKey, map) {
 }
 
 /****************************************************
- * 1) Rendu UI MCDU
+ * UI MCDU — Liste SONO
  ****************************************************/
-let sonoListRenderedEBCI = false;
-let sonoListRenderedEBLG = false;
-
 export function updateSonoListUI(airportKey) {
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
   const id = airportKey === "EBCI" ? "sono-list-ebci" : "sono-list-eblg";
@@ -70,7 +78,7 @@ export function updateSonoListUI(airportKey) {
 }
 
 /****************************************************
- * 2) Règles d’affichage SONO
+ * Règles SONO
  ****************************************************/
 const RULES_EBCI = {
   "24": { green: ["F101","F102","F103","F104","F105","F106","F107","F108","F109","F110","F111","F112","F114","F116","F117","F118","F119"], red: [] },
@@ -83,13 +91,15 @@ const RULES_EBLG = {
 };
 
 /****************************************************
- * 3) Application des règles SONO
+ * Application des règles SONO
  ****************************************************/
 export function applySonoRules(airportKey, activeRunway, map) {
+  const normalized = activeRunway.replace(/[^0-9]/g, "");
   const rules = airportKey === "EBCI" ? RULES_EBCI : RULES_EBLG;
-  if (!rules[activeRunway]) return;
 
-  const { green, red } = rules[activeRunway];
+  if (!rules[normalized]) return;
+
+  const { green, red } = rules[normalized];
   const list = airportKey === "EBCI" ? sonometersEBCI : sonometersEBLG;
   const layer = airportKey === "EBCI" ? sonoLayerEBCI : sonoLayerEBLG;
 
@@ -133,7 +143,7 @@ export function applySonoRules(airportKey, activeRunway, map) {
 }
 
 /****************************************************
- * 4) Fonction principale — PRO+++
+ * Fonction principale — PRO+++
  ****************************************************/
 export function updateSono(airportKey, activeRunway, map) {
 
@@ -202,10 +212,11 @@ export function updateSono(airportKey, activeRunway, map) {
   const arrow = document.getElementById(arrowId);
 
   if (arrow) {
-    arrow.style.transform = `rotate(${windDir}deg)`;
+    const rotation = windDir === "VRB" ? 0 : Number(windDir) || 0;
+    arrow.style.transform = `rotate(${rotation}deg)`;
 
     const heading = runwayHeading(runwayName);
-    const diff = Math.abs(heading - windDir);
+    const diff = Math.abs(heading - rotation);
 
     arrow.className =
       diff < 30 ? "wind-arrow lime" :
