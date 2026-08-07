@@ -2,17 +2,18 @@
  * STATION INFO — Open‑Meteo Version PRO+++
  * Airbus SD harmonisé
  ****************************************************/
+import { airports } from "./config.js";
+
+/****************************************************
+ * 1) FETCH STATION — Open‑Meteo
+ ****************************************************/
 export async function fetchStationInfo(icao) {
   try {
-    const coords = {
-      EBCI: { lat: 50.459, lon: 4.453 },
-      EBLG: { lat: 50.637, lon: 5.443 }
-    };
-
-    const { lat, lon } = coords[icao];
+    const ap = airports[icao];
+    if (!ap) return null;
 
     const url =
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `https://api.open-meteo.com/v1/forecast?latitude=${ap.lat}&longitude=${ap.lon}` +
       `&current=temperature_2m,relative_humidity_2m,pressure_msl`;
 
     const r = await fetch(url);
@@ -21,9 +22,9 @@ export async function fetchStationInfo(icao) {
     const c = data.current;
 
     return {
-      temp: c.temperature_2m ?? null,
-      humidity: c.relative_humidity_2m ?? null,
-      pressure: c.pressure_msl ?? null
+      temp: c?.temperature_2m ?? null,
+      humidity: c?.relative_humidity_2m ?? null,
+      pressure: c?.pressure_msl ?? null
     };
 
   } catch (e) {
@@ -35,13 +36,13 @@ export async function fetchStationInfo(icao) {
 /****************************************************
  * Historique station — Airbus SD (tendances)
  ****************************************************/
-window.stationHistory = window.stationHistory || {
+export const stationHistory = {
   EBCI: { temp: null, pressure: null },
   EBLG: { temp: null, pressure: null }
 };
 
 function computeTrend(airportKey, station) {
-  const hist = window.stationHistory[airportKey];
+  const hist = stationHistory[airportKey];
 
   const trend = {
     temp: "stable",
@@ -73,6 +74,9 @@ function ktToMs(kt) {
 
 function computeWindChill(temp, windKt) {
   if (temp === null || windKt === null) return null;
+
+  // VRB ou vent très faible → chill = temp
+  if (windKt < 1) return temp;
 
   const windMs = windKt * 0.514444;
 
@@ -146,17 +150,16 @@ export function updateStationUI(airportKey, station, metar) {
           ${station.humidity ?? "n/a"}%
         </span>
       </div>
-      
-     <div class="station-line">
-  Vent :
-  <span style="color:#38bdf8">
-    ${metar?.wind_speed ?? "n/a"} kt
-  </span>
-  <span class="wind-ms">
-    (${windMs ?? "n/a"} m/s)
-  </span>
-</div>
 
+      <div class="station-line">
+        Vent :
+        <span style="color:#38bdf8">
+          ${metar?.wind_speed ?? "n/a"} kt
+        </span>
+        <span class="wind-ms">
+          (${windMs ?? "n/a"} m/s)
+        </span>
+      </div>
 
       <div class="station-line">
         Pression :
