@@ -42,20 +42,24 @@ export function initTabs() {
       /****************************************************
        * 4) Mise à jour du mode IFR global
        ****************************************************/
-      window.currentTab = target;
-      window.isSonoMode = (target === "tab-sono");
+      window.currentTab = target;          // OK
+      window.isSonoMode = (target === "tab-sono");   // 🔥 supprimable mais conservé pour compatibilité
 
       /****************************************************
        * 5) Rafraîchissement dynamique selon onglet
        ****************************************************/
       if (target === "tab-metar") {
-        processAirport("EBCI");
-        processAirport("EBLG");
+        // 🔥 NE PAS relancer processAirport (trop lourd)
+        // Les METAR / ND / HUD / PFD / FIDS sont déjà rafraîchis par startFidsLive()
       }
 
       if (target === "tab-sono") {
-        updateSono("EBCI", airports.EBCI.activeRunway?.name, map);
-        updateSono("EBLG", airports.EBLG.activeRunway?.name, map);
+        if (airports.EBCI.activeRunway?.name) {
+          updateSono("EBCI", airports.EBCI.activeRunway.name, map);
+        }
+        if (airports.EBLG.activeRunway?.name) {
+          updateSono("EBLG", airports.EBLG.activeRunway.name, map);
+        }
       }
 
       if (target === "tab-logs") {
