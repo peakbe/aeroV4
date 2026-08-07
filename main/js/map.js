@@ -6,6 +6,8 @@ export let ndIlsLayer;
 export let ndAircraftLayer;
 export let ndTrackLayer;
 
+export let mapReady = false;   // 🔥 remplace window._mapReady
+
 /****************************************************
  * INIT MAP — Airbus ND PRO+++
  ****************************************************/
@@ -13,8 +15,8 @@ export function initMap() {
   if (map) return;
 
   map = L.map("map", {
-    zoomControl: false,        // ND Airbus = pas de zoom manuel
-    attributionControl: false  // cockpit IFR propre
+    zoomControl: false,
+    attributionControl: false
   }).setView([50.55, 5.0], 10);
 
   // Couches ND
@@ -22,16 +24,16 @@ export function initMap() {
   ndAircraftLayer = L.layerGroup().addTo(map);
   ndTrackLayer = L.layerGroup().addTo(map);
 
-  // Fond de carte (sobre, IFR)
+  // Fond de carte IFR
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18
   }).addTo(map);
 
   map.whenReady(() => {
-    window._mapReady = true;
+    mapReady = true;   // 🔥 ES Modules friendly
   });
 
-  // Marqueurs aéroports (Airbus ND)
+  // Marqueurs aéroports
   Object.values(airports).forEach(ap => {
     L.circleMarker([ap.lat, ap.lon], {
       radius: 6,
@@ -56,7 +58,6 @@ export function resetMapView(airportKey) {
   const rw = ap.runways.find(r => r.name === ap.activeRunway.name);
   if (!rw) return;
 
-  // Centrage sur la piste active
   const midLat = (rw.lat1 + rw.lat2) / 2;
   const midLon = (rw.lon1 + rw.lon2) / 2;
 
@@ -67,7 +68,7 @@ export function resetMapView(airportKey) {
  * ICONES AVION — Airbus ND
  ****************************************************/
 export const planeIconND = L.icon({
-  iconUrl: "img/plane-nd.png",   // silhouette ND Airbus
+  iconUrl: "img/plane-nd.png",
   iconSize: [34, 34],
   iconAnchor: [17, 17]
 });
@@ -85,7 +86,7 @@ export function drawNdAircraft(airportKey) {
 
   const marker = L.marker([ac.lat, ac.lon], {
     icon: planeIconND,
-    rotationAngle: ac.hdg || 0,
+    rotationAngle: ac.hdg || 0,      // ⚠ nécessite leaflet-rotatedmarker
     rotationOrigin: "center"
   });
 
@@ -93,15 +94,15 @@ export function drawNdAircraft(airportKey) {
 }
 
 /****************************************************
- * TRAJECTOIRE COMPLETTE — ND Airbus PRO+++
+ * TRAJECTOIRE COMPLETE — ND Airbus PRO+++
  ****************************************************/
 export function showFullFlightPath(points) {
   ndTrackLayer.clearLayers();
 
   const poly = L.polyline(
-    points.map(p => [p.lat, p.lng]),
+    points.map(p => [p.lat, p.lon]),   // 🔥 correction lon
     {
-      color: "#ffb300",   // amber Airbus
+      color: "#ffb300",
       weight: 3,
       opacity: 0.9
     }
@@ -114,7 +115,6 @@ export function showFullFlightPath(points) {
 
 /****************************************************
  * ILS ND — délégué à ils-nd.js
- * (on ne dessine plus d’ILS ici)
  ****************************************************/
 export function clearNdIls() {
   ndIlsLayer.clearLayers();
