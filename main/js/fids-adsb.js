@@ -187,6 +187,9 @@ async function fetchAroundAirport(airportKey) {
 /****************************************************
  * FIDS Airbus ECAM — Mise à jour
  ****************************************************/
+/****************************************************
+ * FIDS Airbus ECAM — Mise à jour
+ ****************************************************/
 export async function updateFidsFlights(airportKey) {
   const filter = window.fidsFilter;
   if (filter !== "ALL" && filter !== airportKey) return;
@@ -213,6 +216,9 @@ export async function updateFidsFlights(airportKey) {
   const arrivals = [];
   const departures = [];
 
+  /****************************************************
+   * Classification + Historique + Construction lignes
+   ****************************************************/
   aircraft.forEach(a => {
     const distNm = distanceNm(a.lat, a.lon, ap.lat, ap.lon);
     const status = classifyArrivalDeparture(a.track, a.lat, a.lon, airportKey);
@@ -240,97 +246,98 @@ export async function updateFidsFlights(airportKey) {
     else if (status === "DEP") departures.push(row);
   });
 
-  // Mise à jour ND Airbus
+  /****************************************************
+   * Mise à jour ND Airbus (trajectoires + future path)
+   ****************************************************/
   updateNdAirbus(aircraft);
 
-  // Affichage FIDS
-  arrivals.forEach(a => addFidsRow(arrTbody, a));
-  departures.forEach(a => addFidsRow(depTbody, a));
-}
+  /****************************************************
+   * PARTIE 2 — ARRIVALS
+   ****************************************************/
+  arrivals.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
 
- /****************************************************
- * ARRIVALS
- ****************************************************/
-arrivals.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
+  arrivals.forEach(f => {
+    const tr = document.createElement("tr");
+    tr.className = "fids-row";
 
-arrivals.forEach(f => {
-  const tr = document.createElement("tr");
-  tr.className = "fids-row";
+    tr.innerHTML = `
+      <div>${f.time}</div>
+      <div>${f.callsign}</div>
+      <div>${f.airline || "n/a"}</div>
+      <div>${f.origin || "n/a"}</div>
+      <div>${f.distNm}</div>
+      <div>${f.altFt}</div>
+      <div>${f.gsKt}</div>
+      <div>${f.gsMs}</div>
+      <div>${f.track}</div>
+      <div class="${statusClass(f.status)}">${f.status}</div>
+    `;
 
-  tr.innerHTML = `
-    <div>${f.time}</div>
-    <div>${f.callsign}</div>
-    <div>${f.airline || "n/a"}</div>
-    <div>${f.origin || "n/a"}</div>
-    <div>${f.distNm}</div>
-    <div>${f.altFt}</div>
-    <div>${f.gsKt}</div>
-    <div>${f.gsMs}</div>
-    <div>${f.track}</div>
-    <div class="${statusClass(f.status)}">${f.status}</div>
-  `;
+    tr.addEventListener("click", () => {
+      document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
+      tr.classList.add("fids-selected");
 
-  tr.addEventListener("click", () => {
-    document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
-    tr.classList.add("fids-selected");
+      airports[airportKey].aircraft.lat   = f.lat;
+      airports[airportKey].aircraft.lon   = f.lon;
+      airports[airportKey].aircraft.altFt = Number(f.altFt);
+      airports[airportKey].aircraft.hdg   = Number(f.track);
+      airports[airportKey].aircraft.gs    = Number(f.gsKt);
 
-    airports[airportKey].aircraft.lat   = f.lat;
-    airports[airportKey].aircraft.lon   = f.lon;
-    airports[airportKey].aircraft.altFt = Number(f.altFt);
-    airports[airportKey].aircraft.hdg   = Number(f.track);
-    airports[airportKey].aircraft.gs    = Number(f.gsKt);
+      showOptimizedAdsbTrajectory(f.icao);
+      updateNdAirbus(airportKey);
+    });
 
-    showOptimizedAdsbTrajectory(f.icao);
-    updateNdAirbus(airportKey);
+    arrTbody.appendChild(tr);
   });
 
-  arrTbody.appendChild(tr);
-});
+  /****************************************************
+   * PARTIE 2 — DEPARTURES
+   ****************************************************/
+  departures.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
 
-/****************************************************
- * DEPARTURES
- ****************************************************/
-departures.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
+  departures.forEach(f => {
+    const tr = document.createElement("tr");
+    tr.className = "fids-row";
 
-departures.forEach(f => {
-  const tr = document.createElement("tr");
-  tr.className = "fids-row";
+    tr.innerHTML = `
+      <div>${f.time}</div>
+      <div>${f.callsign}</div>
+      <div>${f.airline || "n/a"}</div>
+      <div>${f.origin || "n/a"}</div>
+      <div>${f.distNm}</div>
+      <div>${f.altFt}</div>
+      <div>${f.gsKt}</div>
+      <div>${f.gsMs}</div>
+      <div>${f.track}</div>
+      <div class="${statusClass(f.status)}">${f.status}</div>
+    `;
 
-  tr.innerHTML = `
-    <div>${f.time}</div>
-    <div>${f.callsign}</div>
-    <div>${f.airline || "n/a"}</div>
-    <div>${f.origin || "n/a"}</div>
-    <div>${f.distNm}</div>
-    <div>${f.altFt}</div>
-    <div>${f.gsKt}</div>
-    <div>${f.gsMs}</div>
-    <div>${f.track}</div>
-    <div class="${statusClass(f.status)}">${f.status}</div>
-  `;
+    tr.addEventListener("click", () => {
+      document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
+      tr.classList.add("fids-selected");
 
-  tr.addEventListener("click", () => {
-    document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
-    tr.classList.add("fids-selected");
+      airports[airportKey].aircraft.lat   = f.lat;
+      airports[airportKey].aircraft.lon   = f.lon;
+      airports[airportKey].aircraft.altFt = Number(f.altFt);
+      airports[airportKey].aircraft.hdg   = Number(f.track);
+      airports[airportKey].aircraft.gs    = Number(f.gsKt);
 
-    airports[airportKey].aircraft.lat   = f.lat;
-    airports[airportKey].aircraft.lon   = f.lon;
-    airports[airportKey].aircraft.altFt = Number(f.altFt);
-    airports[airportKey].aircraft.hdg   = Number(f.track);
-    airports[airportKey].aircraft.gs    = Number(f.gsKt);
+      showOptimizedAdsbTrajectory(f.icao);
+      updateNdAirbus(airportKey);
+    });
 
-    showOptimizedAdsbTrajectory(f.icao);
-    updateNdAirbus(airportKey);
+    depTbody.appendChild(tr);
   });
 
-  depTbody.appendChild(tr);
-});
-
-if (arrivals.length === 0) {
-  arrTbody.innerHTML = "<tr><td colspan='9'>No arrivals</td></tr>";
-}
-if (departures.length === 0) {
-  depTbody.innerHTML = "<tr><td colspan='9'>No departures</td></tr>";
+  /****************************************************
+   * Messages si vide
+   ****************************************************/
+  if (arrivals.length === 0) {
+    arrTbody.innerHTML = "<tr><td colspan='9'>No arrivals</td></tr>";
+  }
+  if (departures.length === 0) {
+    depTbody.innerHTML = "<tr><td colspan='9'>No departures</td></tr>";
+  }
 }
 
 /****************************************************
