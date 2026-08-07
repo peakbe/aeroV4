@@ -105,60 +105,55 @@ async function fetchAirLabs() {
 app.get("/airplanes", async (req, res) => {
   const { lat, lon, dist } = req.query;
 
+  // CORS sur toutes les réponses
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET");
+
   if (!lat || !lon || !dist) {
     return res.status(400).json({ error: "Missing lat/lon/dist" });
   }
 
-  const cacheKey = `${lat}_${lon}_${dist}`;
-  const cached = getCache(cacheKey);
-  if (cached) return res.json(cached);
+  const url = `https://api.airplanes.live/v2/lat/${lat}/lon/${lon}/dist/${dist}`;
 
-  /****************************************************
-   * 1 — Airplanes.live (source principale)
-   ****************************************************/
-  const urlAL = `https://api.airplanes.live/v2/lat/${lat}/lon/${lon}/dist/${dist}`;
-  const dataAL = await safeFetchJson(urlAL);
+  try {
+    const r = await fetch(url);
+    const text = await r.text();
 
-  if (!dataAL.error && dataAL.ac) {
-    setCache(cacheKey, dataAL);
-    return res.json(dataAL);
+    // Airplanes.live renvoie du HTML → fallback
+    if (text.startsWith("<")) {
+      console.log("Airplanes.live DOWN → fallback OpenSky");
+
+      const opensky = await fetchOpenSky(Number(lat), Number(lon), Number(dist));
+      if (opensky?.length > 0) {
+        return res.json({ source: "opensky", ac: opensky });
+      }
+
+      console.log("OpenSky DOWN → fallback AirLabs");
+
+      const airlabs = await fetchAirLabs();
+      if (airlabs?.length > 0) {
+        return res.json({ source: "airlabs", ac: airlabs });
+      }
+
+      return res.status(502).json({
+        error: "ALL_SOURCES_DOWN",
+        details: "Airplanes.live returned HTML, OpenSky empty, AirLabs empty"
+      });
+    }
+
+    // Airplanes.live OK → JSON
+    res.setHeader("Content-Type", "application/json");
+    return res.send(text);
+
+  } catch (err) {
+    return res.status(500).json({
+      error: "Proxy error",
+      details: err.toString()
+    });
   }
-
-  console.log("Airplanes.live DOWN → fallback OpenSky");
-
-  /****************************************************
-   * 2 — OpenSky fallback
-   ****************************************************/
-  const dataOS = await fetchOpenSky(Number(lat), Number(lon), Number(dist));
-
-  if (dataOS && dataOS.length > 0) {
-    const payload = { ac: dataOS, source: "opensky" };
-    setCache(cacheKey, payload);
-    return res.json(payload);
-  }
-
-  console.log("OpenSky DOWN → fallback AirLabs");
-
-  /****************************************************
-   * 3 — AirLabs fallback
-   ****************************************************/
-  const dataALabs = await fetchAirLabs();
-
-  if (dataALabs && dataALabs.length > 0) {
-    const payload = { ac: dataALabs, source: "airlabs" };
-    setCache(cacheKey, payload);
-    return res.json(payload);
-  }
-
-  /****************************************************
-   * 4 — Tout est DOWN → réponse propre
-   ****************************************************/
-  return res.status(502).json({
-    error: "ALL_SOURCES_DOWN",
-    details: "Airplanes.live, OpenSky and AirLabs returned invalid data",
-    rawAirplanesLive: dataAL.raw || null
-  });
 });
+
 
 /****************************************************
  * START SERVER
