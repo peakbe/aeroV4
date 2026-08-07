@@ -21,11 +21,23 @@ function getTailwindLimit(apKey) {
     case "EBCI":
       return 10;   // Charleroi
     case "EBLG":
-      return 15;   // Liège cargo ops
+      return 15;   // Liège
     default:
-      return 10;   // fallback Airbus standard
+      return 10;   // standard Airbus
   }
 }
+
+function getCrosswindLimit(apKey) {
+  switch (apKey) {
+    case "EBCI":
+      return 30;   // Charleroi
+    case "EBLG":
+      return 35;   // Liège cargo
+    default:
+      return 30;   // standard Airbus
+  }
+}
+
 
 /****************************************************
  * 2) Projection ND Track-Up (centré sur avion maître)
@@ -142,8 +154,16 @@ function generateNdSvg(apKey) {
   const tailwindLimit = getTailwindLimit(apKey);
   const tailwindWarning = tailwind >= tailwindLimit;
 
+  const crosswindAbs = Math.abs(crosswind);
+  const crosswindLimit = getCrosswindLimit(apKey);
+  const crosswindWarning = crosswindAbs >= crosswindLimit;
 
-  // Flèche vent sur la rose ND
+  const xwSide = crosswind > 0 ? "RIGHT" : "LEFT";
+
+  let windColor = "#00e5ff";
+  if (tailwindWarning) windColor = "#ff4444";
+  else if (crosswindWarning) windColor = "#ffaa00";
+
   let windArrow = "";
   if (windDir !== null) {
     const rad = toRad(windDir);
@@ -154,8 +174,8 @@ function generateNdSvg(apKey) {
 
     windArrow = `
       <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
-            stroke="#00e5ff" stroke-width="2"/>
-      <circle cx="${x2}" cy="${y2}" r="3" fill="#00e5ff"/>
+            stroke="${windColor}" stroke-width="2"/>
+      <circle cx="${x2}" cy="${y2}" r="3" fill="${windColor}"/>
     `;
   }
 
@@ -204,20 +224,32 @@ function generateNdSvg(apKey) {
       HW ${headwind} kt  CW ${crosswind} kt  ANG ${angle}°
     </text>
 
+    <!-- Crosswind side -->
+    <text x="150" y="120" fill="#00e5ff" font-size="14" text-anchor="middle">
+      XW ${xwSide}
+    </text>
+
+    <!-- Crosswind warning -->
+    ${crosswindWarning ? `
+      <text x="150" y="140" fill="#ffaa00" font-size="14" text-anchor="middle">
+        CROSSWIND ${crosswindAbs} kt (LIMIT ${crosswindLimit})
+      </text>
+    ` : ""}
+
     <!-- Tailwind warning -->
     ${tailwindWarning ? `
-  <text x="150" y="120" fill="#ff4444" font-size="14" text-anchor="middle">
-    TAILWIND ${tailwind} kt (LIMIT ${tailwindLimit})
-  </text>
-` : ""}
+      <text x="150" y="160" fill="#ff4444" font-size="14" text-anchor="middle">
+        TAILWIND ${tailwind} kt (LIMIT ${tailwindLimit})
+      </text>
+    ` : ""}
 
     <!-- LOC bar -->
-    <rect x="140" y="140" width="20" height="100" fill="#222"/>
-    <rect x="140" y="${190 + locDots * 10}" width="20" height="5" fill="#00e5ff"/>
+    <rect x="140" y="180" width="20" height="100" fill="#222"/>
+    <rect x="140" y="${230 + locDots * 10}" width="20" height="5" fill="#00e5ff"/>
 
     <!-- GS bar -->
-    <rect x="100" y="180" width="100" height="20" fill="#222"/>
-    <rect x="${150 + gsDots * 10}" y="180" width="5" height="20" fill="#ffaa00"/>
+    <rect x="100" y="220" width="100" height="20" fill="#222"/>
+    <rect x="${150 + gsDots * 10}" y="220" width="5" height="20" fill="#ffaa00"/>
 
     <!-- Avion maître -->
     <polygon points="150,130 145,150 155,150" fill="#ffffff"/>
