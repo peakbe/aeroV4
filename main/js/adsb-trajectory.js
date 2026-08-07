@@ -1,5 +1,5 @@
 /****************************************************
- * ADS-B TRAJECTORY — PRO+++
+ * ADS-B TRAJECTORY — PRO+++ (Airbus ND, safe, fallback-ready)
  ****************************************************/
 
 import { airports } from "./config.js";
@@ -11,10 +11,19 @@ export const adsbArrows = {};
 export const adsbFuturePath = {};
 
 /****************************************************
- * Ajout d’un point dans l’historique
+ * Ajout d’un point dans l’historique (anti-NaN, anti-trash)
  ****************************************************/
 export function pushHistory(icao, lat, lon, gsKt, altFt, track) {
-  if (!icao || lat == null || lon == null) return;
+  if (!icao) return;
+
+  // Filtre dur sur la position
+  if (
+    lat == null || lon == null ||
+    isNaN(lat) || isNaN(lon) ||
+    Math.abs(lat) > 90 || Math.abs(lon) > 180
+  ) {
+    return;
+  }
 
   const key = String(icao);
   if (!adsbHistory[key]) adsbHistory[key] = [];
@@ -37,8 +46,10 @@ export function pushHistory(icao, lat, lon, gsKt, altFt, track) {
  ****************************************************/
 function filterPoints(points) {
   return points.filter(p =>
-    p.lat !== 0 &&
-    p.lon !== 0 &&
+    p.lat != null &&
+    p.lon != null &&
+    !isNaN(p.lat) &&
+    !isNaN(p.lon) &&
     Math.abs(p.lat) <= 90 &&
     Math.abs(p.lon) <= 180
   );
@@ -82,6 +93,13 @@ function speedColor(gsKt) {
  * Flèche directionnelle
  ****************************************************/
 function createArrow(lat, lon, track) {
+  if (
+    lat == null || lon == null || track == null ||
+    isNaN(lat) || isNaN(lon) || isNaN(track)
+  ) {
+    return null;
+  }
+
   const size = 0.03;
   const angle = track * Math.PI / 180;
 
@@ -98,6 +116,13 @@ function createArrow(lat, lon, track) {
  * Label vitesse + altitude
  ****************************************************/
 function createLabel(lat, lon, gsKt, altFt) {
+  if (
+    lat == null || lon == null ||
+    isNaN(lat) || isNaN(lon)
+  ) {
+    return null;
+  }
+
   return L.marker([lat, lon], {
     icon: L.divIcon({
       className: "adsb-label",
@@ -110,7 +135,7 @@ function createLabel(lat, lon, gsKt, altFt) {
           border-radius:3px;
           border:1px solid #00ffff;
         ">
-          ${Math.round(gsKt)} kt<br>${Math.round(altFt)} ft
+          ${Math.round(gsKt || 0)} kt<br>${Math.round(altFt || 0)} ft
         </div>
       `
     })
@@ -118,9 +143,18 @@ function createLabel(lat, lon, gsKt, altFt) {
 }
 
 /****************************************************
- * Future path Airbus
+ * Future path Airbus (anti-NaN)
  ****************************************************/
 function computeFuturePath(lat, lon, trackDeg, gsKt, minutes = 5, stepSec = 30) {
+  if (
+    lat == null || lon == null ||
+    isNaN(lat) || isNaN(lon) ||
+    trackDeg == null || gsKt == null ||
+    isNaN(trackDeg) || isNaN(gsKt)
+  ) {
+    return [];
+  }
+
   const R = 6371000;
   const track = trackDeg * Math.PI / 180;
   const gsMs = gsKt * 0.514444;
@@ -142,7 +176,12 @@ function computeFuturePath(lat, lon, trackDeg, gsKt, minutes = 5, stepSec = 30) 
       Math.cos(dByR) - Math.sin(latRad) * Math.sin(lat2)
     );
 
-    points.push([lat2 * 180 / Math.PI, lon2 * 180 / Math.PI]);
+    const latDeg = lat2 * 180 / Math.PI;
+    const lonDeg = lon2 * 180 / Math.PI;
+
+    if (!isNaN(latDeg) && !isNaN(lonDeg)) {
+      points.push([latDeg, lonDeg]);
+    }
   }
   return points;
 }
@@ -159,7 +198,7 @@ export function drawWindOnNd(airportKey, metar) {
   const dir = metar.wind_dir === "VRB" ? null : Number(metar.wind_dir);
   const speed = Number(metar.wind_speed || 0);
 
-  if (!dir || !speed) return;
+  if (!dir || isNaN(dir) || !speed || isNaN(speed)) return;
 
   const len = 0.08;
   const angle = dir * Math.PI / 180;
@@ -208,7 +247,7 @@ export function drawWindOnNd(airportKey, metar) {
 }
 
 /****************************************************
- * Trajectoire ADS-B
+ * Trajectoire ADS-B — ND Airbus
  ****************************************************/
 export function showOptimizedAdsbTrajectory(icao) {
   if (!window.ndMap || !window.L) return;
@@ -219,7 +258,18 @@ export function showOptimizedAdsbTrajectory(icao) {
   if (!history || history.length < 2) return;
 
   let pts = smoothPoints(filterPoints(history));
-  if (!pts.length) return;
+
+  // Anti-NaN post-lissage
+  pts = pts.filter(p =>
+    p.lat != null &&
+    p.lon != null &&
+    !isNaN(p.lat) &&
+    !isNaN(p.lon) &&
+    Math.abs(p.lat) <= 90 &&
+    Math.abs(p.lon) <= 180
+  );
+
+  if (pts.length < 2) return;
 
   const latlngs = pts.map(p => [p.lat, p.lon]);
 
@@ -233,12 +283,14 @@ export function showOptimizedAdsbTrajectory(icao) {
     window.ndMap.removeLayer(adsbFuturePath[key]);
   }
 
-  adsbFuturePath[key] = L.polyline(futurePath, {
-    color: "#8888ff",
-    weight: 2,
-    dashArray: "4,4",
-    opacity: 0.7
-  }).addTo(window.ndMap);
+  if (futurePath.length > 0) {
+    adsbFuturePath[key] = L.polyline(futurePath, {
+      color: "#8888ff",
+      weight: 2,
+      dashArray: "4,4",
+      opacity: 0.7
+    }).addTo(window.ndMap);
+  }
 
   if (adsbTrajectories[key]) {
     window.ndMap.removeLayer(adsbTrajectories[key]);
@@ -251,21 +303,25 @@ export function showOptimizedAdsbTrajectory(icao) {
   }).addTo(window.ndMap);
 
   const arrowCoords = createArrow(last.lat, last.lon, last.track);
-
   if (adsbArrows[key]) {
     window.ndMap.removeLayer(adsbArrows[key]);
   }
 
-  adsbArrows[key] = L.polyline(arrowCoords, {
-    color: "#ffffff",
-    weight: 2,
-    opacity: 0.9
-  }).addTo(window.ndMap);
+  if (arrowCoords) {
+    adsbArrows[key] = L.polyline(arrowCoords, {
+      color: "#ffffff",
+      weight: 2,
+      opacity: 0.9
+    }).addTo(window.ndMap);
+  }
 
   if (adsbLabels[key]) {
     window.ndMap.removeLayer(adsbLabels[key]);
   }
 
-  adsbLabels[key] = createLabel(last.lat, last.lon, last.gsKt, last.altFt);
-  adsbLabels[key].addTo(window.ndMap);
+  const label = createLabel(last.lat, last.lon, last.gsKt, last.altFt);
+  if (label) {
+    adsbLabels[key] = label;
+    adsbLabels[key].addTo(window.ndMap);
+  }
 }
