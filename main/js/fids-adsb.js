@@ -1,5 +1,5 @@
 /****************************************************
- * FIDS — Pipeline OpenSky + AirLabs PRO+++
+ * FIDS — Pipeline Airplanes.live (proxy Render) + AirLabs PRO+++
  ****************************************************/
 
 import { airports, AIRLABS_API_KEY } from "./config.js";
@@ -7,7 +7,7 @@ import { distanceNm } from "./utils.js";
 import { updateNdAirbus } from "./nd-airbus.js";
 import { showOptimizedAdsbTrajectory, pushHistory, drawWindOnNd } from "./adsb-trajectory.js";
 import { fetchMetar } from "./metar.js";
-import { computeWindComponents } from "./wind-components.js"; // à adapter au bon fichier
+import { computeWindComponents } from "./wind-components.js";
 
 /****************************************************
  * Filtre global FIDS
@@ -25,7 +25,7 @@ export function setFidsFilter(filter) {
  ****************************************************/
 function formatTime(ts) {
   try {
-    const d = new Date(ts);
+    const d = new Date(ts * 1000); // Airplanes.live = epoch seconds
     return d.toTimeString().slice(0, 5);
   } catch {
     return "--:--";
@@ -53,33 +53,44 @@ function classifyArrivalDeparture(track, lat, lon, airportKey) {
 }
 
 /****************************************************
- * Fetch Airplanes.live
+ * Cache local FIDS (anti surcharge proxy)
  ****************************************************/
-async function fetchAirplanesLive(ap) {
-  const url = `https://api.airplanes.live/v2/lat/${ap.lat}/lon/${ap.lon}/dist/120`;
+const fidsCache = new Map();
+const FIDS_CACHE_MS = 5000; // 5 s
+
+function getCachedFids(key) {
+  const entry = fidsCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > FIDS_CACHE_MS) return null;
+  return entry.data;
+}
+
+function setCachedFids(key, data) {
+  fidsCache.set(key, { ts: Date.now(), data });
+}
+
+/****************************************************
+ * FIDS — Fetch via PROXY Render (Airplanes.live)
+ ****************************************************/
+async function fetchFids(lat, lon, dist) {
+  const cacheKey = `${lat}_${lon}_${dist}`;
+  const cached = getCachedFids(cacheKey);
+  if (cached) return cached;
 
   try {
-    const r = await fetch(url);
-    const data = await r.json();
+    const url = `https://aerov4-proxy.onrender.com/airplanes?lat=${lat}&lon=${lon}&dist=${dist}`;
+    const response = await fetch(url);
 
-    if (!data.ac) return [];
+    if (!response.ok) {
+      throw new Error("Proxy Render error: " + response.status);
+    }
 
-    return data.ac
-      .filter(ac => ac.lat && ac.lon)
-      .map(ac => ({
-        icao: ac.hex,
-        callsign: ac.flight || "n/a",
-        originCountry: ac.r || "n/a",
-        lat: ac.lat,
-        lon: ac.lon,
-        altFt: Math.round(ac.alt_baro || 0),
-        gsKt: Math.round(ac.gs || 0),
-        gsMs: (ac.gs || 0) * 0.514444,
-        track: Math.round(ac.track || 0),
-        type: ac.type || "n/a",
-        time: formatTime(Date.now())
-      }));
-  } catch {
+    const data = await response.json();
+    setCachedFids(cacheKey, data);
+    return data;
+
+  } catch (err) {
+    console.error("FIDS ADS-B error:", err);
     return [];
   }
 }
@@ -104,7 +115,8 @@ async function fetchAirLabs(ap) {
       destination: f.arr_iata || "n/a",
       status: f.status || "n/a"
     }));
-  } catch {
+  } catch (err) {
+    console.error("AirLabs error:", err);
     return [];
   }
 }
@@ -115,7 +127,23 @@ async function fetchAirLabs(ap) {
 function mergeSources(aliveList, airlabsList) {
   const map = new Map();
 
-  aliveList.forEach(a => map.set(a.icao, { ...a }));
+  aliveList.forEach(a => {
+    map.set(a.icao, {
+      icao: a.icao,
+      lat: a.lat,
+      lon: a.lon,
+      altFt: a.alt_baro || 0,
+      gsMs: a.gs || 0,
+      gsKt: a.gs ? a.gs * 1.94384 : 0,
+      track: a.track || 0,
+      time: a.time || a.last_contact || 0,
+      callsign: a.callsign || "n/a",
+      airline: "n/a",
+      origin: "n/a",
+      destination: "n/a",
+      statusAirLabs: null
+    });
+  });
 
   airlabsList.forEach(f => {
     if (!f.icao) return;
@@ -137,14 +165,14 @@ function mergeSources(aliveList, airlabsList) {
 export async function fetchAroundAirport(airportKey) {
   const ap = airports[airportKey];
 
-  const alive = await fetchAirplanesLive(ap);
+  const alive = await fetchFids(ap.lat, ap.lon, ap.radius || 120);
   const airlabs = await fetchAirLabs(ap);
 
   return mergeSources(alive, airlabs);
 }
 
 /****************************************************
- * FIDS Airbus ECAM — Mise à jour (partie 2)
+ * FIDS Airbus ECAM — Statut CSS
  ****************************************************/
 function statusClass(status) {
   return {
@@ -154,6 +182,9 @@ function statusClass(status) {
   }[status] || "";
 }
 
+/****************************************************
+ * FIDS Airbus ECAM — Mise à jour
+ ****************************************************/
 export async function updateFidsFlights(airportKey) {
 
   if (fidsFilter !== "ALL" && fidsFilter !== airportKey) return;
@@ -180,16 +211,16 @@ export async function updateFidsFlights(airportKey) {
   const departures = [];
 
   aircraft.forEach(a => {
+    if (!a.lat || !a.lon) return;
+
     const distNm = distanceNm(a.lat, a.lon, ap.lat, ap.lon);
     const status = classifyArrivalDeparture(a.track, a.lat, a.lon, airportKey);
 
-    if (a.lat && a.lon) {
-      pushHistory(a.icao, a.lat, a.lon, a.gsKt, a.altFt, a.track);
-    }
+    pushHistory(a.icao, a.lat, a.lon, a.gsKt, a.altFt, a.track);
 
     const row = {
       icao: a.icao,
-      time: a.time,
+      time: formatTime(a.time),
       callsign: a.callsign,
       airline: a.airline || "n/a",
       origin: a.origin || "n/a",
@@ -248,7 +279,7 @@ export async function updateFidsFlights(airportKey) {
       };
 
       showOptimizedAdsbTrajectory(f.icao);
-      updateNdAirbus([f]); // ND centré sur l’avion sélectionné
+      updateNdAirbus([f]);
     });
 
     arrTbody.appendChild(tr);
@@ -354,4 +385,3 @@ export function startFidsLive() {
     updateFidsFlights("EBLG");
   }, 30000);
 }
-
