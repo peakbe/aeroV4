@@ -362,12 +362,17 @@ function computeWindComponents(runwayHeading, windDir, windSpeed) {
  ****************************************************/
 export async function updateRunwayPanel(airportKey) {
   const ap = airports[airportKey];
-  const runway = ap.activeRunway; // déjà fourni par ton config.js
+  const runway = ap.activeRunway;
 
   const metar = await fetchMetar(airportKey);
   if (!metar || !runway) return;
 
-  const runwayHeading = runway.heading; // ex: RWY 24 → 240°
+  /***********************
+   * ND AIRBUS — Vent WX
+   ***********************/
+  drawWindOnNd(airportKey, metar);
+
+  const runwayHeading = runway.heading;
   const windDir = metar.wind_dir === "VRB" ? null : Number(metar.wind_dir);
   const windSpeed = Number(metar.wind_speed || 0);
 
@@ -387,6 +392,7 @@ export async function updateRunwayPanel(airportKey) {
     ANGLE ${angle}°
   `;
 }
+
 
 /****************************************************
  * Intégration dans le mode LIVE
