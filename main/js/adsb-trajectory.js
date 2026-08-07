@@ -1,13 +1,14 @@
 /****************************************************
  * ADS-B TRAJECTORY — PRO+++
  * Dégradé vitesse + flèches directionnelles + labels
- * Multi-avions simultanés — Airplanes.live + Leaflet
+ * Future path Airbus + multi-avions simultanés
  ****************************************************/
 
 window.adsbHistory = window.adsbHistory || {};
 window.adsbTrajectories = window.adsbTrajectories || {};
 window.adsbLabels = window.adsbLabels || {};
 window.adsbArrows = window.adsbArrows || {};
+window.adsbFuturePath = window.adsbFuturePath || {};
 
 /****************************************************
  * Ajout d’un point dans l’historique
@@ -18,13 +19,7 @@ export function pushHistory(icao, lat, lon, gsKt, altFt, track) {
   const key = String(icao);
   if (!window.adsbHistory[key]) window.adsbHistory[key] = [];
 
-  window.adsbHistory[key].push({
-    lat,
-    lon,
-    gsKt,
-    altFt,
-    track
-  });
+  window.adsbHistory[key].push({ lat, lon, gsKt, altFt, track });
 
   if (window.adsbHistory[key].length > 150) {
     window.adsbHistory[key].shift();
@@ -81,7 +76,7 @@ function speedColor(gsKt) {
  * Flèche directionnelle (heading)
  ****************************************************/
 function createArrow(lat, lon, track) {
-  const size = 0.03; // taille flèche ND Airbus
+  const size = 0.03;
   const angle = track * Math.PI / 180;
 
   const dx = size * Math.sin(angle);
@@ -117,6 +112,33 @@ function createLabel(lat, lon, gsKt, altFt) {
 }
 
 /****************************************************
+ * Future path Airbus (vecteurs prédictifs)
+ ****************************************************/
+function computeFuturePath(lat, lon, trackDeg, gsKt, minutes = 5, stepSec = 30) {
+  const R = 6371000;
+  const track = trackDeg * Math.PI / 180;
+  const gsMs = gsKt * 0.514444;
+
+  const points = [];
+  for (let t = stepSec; t <= minutes * 60; t += stepSec) {
+    const d = gsMs * t;
+    const dByR = d / R;
+
+    const lat2 = Math.asin(
+      Math.sin(lat * Math.PI/180) * Math.cos(dByR) +
+      Math.cos(lat * Math.PI/180) * Math.sin(dByR) * Math.cos(track)
+    );
+    const lon2 = lon * Math.PI/180 + Math.atan2(
+      Math.sin(track) * Math.sin(dByR) * Math.cos(lat * Math.PI/180),
+      Math.cos(dByR) - Math.sin(lat * Math.PI/180) * Math.sin(lat2)
+    );
+
+    points.push([lat2 * 180/Math.PI, lon2 * 180/Math.PI]);
+  }
+  return points;
+}
+
+/****************************************************
  * Construction polyligne multi-avions
  ****************************************************/
 export function showOptimizedAdsbTrajectory(icao) {
@@ -125,85 +147,45 @@ export function showOptimizedAdsbTrajectory(icao) {
 
   if (!history || history.length < 2) return;
 
-  // Filtrage
-  let pts = filterPoints(history);
-
-  // Lissage
-  pts = smoothPoints(pts);
-
-  // Conversion Leaflet
+  let pts = smoothPoints(filterPoints(history));
   const latlngs = pts.map(p => [p.lat, p.lon]);
 
-  // Couleur selon vitesse moyenne
+  const last = pts[pts.length - 1];
   const avgSpeed = pts.reduce((a, p) => a + (p.gsKt || 0), 0) / pts.length;
   const color = speedColor(avgSpeed);
 
-  // Supprimer ancienne trajectoire de cet avion
+  /****************************************************
+   * Future path Airbus
+   ****************************************************/
+  const futurePath = computeFuturePath(last.lat, last.lon, last.track, last.gsKt);
+
+  if (window.adsbFuturePath[key]) {
+    window.ndMap.removeLayer(window.adsbFuturePath[key]);
+  }
+
+  window.adsbFuturePath[key] = window.L.polyline(futurePath, {
+    color: "#8888ff",
+    weight: 2,
+    dashArray: "4,4",
+    opacity: 0.7
+  }).addTo(window.ndMap);
+
+  /****************************************************
+   * Trajectoire principale (dégradé vitesse)
+   ****************************************************/
   if (window.adsbTrajectories[key]) {
     window.ndMap.removeLayer(window.adsbTrajectories[key]);
   }
 
-  // Nouvelle trajectoire
-  const poly = window.L.polyline(latlngs, {
+  window.adsbTrajectories[key] = window.L.polyline(latlngs, {
     color,
     weight: 3,
     opacity: 0.85
   }).addTo(window.ndMap);
 
-  window.adsbTrajectories[key] = poly;
-
-  // Vecteurs prédictifs (future path)
-const future = computeFuturePath(last.lat, last.lon, last.track, last.gsKt);
-window.L.polyline(future, {
-  color: "#8888ff",
-  weight: 2,
-  dashArray: "4,4",
-  opacity: 0.7
-}).addTo(window.ndMap);
-  
   /****************************************************
-   * Flèche directionnelle (heading)
+   * Flèche directionnelle
    ****************************************************/
-  const last = pts[pts.length - 1];
-
-  /****************************************************
- * VECTEURS PREDICTIFS — FUTURE PATH (Airbus style)
- ****************************************************/
-/****************************************************
- * VECTEURS PREDICTIFS — FUTURE PATH (Airbus style)
- ****************************************************/
-const futurePath = computeFuturePath(
-  last.lat,
-  last.lon,
-  last.track,
-  last.gsKt,
-  5,      // minutes de projection
-  30      // pas de 30 secondes
-);
-
-window.adsbFuturePath = window.adsbFuturePath || {};
-
-if (window.adsbFuturePath[key]) {
-  window.ndMap.removeLayer(window.adsbFuturePath[key]);
-}
-
-window.adsbFuturePath[key] = window.L.polyline(futurePath, {
-  color: "#8888ff",
-  weight: 2,
-  dashArray: "4,4",
-  opacity: 0.7
-}).addTo(window.ndMap);
-
-
-  // Polyligne principale (dégradé vitesse)
-const poly = window.L.polyline(latlngs, {
-  color,
-  weight: 3,
-  opacity: 0.85
-}).addTo(window.ndMap);
-window.adsbTrajectories[key] = poly;
-
-  // Flèche directionnelle
   const arrowCoords = createArrow(last.lat, last.lon, last.track);
 
   if (window.adsbArrows[key]) {
