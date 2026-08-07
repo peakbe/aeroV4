@@ -169,7 +169,10 @@ window.L.polyline(future, {
   /****************************************************
  * VECTEURS PREDICTIFS — FUTURE PATH (Airbus style)
  ****************************************************/
-const future = computeFuturePath(
+/****************************************************
+ * VECTEURS PREDICTIFS — FUTURE PATH (Airbus style)
+ ****************************************************/
+const futurePath = computeFuturePath(
   last.lat,
   last.lon,
   last.track,
@@ -178,17 +181,19 @@ const future = computeFuturePath(
   30      // pas de 30 secondes
 );
 
-if (window.adsbFuturePath && window.adsbFuturePath[key]) {
+window.adsbFuturePath = window.adsbFuturePath || {};
+
+if (window.adsbFuturePath[key]) {
   window.ndMap.removeLayer(window.adsbFuturePath[key]);
 }
 
-window.adsbFuturePath = window.adsbFuturePath || {};
-window.adsbFuturePath[key] = window.L.polyline(future, {
+window.adsbFuturePath[key] = window.L.polyline(futurePath, {
   color: "#8888ff",
   weight: 2,
   dashArray: "4,4",
   opacity: 0.7
 }).addTo(window.ndMap);
+
 
   // Polyligne principale (dégradé vitesse)
 const poly = window.L.polyline(latlngs, {
