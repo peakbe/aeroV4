@@ -91,11 +91,10 @@ export function setFidsFilter(filter) {
 }
 
 /****************************************************
- * Fetch OpenSky (API directe)
+ * Fetch Airlines.live (API directe)
  ****************************************************/
 async function fetchOpenSky(ap) {
-  const url = "https://opensky-proxy-xqu0.onrender.com/states";
-
+  const url = "https://api.airplanes.live/v2/lat/50.5/lon/5.5/dist/100";
 
   try {
     const r = await fetch(url);
@@ -145,12 +144,12 @@ async function fetchAirLabs(ap) {
   }
 }
 /****************************************************
- * Fusion OpenSky + AirLabs
+ * Fusion Airplanes.live + AirLabs
  ****************************************************/
 function mergeSources(osList, alList) {
   const map = new Map();
 
-  // OpenSky → base
+  // Airplanes.live → base
   osList.forEach(a => {
     map.set(a.icao, {
       icao: a.icao,
