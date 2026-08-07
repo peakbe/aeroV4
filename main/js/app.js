@@ -153,8 +153,6 @@ function updatePFD(airportKey, metar, ilsData) {
 /****************************************************
  * Processus principal par aéroport — Version PRO+++
  ****************************************************/
-import { drawWindOnNd } from "./adsb-trajectory.js";   // 🔥 CORRECTION IMPORT
-
 export async function processAirport(airportKey) {
 
   airports.current = airportKey;   // 🔥 remplace window.currentAirportKey
