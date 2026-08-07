@@ -3,18 +3,35 @@
  ****************************************************/
 export function updateRunwayHUD(ap, windDir, windSpd) {
 
+  // Fallback ICAO
+  const airportKey = ap.icao || ap.code || ap.name || "EBCI";
+
   const hud = document.getElementById(
-    ap.icao === "EBCI" ? "runway-ebci" : "runway-eblg"
+    airportKey === "EBCI" ? "runway-ebci" : "runway-eblg"
   );
   if (!hud) return;
 
   const active = ap.activeRunway;
-  if (!active) return;
 
-  const runwayName = active.name;
-  const headwind = active.headwind;
-  const crosswind = active.crosswind;
-  const angle = active.angle;
+  // Si pas de piste active → affichage minimal
+  if (!active) {
+    hud.innerHTML = `
+      <div class="hud-runway-block">
+        <div class="hud-title">RUNWAY n/a</div>
+        <div class="hud-wind">METAR incomplete</div>
+      </div>
+    `;
+    return;
+  }
+
+  const runwayName = active.name ?? "n/a";
+  const headwind = active.headwind ?? 0;
+  const crosswind = active.crosswind ?? 0;
+  const angle = active.angle ?? 0;
+
+  // Fallback METAR
+  const wDir = windDir ?? "VRB";
+  const wSpd = windSpd ?? 0;
 
   /****************************************************
    * Classification avionique (Airbus)
@@ -36,7 +53,7 @@ export function updateRunwayHUD(ap, windDir, windSpd) {
       <div class="hud-wind">
         <span class="hud-label">WIND</span>
         <span class="hud-value" style="color:${windColor}">
-          ${windDir}° / ${windSpd} kt
+          ${wDir}° / ${wSpd} kt
         </span>
       </div>
 
