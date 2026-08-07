@@ -91,27 +91,30 @@ export function setFidsFilter(filter) {
 }
 
 /****************************************************
- * Fetch Airlines.live (API directe)
+ * Fetch Airplanes.live (API ADS-B)
  ****************************************************/
-async function fetchOpenSky(ap) {
-  const url = "https://api.airplanes.live/v2/lat/50.5/lon/5.5/dist/100";
+async function fetchAirplanesLive(ap) {
+  const url = `https://api.airplanes.live/v2/lat/${ap.lat}/lon/${ap.lon}/dist/120`;
 
   try {
     const r = await fetch(url);
     const data = await r.json();
 
-    if (!data.states) return [];
+    if (!data.ac) return [];
 
-    return data.states
-      .map(s => ({
-        icao: s[0],
-        callsign: s[1],
-        originCountry: s[2],
-        lon: s[5],
-        lat: s[6],
-        altFt: Math.round(s[7] || 0),
-        gsKt: Math.round(s[9] || 0),
-        track: Math.round(s[10] || 0)
+    return data.ac
+      .map(ac => ({
+        icao: ac.hex,
+        callsign: ac.flight || "n/a",
+        originCountry: ac.r || "n/a",
+        lat: ac.lat,
+        lon: ac.lon,
+        altFt: Math.round(ac.alt_baro || 0),
+        gsKt: Math.round(ac.gs || 0),
+        gsMs: (ac.gs || 0) * 0.514444,
+        track: Math.round(ac.track || 0),
+        type: ac.type || "n/a",
+        time: formatTime(Math.floor(Date.now() / 1000))
       }))
       .filter(a => a.lat && a.lon);
   } catch {
@@ -120,7 +123,7 @@ async function fetchOpenSky(ap) {
 }
 
 /****************************************************
- * Fetch AirLabs (API directe)
+ * Fetch AirLabs (API enrichissement)
  ****************************************************/
 async function fetchAirLabs(ap) {
   const url = `https://airlabs.co/api/v9/flights?api_key=04cb1c09-8abb-468a-95fa-ee90c3c2b651`;
@@ -133,46 +136,36 @@ async function fetchAirLabs(ap) {
 
     return data.response.map(f => ({
       icao: f.hex,
-      callsign: f.flight_iata,
-      airline: f.airline_iata,
-      origin: f.dep_iata,
-      destination: f.arr_iata,
-      status: f.status
+      callsign: f.flight_iata || f.flight_icao || "n/a",
+      airline: f.airline_iata || f.airline_icao || "n/a",
+      origin: f.dep_iata || "n/a",
+      destination: f.arr_iata || "n/a",
+      status: f.status || "n/a"
     }));
   } catch {
     return [];
   }
 }
+
 /****************************************************
  * Fusion Airplanes.live + AirLabs
  ****************************************************/
-function mergeSources(osList, alList) {
+function mergeSources(aliveList, airlabsList) {
   const map = new Map();
 
   // Airplanes.live → base
-  osList.forEach(a => {
-    map.set(a.icao, {
-      icao: a.icao,
-      callsign: a.callsign || "n/a",
-      originCountry: a.originCountry || "n/a",
-      lat: a.lat,
-      lon: a.lon,
-      altFt: a.altFt,
-      gsKt: a.gsKt,
-      gsMs: a.gsKt * 0.514444,
-      track: a.track,
-      time: formatTime(Math.floor(Date.now() / 1000))
-    });
+  aliveList.forEach(a => {
+    map.set(a.icao, { ...a });
   });
 
   // AirLabs → enrichissement
-  alList.forEach(f => {
+  airlabsList.forEach(f => {
     if (map.has(f.icao)) {
       const a = map.get(f.icao);
-      a.airline = f.airline || "n/a";
-      a.origin = f.origin || "n/a";
-      a.destination = f.destination || "n/a";
-      a.statusAirLabs = f.status || "n/a";
+      a.airline = f.airline;
+      a.origin = f.origin;
+      a.destination = f.destination;
+      a.statusAirLabs = f.status;
     }
   });
 
@@ -180,15 +173,15 @@ function mergeSources(osList, alList) {
 }
 
 /****************************************************
- * Pipeline simplifié : OpenSky + AirLabs
+ * Pipeline principal : Airplanes.live + AirLabs
  ****************************************************/
 async function fetchAroundAirport(airportKey) {
   const ap = airports[airportKey];
 
-  const os = await fetchOpenSky(ap);
-  const al = await fetchAirLabs(ap);
+  const alive = await fetchAirplanesLive(ap);
+  const airlabs = await fetchAirLabs(ap);
 
-  return mergeSources(os, al);
+  return mergeSources(alive, airlabs);
 }
 
 /****************************************************
@@ -230,7 +223,9 @@ export async function updateFidsFlights(airportKey) {
       icao: a.icao,
       time: a.time,
       callsign: a.callsign,
-      originCountry: a.originCountry,
+      airline: a.airline || "n/a",
+      origin: a.origin || "n/a",
+      destination: a.destination || "n/a",
       distNm: distNm.toFixed(1),
       altFt: Number(a.altFt).toFixed(0),
       gsMs: a.gsMs.toFixed(1),
@@ -245,88 +240,97 @@ export async function updateFidsFlights(airportKey) {
     else if (status === "DEP") departures.push(row);
   });
 
-  /****************************************************
-   * ARRIVALS
-   ****************************************************/
-  arrivals.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
+  // Mise à jour ND Airbus
+  updateNdAirbus(aircraft);
 
-  arrivals.forEach(f => {
-    const tr = document.createElement("tr");
-    tr.className = "fids-row";
+  // Affichage FIDS
+  arrivals.forEach(a => addFidsRow(arrTbody, a));
+  departures.forEach(a => addFidsRow(depTbody, a));
+}
 
-    tr.innerHTML = `
-      <div>${f.time}</div>
-      <div>${f.callsign}</div>
-      <div>${f.originCountry}</div>
-      <div>${f.distNm}</div>
-      <div>${f.altFt}</div>
-      <div>${f.gsKt}</div>
-      <div>${f.gsMs}</div>
-      <div>${f.track}</div>
-      <div class="${statusClass(f.status)}">${f.status}</div>
-    `;
+ /****************************************************
+ * ARRIVALS
+ ****************************************************/
+arrivals.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
 
-    tr.addEventListener("click", () => {
-      document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
-      tr.classList.add("fids-selected");
+arrivals.forEach(f => {
+  const tr = document.createElement("tr");
+  tr.className = "fids-row";
 
-      airports[airportKey].aircraft.lat   = f.lat;
-      airports[airportKey].aircraft.lon   = f.lon;
-      airports[airportKey].aircraft.altFt = Number(f.altFt);
-      airports[airportKey].aircraft.hdg   = Number(f.track);
-      airports[airportKey].aircraft.gs    = Number(f.gsKt);
+  tr.innerHTML = `
+    <div>${f.time}</div>
+    <div>${f.callsign}</div>
+    <div>${f.airline || "n/a"}</div>
+    <div>${f.origin || "n/a"}</div>
+    <div>${f.distNm}</div>
+    <div>${f.altFt}</div>
+    <div>${f.gsKt}</div>
+    <div>${f.gsMs}</div>
+    <div>${f.track}</div>
+    <div class="${statusClass(f.status)}">${f.status}</div>
+  `;
 
-      showOptimizedAdsbTrajectory(f.icao);
-      updateNdAirbus(airportKey);
-    });
+  tr.addEventListener("click", () => {
+    document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
+    tr.classList.add("fids-selected");
 
-    arrTbody.appendChild(tr);
+    airports[airportKey].aircraft.lat   = f.lat;
+    airports[airportKey].aircraft.lon   = f.lon;
+    airports[airportKey].aircraft.altFt = Number(f.altFt);
+    airports[airportKey].aircraft.hdg   = Number(f.track);
+    airports[airportKey].aircraft.gs    = Number(f.gsKt);
+
+    showOptimizedAdsbTrajectory(f.icao);
+    updateNdAirbus(airportKey);
   });
 
-  /****************************************************
-   * DEPARTURES
-   ****************************************************/
-  departures.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
+  arrTbody.appendChild(tr);
+});
 
-  departures.forEach(f => {
-    const tr = document.createElement("tr");
-    tr.className = "fids-row";
+/****************************************************
+ * DEPARTURES
+ ****************************************************/
+departures.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
 
-    tr.innerHTML = `
-      <div>${f.time}</div>
-      <div>${f.callsign}</div>
-      <div>${f.originCountry}</div>
-      <div>${f.distNm}</div>
-      <div>${f.altFt}</div>
-      <div>${f.gsKt}</div>
-      <div>${f.gsMs}</div>
-      <div>${f.track}</div>
-      <div class="${statusClass(f.status)}">${f.status}</div>
-    `;
+departures.forEach(f => {
+  const tr = document.createElement("tr");
+  tr.className = "fids-row";
 
-    tr.addEventListener("click", () => {
-      document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
-      tr.classList.add("fids-selected");
+  tr.innerHTML = `
+    <div>${f.time}</div>
+    <div>${f.callsign}</div>
+    <div>${f.airline || "n/a"}</div>
+    <div>${f.origin || "n/a"}</div>
+    <div>${f.distNm}</div>
+    <div>${f.altFt}</div>
+    <div>${f.gsKt}</div>
+    <div>${f.gsMs}</div>
+    <div>${f.track}</div>
+    <div class="${statusClass(f.status)}">${f.status}</div>
+  `;
 
-      airports[airportKey].aircraft.lat   = f.lat;
-      airports[airportKey].aircraft.lon   = f.lon;
-      airports[airportKey].aircraft.altFt = Number(f.altFt);
-      airports[airportKey].aircraft.hdg   = Number(f.track);
-      airports[airportKey].aircraft.gs    = Number(f.gsKt);
+  tr.addEventListener("click", () => {
+    document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
+    tr.classList.add("fids-selected");
 
-      showOptimizedAdsbTrajectory(f.icao);
-      updateNdAirbus(airportKey);
-    });
+    airports[airportKey].aircraft.lat   = f.lat;
+    airports[airportKey].aircraft.lon   = f.lon;
+    airports[airportKey].aircraft.altFt = Number(f.altFt);
+    airports[airportKey].aircraft.hdg   = Number(f.track);
+    airports[airportKey].aircraft.gs    = Number(f.gsKt);
 
-    depTbody.appendChild(tr);
+    showOptimizedAdsbTrajectory(f.icao);
+    updateNdAirbus(airportKey);
   });
 
-  if (arrivals.length === 0) {
-    arrTbody.innerHTML = "<tr><td colspan='9'>No arrivals</td></tr>";
-  }
-  if (departures.length === 0) {
-    depTbody.innerHTML = "<tr><td colspan='9'>No departures</td></tr>";
-  }
+  depTbody.appendChild(tr);
+});
+
+if (arrivals.length === 0) {
+  arrTbody.innerHTML = "<tr><td colspan='9'>No arrivals</td></tr>";
+}
+if (departures.length === 0) {
+  depTbody.innerHTML = "<tr><td colspan='9'>No departures</td></tr>";
 }
 
 /****************************************************
