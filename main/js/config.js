@@ -4,6 +4,7 @@
 
 export const AIRLABS_API_KEY = "04cb1c09-8abb-468a-95fa-ee90c3c2b651";
 export const AVWX_API_KEY = "ersegQzkf2Dfal-o26B4b5uzMrXBeHK2jOpOaY7nffc";
+
 export const airports = {
 
   /****************************************************
@@ -15,20 +16,14 @@ export const airports = {
     lat: 50.459,
     lon: 4.453,
 
-    /****************************************************
-     * Aircraft — ND Airbus defaults
-     ****************************************************/
     aircraft: {
-      lat: 50.4600,
-      lon: 4.4600,
-      altFt: 3000,
-      hdg: 240,
-      gs: 140
+      lat: 50.459,
+      lon: 4.453,
+      altFt: 0,
+      hdg: 0,
+      gs: 0
     },
 
-    /****************************************************
-     * Runways — ND / PFD harmonisées
-     ****************************************************/
     runways: [
       {
         name: "24",
@@ -44,21 +39,14 @@ export const airports = {
       }
     ],
 
-    /****************************************************
-     * ILS — Airbus ND harmonisé
-     ****************************************************/
     ils: {
       localizer: {
         lat: 50.456430,
-        lon: 4.468300,
-        dirLat: 0.0100,
-        dirLon: -0.0300
+        lon: 4.468300
       },
       glideSlope: {
         lat: 50.456430,
-        lon: 4.468300,
-        dirLat: 0.0050,
-        dirLon: -0.0150
+        lon: 4.468300
       }
     }
   },
@@ -72,20 +60,14 @@ export const airports = {
     lat: 50.637,
     lon: 5.443,
 
-    /****************************************************
-     * Aircraft — ND Airbus defaults
-     ****************************************************/
     aircraft: {
-      lat: 50.6400,
-      lon: 5.4500,
-      altFt: 2800,
-      hdg: 220,
-      gs: 150
+      lat: 50.637,
+      lon: 5.443,
+      altFt: 0,
+      hdg: 0,
+      gs: 0
     },
 
-    /****************************************************
-     * Runways — ND / PFD harmonisées
-     ****************************************************/
     runways: [
       {
         name: "22",
@@ -101,21 +83,14 @@ export const airports = {
       }
     ],
 
-    /****************************************************
-     * ILS — Airbus ND harmonisé
-     ****************************************************/
     ils: {
       localizer: {
         lat: 50.631900,
-        lon: 5.438200,
-        dirLat: 0.0150,
-        dirLon: 0.0300
+        lon: 5.438200
       },
       glideSlope: {
         lat: 50.631900,
-        lon: 5.438200,
-        dirLat: 0.0070,
-        dirLon: 0.0150
+        lon: 5.438200
       }
     }
   }
