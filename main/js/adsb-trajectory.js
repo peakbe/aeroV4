@@ -1,14 +1,12 @@
 /****************************************************
  * ADS-B TRAJECTORY — PRO+++
- * Dégradé vitesse + flèches directionnelles + labels
- * Future path Airbus + multi-avions simultanés
  ****************************************************/
 
-window.adsbHistory = window.adsbHistory || {};
-window.adsbTrajectories = window.adsbTrajectories || {};
-window.adsbLabels = window.adsbLabels || {};
-window.adsbArrows = window.adsbArrows || {};
-window.adsbFuturePath = window.adsbFuturePath || {};
+export const adsbHistory = {};
+export const adsbTrajectories = {};
+export const adsbLabels = {};
+export const adsbArrows = {};
+export const adsbFuturePath = {};
 
 /****************************************************
  * Ajout d’un point dans l’historique
@@ -17,12 +15,12 @@ export function pushHistory(icao, lat, lon, gsKt, altFt, track) {
   if (!icao || lat == null || lon == null) return;
 
   const key = String(icao);
-  if (!window.adsbHistory[key]) window.adsbHistory[key] = [];
+  if (!adsbHistory[key]) adsbHistory[key] = [];
 
-  window.adsbHistory[key].push({ lat, lon, gsKt, altFt, track });
+  adsbHistory[key].push({ lat, lon, gsKt, altFt, track });
 
-  if (window.adsbHistory[key].length > 150) {
-    window.adsbHistory[key].shift();
+  if (adsbHistory[key].length > 150) {
+    adsbHistory[key].shift();
   }
 }
 
@@ -65,15 +63,15 @@ function smoothPoints(points) {
  * Dégradé couleur vitesse
  ****************************************************/
 function speedColor(gsKt) {
-  if (gsKt < 120) return "#00aaff";   // bleu
-  if (gsKt < 250) return "#00ffff";   // cyan
-  if (gsKt < 350) return "#00ff55";   // vert
-  if (gsKt < 450) return "#ffee00";   // jaune
-  return "#ff3300";                   // rouge
+  if (gsKt < 120) return "#00aaff";
+  if (gsKt < 250) return "#00ffff";
+  if (gsKt < 350) return "#00ff55";
+  if (gsKt < 450) return "#ffee00";
+  return "#ff3300";
 }
 
 /****************************************************
- * Flèche directionnelle (heading)
+ * Flèche directionnelle
  ****************************************************/
 function createArrow(lat, lon, track) {
   const size = 0.03;
@@ -89,11 +87,11 @@ function createArrow(lat, lon, track) {
 }
 
 /****************************************************
- * Labels vitesse + altitude
+ * Label vitesse + altitude
  ****************************************************/
 function createLabel(lat, lon, gsKt, altFt) {
-  return window.L.marker([lat, lon], {
-    icon: window.L.divIcon({
+  return L.marker([lat, lon], {
+    icon: L.divIcon({
       className: "adsb-label",
       html: `
         <div style="
@@ -112,7 +110,7 @@ function createLabel(lat, lon, gsKt, altFt) {
 }
 
 /****************************************************
- * Future path Airbus (vecteurs prédictifs)
+ * Future path Airbus
  ****************************************************/
 function computeFuturePath(lat, lon, trackDeg, gsKt, minutes = 5, stepSec = 30) {
   const R = 6371000;
@@ -139,69 +137,9 @@ function computeFuturePath(lat, lon, trackDeg, gsKt, minutes = 5, stepSec = 30) 
 }
 
 /****************************************************
- * Construction polyligne multi-avions
+ * ND AIRBUS — Vent METAR
  ****************************************************/
-export function showOptimizedAdsbTrajectory(icao) {
-  const key = String(icao);
-  const history = window.adsbHistory[key];
-
-  if (!history || history.length < 2) return;
-
-  let pts = smoothPoints(filterPoints(history));
-  const latlngs = pts.map(p => [p.lat, p.lon]);
-
-  const last = pts[pts.length - 1];
-  const avgSpeed = pts.reduce((a, p) => a + (p.gsKt || 0), 0) / pts.length;
-  const color = speedColor(avgSpeed);
-
-  /****************************************************
-   * Future path Airbus
-   ****************************************************/
-  const futurePath = computeFuturePath(last.lat, last.lon, last.track, last.gsKt);
-
-  if (window.adsbFuturePath[key]) {
-    window.ndMap.removeLayer(window.adsbFuturePath[key]);
-  }
-
-  window.adsbFuturePath[key] = window.L.polyline(futurePath, {
-    color: "#8888ff",
-    weight: 2,
-    dashArray: "4,4",
-    opacity: 0.7
-  }).addTo(window.ndMap);
-
-  /****************************************************
-   * Trajectoire principale (dégradé vitesse)
-   ****************************************************/
-  if (window.adsbTrajectories[key]) {
-    window.ndMap.removeLayer(window.adsbTrajectories[key]);
-  }
-
-  window.adsbTrajectories[key] = window.L.polyline(latlngs, {
-    color,
-    weight: 3,
-    opacity: 0.85
-  }).addTo(window.ndMap);
-
-  /****************************************************
-   * Flèche directionnelle
-   ****************************************************/
-  const arrowCoords = createArrow(last.lat, last.lon, last.track);
-
-  if (window.adsbArrows[key]) {
-    window.ndMap.removeLayer(window.adsbArrows[key]);
-  }
-
-  window.adsbArrows[key] = window.L.polyline(arrowCoords, {
-    color: "#ffffff",
-    weight: 2,
-    opacity: 0.9
-  }).addTo(window.ndMap);
-
- /****************************************************
- * ND AIRBUS — Vecteur de vent (METAR AVWX)
- ****************************************************/
-function drawWindOnNd(airportKey, metar) {
+export function drawWindOnNd(airportKey, metar) {
   if (!window.ndMap || !window.L || !metar) return;
 
   const ap = airports[airportKey];
@@ -210,7 +148,7 @@ function drawWindOnNd(airportKey, metar) {
 
   if (!dir || !speed) return;
 
-  const len = 0.08; // longueur du vecteur vent
+  const len = 0.08;
   const angle = dir * Math.PI / 180;
 
   const dx = len * Math.sin(angle);
@@ -219,20 +157,17 @@ function drawWindOnNd(airportKey, metar) {
   const start = [ap.lat, ap.lon];
   const end = [ap.lat + dy, ap.lon + dx];
 
-  // Supprimer ancien vecteur vent
-  window.ndWindVector = window.ndWindVector || {};
-  if (window.ndWindVector[airportKey]) {
+  if (window.ndWindVector?.[airportKey]) {
     window.ndMap.removeLayer(window.ndWindVector[airportKey]);
   }
 
-  // Dessiner vecteur vent
-  window.ndWindVector[airportKey] = window.L.polyline([start, end], {
+  window.ndWindVector = window.ndWindVector || {};
+  window.ndWindVector[airportKey] = L.polyline([start, end], {
     color: "#ffcc00",
     weight: 4,
     opacity: 0.9
   }).addTo(window.ndMap);
 
-  // Label vent
   const labelHtml = `
     <div style="
       color:white;
@@ -246,30 +181,74 @@ function drawWindOnNd(airportKey, metar) {
     </div>
   `;
 
-  window.ndWindLabel = window.ndWindLabel || {};
-  if (window.ndWindLabel[airportKey]) {
+  if (window.ndWindLabel?.[airportKey]) {
     window.ndMap.removeLayer(window.ndWindLabel[airportKey]);
   }
 
-  window.ndWindLabel[airportKey] = window.L.marker(start, {
-    icon: window.L.divIcon({
+  window.ndWindLabel = window.ndWindLabel || {};
+  window.ndWindLabel[airportKey] = L.marker(start, {
+    icon: L.divIcon({
       className: "nd-wind-label",
       html: labelHtml
     })
   }).addTo(window.ndMap);
 }
 
-// Rendre la fonction accessible globalement
-window.drawWindOnNd = drawWindOnNd;
+/****************************************************
+ * Trajectoire ADS-B
+ ****************************************************/
+export function showOptimizedAdsbTrajectory(icao) {
+  const key = String(icao);
+  const history = adsbHistory[key];
 
+  if (!history || history.length < 2) return;
 
-  /****************************************************
-   * Label vitesse + altitude
-   ****************************************************/
-  if (window.adsbLabels[key]) {
-    window.ndMap.removeLayer(window.adsbLabels[key]);
+  let pts = smoothPoints(filterPoints(history));
+  const latlngs = pts.map(p => [p.lat, p.lon]);
+
+  const last = pts[pts.length - 1];
+  const avgSpeed = pts.reduce((a, p) => a + (p.gsKt || 0), 0) / pts.length;
+  const color = speedColor(avgSpeed);
+
+  const futurePath = computeFuturePath(last.lat, last.lon, last.track, last.gsKt);
+
+  if (adsbFuturePath[key]) {
+    window.ndMap.removeLayer(adsbFuturePath[key]);
   }
 
-  window.adsbLabels[key] = createLabel(last.lat, last.lon, last.gsKt, last.altFt);
-  window.adsbLabels[key].addTo(window.ndMap);
+  adsbFuturePath[key] = L.polyline(futurePath, {
+    color: "#8888ff",
+    weight: 2,
+    dashArray: "4,4",
+    opacity: 0.7
+  }).addTo(window.ndMap);
+
+  if (adsbTrajectories[key]) {
+    window.ndMap.removeLayer(adsbTrajectories[key]);
+  }
+
+  adsbTrajectories[key] = L.polyline(latlngs, {
+    color,
+    weight: 3,
+    opacity: 0.85
+  }).addTo(window.ndMap);
+
+  const arrowCoords = createArrow(last.lat, last.lon, last.track);
+
+  if (adsbArrows[key]) {
+    window.ndMap.removeLayer(adsbArrows[key]);
+  }
+
+  adsbArrows[key] = L.polyline(arrowCoords, {
+    color: "#ffffff",
+    weight: 2,
+    opacity: 0.9
+  }).addTo(window.ndMap);
+
+  if (adsbLabels[key]) {
+    window.ndMap.removeLayer(adsbLabels[key]);
+  }
+
+  adsbLabels[key] = createLabel(last.lat, last.lon, last.gsKt, last.altFt);
+  adsbLabels[key].addTo(window.ndMap);
 }
