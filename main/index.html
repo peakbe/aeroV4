@@ -14,41 +14,61 @@
 
 <body>
 
-<main>
+<main id="cockpit-grid">
 
-  <!-- COLONNE 1 — CARTE LEAFLET -->
-  <div id="map"></div>
-  
-<div id="nd-map-title">
-  COCKPIT IFR – EBCI / EBLG<br>
-  METAR + AirLabs + Couloir bruit + ND Airbus
-</div>
+  <!-- ========================= -->
+  <!-- COLONNE GAUCHE : ND + PFD -->
+  <!-- ========================= -->
+  <section id="col-left">
 
-  <!-- COLONNE 2 — ND AIRBUS CÔTE À CÔTÉ -->
-  <div id="nd-row">
+    <h2 class="cockpit-title">COCKPIT IFR — EBCI / EBLG</h2>
 
-    <div class="nd-box">
-  <h3 class="mcdu-subtitle">ND Airbus — EBCI</h3>
-  <div id="nd-EBCI"></div>
+    <div class="nd-pfd-row">
 
-  <div class="pfd-box">
-    <canvas id="pfd-canvas-EBCI" width="320" height="240"></canvas>
-  </div>
-</div>
+      <!-- ND + PFD EBCI -->
+      <div class="nd-pfd-box">
+        <h3 class="mcdu-subtitle">ND Airbus — EBCI</h3>
+        <div id="nd-EBCI" class="nd-display"></div>
+
+        <canvas id="pfd-canvas-EBCI"
+                class="pfd-display"
+                width="320" height="240"></canvas>
+      </div>
+
+      <!-- ND + PFD EBLG -->
+      <div class="nd-pfd-box">
+        <h3 class="mcdu-subtitle">ND Airbus — EBLG</h3>
+        <div id="nd-EBLG" class="nd-display"></div>
+
+        <canvas id="pfd-canvas-EBLG"
+                class="pfd-display"
+                width="320" height="240"></canvas>
+      </div>
+
+    </div>
+
+  </section>
 
 
-    <div class="nd-box">
-  <h3 class="mcdu-subtitle">ND Airbus — EBLG</h3>
-  <div id="nd-EBLG"></div>
+  <!-- ========================= -->
+  <!-- COLONNE CENTRALE : CARTE -->
+  <!-- ========================= -->
+  <section id="col-map">
 
-  <div class="pfd-box">
-    <canvas id="pfd-canvas-EBLG" width="320" height="240"></canvas>
-  </div>
-</div>
+    <div id="map"></div>
+
+    <div id="nd-map-title">
+      COCKPIT IFR — EBCI / EBLG<br>
+      METAR + AirLabs + Couloir bruit + ND Airbus
+    </div>
+
+  </section>
 
 
-  <!-- COLONNE 3 — SIDEBAR -->
-  <div id="sidebar">
+  <!-- ========================= -->
+  <!-- COLONNE DROITE : SIDEBAR -->
+  <!-- ========================= -->
+  <aside id="sidebar">
 
     <div class="sidebar-controls">
       <button class="sidebar-btn" data-target="EBCI">EBCI</button>
@@ -63,10 +83,13 @@
       <button class="mcdu-tab" data-tab="tab-logs">LOGS</button>
     </div>
 
-  </div>
+  </aside>
 
-  <!-- COLONNE 4 — PANELS -->
-  <div id="panels-column">
+
+  <!-- ========================= -->
+  <!-- COLONNE PANELS MCDU -->
+  <!-- ========================= -->
+  <section id="panels-column">
 
     <div id="panels">
 
@@ -183,9 +206,10 @@
 
     </div>
 
-  </div>
+  </section>
 
 </main>
+
 
 <!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
