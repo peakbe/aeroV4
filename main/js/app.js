@@ -41,7 +41,7 @@ import { updateRunwayHUD } from "./hud.js";
 
 import { drawPFD } from "./pfd.js";
 
-import { drawWindOnNd } from "./adsb-trajectory.js";   // 🔥 CORRECTION IMPORT
+import { computeWindComponents } from "./wind-components.js";   // ✔ CORRECT
 
 /****************************************************
  * Détection piste active (computeRunway)
@@ -71,7 +71,7 @@ export function computeRunway(airport, windDirDeg, windSpeedKt) {
 
   if (!best) return null;
 
-  const comp = computeWindComponents(windDirDeg, windSpeedKt, best.heading);
+  const comp = computeWindComponents(best.heading, windDirDeg, windSpeedKt);
 
   return {
     name: best.name,
@@ -81,20 +81,6 @@ export function computeRunway(airport, windDirDeg, windSpeedKt) {
     crosswind: comp.crosswind,
     color: runwayColor(comp.crosswind)
   };
-}
-
-function computeWindComponents(windDirDeg, windSpeedKt, runwayHeadingDeg) {
-  if (isNaN(windDirDeg) || isNaN(windSpeedKt) || isNaN(runwayHeadingDeg)) {
-    return { headwind: 0, crosswind: 0, angle: 0 };
-  }
-
-  const angle = Math.abs(((windDirDeg - runwayHeadingDeg + 180) % 360) - 180);
-  const rad = angle * Math.PI / 180;
-
-  const headwind = Math.round(windSpeedKt * Math.cos(rad));
-  const crosswind = Math.round(windSpeedKt * Math.sin(rad));
-
-  return { headwind, crosswind, angle };
 }
 
 /****************************************************
@@ -122,15 +108,12 @@ function updatePFD(airportKey, metar, ilsData) {
 
   if (!canvas) return;
 
-  // Données METAR
   const windDir = Number(metar?.wind_dir) || 0;
   const windSpd = Number(metar?.wind_speed) || 0;
 
-  // Données ILS
   const locDev = ilsData?.locDev || 0;
   const gsDev = ilsData?.gsDev || 0;
 
-  // Données avion (FIDS / ADS-B)
   const ac = airports[airportKey].aircraft || {};
 
   const data = {
@@ -155,7 +138,7 @@ function updatePFD(airportKey, metar, ilsData) {
  ****************************************************/
 export async function processAirport(airportKey) {
 
-  airports.current = airportKey;   // 🔥 remplace window.currentAirportKey
+  airports.current = airportKey;
   const ap = airports[airportKey];
 
   const sonoMode = window.isSonoTab();
@@ -174,8 +157,7 @@ export async function processAirport(airportKey) {
   const windSpd = Number(metar?.wind_speed) || 0;
 
   const rw = computeRunway(ap, windDir, windSpd);
-
-  ap.activeRunway = rw;            // 🔥 remplace window.activeRunway
+  ap.activeRunway = rw;
 
   /***********************
    * 3) METAR / HUD / Rose / Station
@@ -187,11 +169,6 @@ export async function processAirport(airportKey) {
       metar,
       airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
     );
-
-    /***********************
-     * ND AIRBUS — Vent (WX)
-     ***********************/
-    drawWindOnNd(airportKey, metar);   // 🔥 fonctionne maintenant
 
     updateRunwayHUD(ap, windDir, windSpd);
 
@@ -223,4 +200,3 @@ export async function processAirport(airportKey) {
    ***********************/
   updateFidsFlights(airportKey);
 }
-
