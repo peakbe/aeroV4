@@ -1,3 +1,8 @@
+/****************************************************
+ * PROXY RENDER — Airplanes.live → OpenSky → AirLabs
+ * Version PRO+++ robuste, avionique, anti-HTML
+ ****************************************************/
+
 import express from "express";
 import fetch from "node-fetch";
 
@@ -5,16 +10,17 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /****************************************************
- * CORS
+ * CORS global (toutes réponses, même erreurs)
  ****************************************************/
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET");
   next();
 });
 
 /****************************************************
- * Cache backend (anti rate-limit)
+ * Cache backend (anti surcharge)
  ****************************************************/
 const cache = new Map();
 const CACHE_MS = 5000;
@@ -31,50 +37,48 @@ function setCache(key, data) {
 }
 
 /****************************************************
- * Helper : fetch JSON ou détecter HTML
+ * Helper : détecter HTML
  ****************************************************/
-async function safeFetchJson(url) {
-  const r = await fetch(url);
-  const text = await r.text();
-
-  // Airplanes.live / OpenSky / AirLabs renvoient parfois du HTML → erreur
-  if (text.startsWith("<")) {
-    return { error: "HTML_RESPONSE", raw: text };
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    return { error: "INVALID_JSON", raw: text };
-  }
+function isHtml(text) {
+  return text.trim().startsWith("<");
 }
 
 /****************************************************
  * FALLBACK 1 — OpenSky
  ****************************************************/
-async function fetchOpenSky(lat, lon, dist) {
-  const d = dist * 1852; // NM → mètres
-  const latMin = lat - (dist / 60);
-  const latMax = lat + (dist / 60);
-  const lonMin = lon - (dist / 60);
-  const lonMax = lon + (dist / 60);
+async function fetchOpenSky(lat, lon, distNm) {
+  const delta = distNm / 60; // approx deg
+  const bbox = [
+    lat - delta,
+    lon - delta,
+    lat + delta,
+    lon + delta
+  ].join(",");
 
-  const url = `https://opensky-network.org/api/states/all?bbox=${latMin},${lonMin},${latMax},${lonMax}`;
-  const data = await safeFetchJson(url);
+  const url = `https://opensky-network.org/api/states/all?bbox=${bbox}`;
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
 
-  if (data.error) return null;
-  if (!data.states) return null;
+    if (!data.states) return [];
 
-  return data.states.map(s => ({
-    icao: s[0],
-    callsign: s[1],
-    lat: s[6],
-    lon: s[5],
-    altFt: s[13] || 0,
-    gsKt: (s[9] || 0) * 1.94384,
-    track: s[10] || 0,
-    time: s[3]
-  }));
+    return data.states
+      .filter(s => s[6] && s[5])
+      .map(s => ({
+        icao: s[0],
+        callsign: s[1] || "n/a",
+        lat: s[6],
+        lon: s[5],
+        altFt: s[13] || 0,
+        gsKt: (s[9] || 0) * 1.94384,
+        track: s[10] || 0,
+        time: s[3],
+        source: "opensky"
+      }));
+
+  } catch {
+    return [];
+  }
 }
 
 /****************************************************
@@ -82,21 +86,28 @@ async function fetchOpenSky(lat, lon, dist) {
  ****************************************************/
 async function fetchAirLabs() {
   const key = process.env.AIRLABS_KEY;
-  if (!key) return null;
+  if (!key) return [];
 
   const url = `https://airlabs.co/api/v9/flights?api_key=${key}`;
-  const data = await safeFetchJson(url);
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
 
-  if (data.error) return null;
-  if (!data.response) return null;
+    if (!data.response) return [];
 
-  return data.response.map(f => ({
-    icao: f.hex,
-    callsign: f.flight_icao || f.flight_iata,
-    airline: f.airline_icao || f.airline_iata,
-    origin: f.dep_iata,
-    destination: f.arr_iata
-  }));
+    return data.response.map(f => ({
+      icao: f.hex,
+      callsign: f.flight_icao || f.flight_iata || "n/a",
+      airline: f.airline_icao || f.airline_iata || "n/a",
+      origin: f.dep_iata || "n/a",
+      destination: f.arr_iata || "n/a",
+      status: f.status || "n/a",
+      source: "airlabs"
+    }));
+
+  } catch {
+    return [];
+  }
 }
 
 /****************************************************
@@ -105,59 +116,71 @@ async function fetchAirLabs() {
 app.get("/airplanes", async (req, res) => {
   const { lat, lon, dist } = req.query;
 
-  // CORS sur toutes les réponses
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET");
-
   if (!lat || !lon || !dist) {
     return res.status(400).json({ error: "Missing lat/lon/dist" });
   }
 
-  const url = `https://api.airplanes.live/v2/lat/${lat}/lon/${lon}/dist/${dist}`;
+  const cacheKey = `${lat}_${lon}_${dist}`;
+  const cached = getCache(cacheKey);
+  if (cached) return res.json(cached);
+
+  /****************************************************
+   * 1️⃣ Airplanes.live (source principale)
+   ****************************************************/
+  const urlAL = `https://api.airplanes.live/v2/lat/${lat}/lon/${lon}/dist/${dist}`;
 
   try {
-    const r = await fetch(url);
+    const r = await fetch(urlAL);
     const text = await r.text();
 
-    // Airplanes.live renvoie du HTML → fallback
-    if (text.startsWith("<")) {
-      console.log("Airplanes.live DOWN → fallback OpenSky");
-
-      const opensky = await fetchOpenSky(Number(lat), Number(lon), Number(dist));
-      if (opensky?.length > 0) {
-        return res.json({ source: "opensky", ac: opensky });
-      }
-
-      console.log("OpenSky DOWN → fallback AirLabs");
-
-      const airlabs = await fetchAirLabs();
-      if (airlabs?.length > 0) {
-        return res.json({ source: "airlabs", ac: airlabs });
-      }
-
-      return res.status(502).json({
-        error: "ALL_SOURCES_DOWN",
-        details: "Airplanes.live returned HTML, OpenSky empty, AirLabs empty"
-      });
+    if (!isHtml(text)) {
+      const json = JSON.parse(text);
+      setCache(cacheKey, json);
+      return res.json(json);
     }
 
-    // Airplanes.live OK → JSON
-    res.setHeader("Content-Type", "application/json");
-    return res.send(text);
+    console.log("Airplanes.live DOWN → fallback OpenSky");
 
   } catch (err) {
-    return res.status(500).json({
-      error: "Proxy error",
-      details: err.toString()
-    });
+    console.log("Airplanes.live unreachable → fallback OpenSky");
   }
-});
 
+  /****************************************************
+   * 2️⃣ Fallback OpenSky
+   ****************************************************/
+  const opensky = await fetchOpenSky(Number(lat), Number(lon), Number(dist));
+
+  if (opensky.length > 0) {
+    const payload = { source: "opensky", ac: opensky };
+    setCache(cacheKey, payload);
+    return res.json(payload);
+  }
+
+  console.log("OpenSky DOWN → fallback AirLabs");
+
+  /****************************************************
+   * 3️⃣ Fallback AirLabs
+   ****************************************************/
+  const airlabs = await fetchAirLabs();
+
+  if (airlabs.length > 0) {
+    const payload = { source: "airlabs", ac: airlabs };
+    setCache(cacheKey, payload);
+    return res.json(payload);
+  }
+
+  /****************************************************
+   * 4️⃣ Tout DOWN → réponse JSON propre
+   ****************************************************/
+  return res.status(502).json({
+    error: "ALL_SOURCES_DOWN",
+    details: "Airplanes.live returned HTML, OpenSky empty, AirLabs empty"
+  });
+});
 
 /****************************************************
  * START SERVER
  ****************************************************/
 app.listen(PORT, () => {
-  console.log(`Cockpit IFR PRO+++ proxy running on port ${PORT}`);
+  console.log(`Proxy ADS-B PRO+++ running on port ${PORT}`);
 });
