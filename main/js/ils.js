@@ -1,37 +1,41 @@
 /****************************************************
- * ILS — Airbus ND / PFD PRO+++
- * Localizer + Glide Slope + Runway Centerline + HUD
+ * ILS — Legacy module (cleaned)
+ * This module is now deprecated in favor of ils-nd.js
  ****************************************************/
 
 import { airports } from "./config.js";
 import { map } from "./map.js";
 
 /****************************************************
- * 1) Nettoyage des couches ILS
+ * 1) Nettoyage des couches ILS (legacy)
  ****************************************************/
 function clearIlsLayers(ap) {
-  if (ap.ilsLayers) {
-    ap.ilsLayers.forEach(layer => map.removeLayer(layer));
-  }
+  if (!ap.ilsLayers) ap.ilsLayers = [];
+  ap.ilsLayers.forEach(layer => map.removeLayer(layer));
   ap.ilsLayers = [];
 }
 
 /****************************************************
- * 2) Localizer — ND Airbus (bleu cyan)
+ * 2) Localizer — (legacy, simple line)
  ****************************************************/
 function drawLocalizer(ap) {
   const loc = ap.ils?.localizer;
   if (!loc) return;
 
+  // heading → vecteur direction
+  const headingRad = (loc.heading * Math.PI) / 180;
+  const dLat = Math.cos(headingRad) * 0.02;
+  const dLon = Math.sin(headingRad) * 0.02;
+
   const line = L.polyline(
     [
       [loc.lat, loc.lon],
-      [loc.lat + loc.dirLat, loc.lon + loc.dirLon]
+      [loc.lat + dLat, loc.lon + dLon]
     ],
     {
-      color: "#00e5ff",     // Airbus cyan LOC
-      weight: 3,
-      opacity: 0.95
+      color: "#00e5ff",
+      weight: 2,
+      opacity: 0.8
     }
   );
 
@@ -40,21 +44,25 @@ function drawLocalizer(ap) {
 }
 
 /****************************************************
- * 3) Glide Slope — ND Airbus (orange GS)
+ * 3) Glide Slope — (legacy, simple line)
  ****************************************************/
 function drawGlideSlope(ap) {
   const gs = ap.ils?.glideSlope;
   if (!gs) return;
 
+  const angleRad = (gs.angle * Math.PI) / 180;
+  const dLat = Math.cos(angleRad) * 0.02;
+  const dLon = Math.sin(angleRad) * 0.02;
+
   const line = L.polyline(
     [
       [gs.lat, gs.lon],
-      [gs.lat + gs.dirLat, gs.lon + gs.dirLon]
+      [gs.lat + dLat, gs.lon + dLon]
     ],
     {
-      color: "#ffb300",     // Airbus amber GS
-      weight: 3,
-      opacity: 0.9,
+      color: "#ffb300",
+      weight: 2,
+      opacity: 0.8,
       dashArray: "6 6"
     }
   );
@@ -64,11 +72,9 @@ function drawGlideSlope(ap) {
 }
 
 /****************************************************
- * 4) Runway Centerline — ND Airbus (blanc runway)
+ * 4) Runway Centerline — (legacy)
  ****************************************************/
 function drawRunwayCenterline(ap) {
-
-  // ap.activeRunway est un OBJET, pas un nom
   const active = ap.activeRunway;
   if (!active || !active.name) return;
 
@@ -81,8 +87,8 @@ function drawRunwayCenterline(ap) {
       [rw.lat2, rw.lon2]
     ],
     {
-      color: "#ffffff",     // Airbus runway
-      weight: 4,
+      color: "#ffffff",
+      weight: 3,
       opacity: 0.85
     }
   );
@@ -92,28 +98,8 @@ function drawRunwayCenterline(ap) {
 }
 
 /****************************************************
- * 5) HUD Piste Active — Airbus PFD
- ****************************************************/
-export function updateRunwayHUD(ap, windDir, windSpd) {
-
-  const hud = document.getElementById(
-    ap.icao === "EBCI" ? "runway-ebci" : "runway-eblg"
-  );
-  if (!hud) return;
-
-  const active = ap.activeRunway;
-  const runwayName = active?.name || "??";
-
-  hud.innerHTML = `
-    <div class="hud-runway">
-      <strong>Piste active :</strong> ${runwayName}<br>
-      <strong>Vent :</strong> ${windDir}° / ${windSpd} kt
-    </div>
-  `;
-}
-
-/****************************************************
- * 6) Rafraîchissement complet ILS — ND Airbus
+ * 5) Rafraîchissement complet ILS (legacy)
+ * NOTE: ils-nd.js is the official ND Airbus module.
  ****************************************************/
 export function refreshILS() {
   Object.values(airports).forEach(ap => {
