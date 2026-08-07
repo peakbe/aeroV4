@@ -5,8 +5,9 @@
 import { airports, AIRLABS_API_KEY } from "./config.js";
 import { distanceNm } from "./utils.js";
 import { updateNdAirbus } from "./nd-airbus.js";
-import { showOptimizedAdsbTrajectory, pushHistory } from "./adsb-trajectory.js";
+import { showOptimizedAdsbTrajectory, pushHistory, drawWindOnNd } from "./adsb-trajectory.js";
 import { fetchMetar } from "./metar.js";
+import { computeWindComponents } from "./wind-components.js"; // à adapter au bon fichier
 
 /****************************************************
  * Filtre global FIDS
@@ -145,13 +146,6 @@ export async function fetchAroundAirport(airportKey) {
 /****************************************************
  * FIDS Airbus ECAM — Mise à jour (partie 2)
  ****************************************************/
-import { airports } from "./config.js";
-import { fidsFilter, fetchAroundAirport } from "./fids-adsb.js";
-import { updateNdAirbus } from "./nd-airbus.js";
-import { showOptimizedAdsbTrajectory, pushHistory, drawWindOnNd } from "./adsb-trajectory.js";
-import { fetchMetar } from "./metar.js";
-import { computeWindComponents } from "./wind-components.js"; // à adapter au bon fichier
-
 function statusClass(status) {
   return {
     ARR: "fids-status-arr",
