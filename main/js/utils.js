@@ -23,14 +23,20 @@ export function safeSet(id, text) {
 }
 
 /****************************************************
- * 3) DMS → Décimal — IFR
+ * 3) DMS → Décimal — IFR (robuste)
  ****************************************************/
 export function dmsToDecimal(dms) {
-  const parts = dms.split(" ");
+  if (!dms) return null;
+
+  const parts = dms.trim().split(/\s+/);
+  if (parts.length < 4) return null;
+
   const deg = parseFloat(parts[0]);
   const min = parseFloat(parts[1]);
   const sec = parseFloat(parts[2]);
   const dir = parts[3];
+
+  if (isNaN(deg) || isNaN(min) || isNaN(sec)) return null;
 
   let dec = deg + min / 60 + sec / 3600;
   if (dir === "S" || dir === "W") dec = -dec;
@@ -67,19 +73,32 @@ export function haversine(lat1, lon1, lat2, lon2) {
 }
 
 /****************************************************
- * 6) Distance NM — Airbus ECAM
+ * 6) Distance NM — Airbus ECAM (renvoie un nombre)
  ****************************************************/
 export function distanceNm(lat1, lon1, lat2, lon2) {
-  return (haversine(lat1, lon1, lat2, lon2) / 1852).toFixed(1);
+  return Math.round((haversine(lat1, lon1, lat2, lon2) / 1852) * 10) / 10;
 }
 
 /****************************************************
- * 7) Format cockpit IFR (HH:MM)
+ * 7) Format cockpit IFR (HH:MM) — robuste
  ****************************************************/
 export function fmtTime(t) {
   if (!t) return "n/a";
+
   try {
-    return t.split("T")[1].replace("Z", "").slice(0, 5);
+    // Format ISO → 2024-12-01T12:00:00Z
+    if (t.includes("T")) {
+      return t.replace("Z", "").split("T")[1].slice(0, 5);
+    }
+
+    // Format compact → 202412011200Z
+    if (/^\d{12}Z$/.test(t)) {
+      const hh = t.slice(8, 10);
+      const mm = t.slice(10, 12);
+      return `${hh}:${mm}`;
+    }
+
+    return t;
   } catch {
     return "n/a";
   }
