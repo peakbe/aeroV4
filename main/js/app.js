@@ -22,6 +22,7 @@ import { initMap, map, resetMapView } from "./map.js";
 
 import { fetchMetar, updateMetarUI } from "./metar.js";
 import { fetchTaf, updateTafUI } from "./taf.js";
+import { drawWindOnNd } from "./adsb-trajectory.js";
 
 import { updateWindRose } from "./windrose.js";
 
@@ -181,23 +182,28 @@ export async function processAirport(airportKey) {
   window.activeRunway = rw;
 
   /***********************
-   * 3) METAR / HUD / Rose / Station
+ * 3) METAR / HUD / Rose / Station
+ ***********************/
+if (!sonoMode) {
+
+  updateMetarUI(
+    airportKey,
+    metar,
+    airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
+  );
+
+  /***********************
+   * ND AIRBUS — Vent (WX)
    ***********************/
-  if (!sonoMode) {
+  drawWindOnNd(airportKey, metar);
 
-    updateMetarUI(
-      airportKey,
-      metar,
-      airportKey === "EBCI" ? "metar-ebci" : "metar-eblg"
-    );
+  updateRunwayHUD(ap, windDir, windSpd);
 
-    updateRunwayHUD(ap, windDir, windSpd);
+  updateWindRose(metar);
 
-    updateWindRose(metar);
-
-    const station = await fetchStationInfo(ap.icao);
-    updateStationUI(airportKey, station, ap.lastMetar);
-  }
+  const station = await fetchStationInfo(ap.icao);
+  updateStationUI(airportKey, station, ap.lastMetar);
+}
 
   /***********************
    * 4) ILS dynamique
