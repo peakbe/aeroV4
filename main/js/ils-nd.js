@@ -1,6 +1,5 @@
 /****************************************************
  * ILS ND — Airbus-style PRO+++
- * Cône LOC + pente GS + avion + déviation
  ****************************************************/
 
 import { airports } from "./config.js";
@@ -13,7 +12,7 @@ function toRad(deg) { return deg * Math.PI / 180; }
 function toDeg(rad) { return rad * 180 / Math.PI; }
 
 function haversineDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371000; // m
+  const R = 6371000;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   const a =
@@ -24,7 +23,7 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 /****************************************************
- * 1) Cône LOC — Airbus ND (cyan)
+ * 1) Cône LOC — Airbus ND
  ****************************************************/
 function drawLocCone(ap) {
 
@@ -34,6 +33,8 @@ function drawLocCone(ap) {
 
   const rw = ap.runways.find(r => r.name === active.name);
   if (!rw) return;
+
+  if (!ap.ndLayers) ap.ndLayers = [];   // 🔥 protection
 
   const heading = rw.heading;
   const coneLengthNm = 10;
@@ -68,7 +69,7 @@ function drawLocCone(ap) {
       [loc.lat + dLatRight, loc.lon + dLonRight]
     ],
     {
-      color: "#00e5ff",      // Airbus cyan LOC
+      color: "#00e5ff",
       weight: 1,
       fillColor: "#003366",
       fillOpacity: 0.25
@@ -80,7 +81,7 @@ function drawLocCone(ap) {
 }
 
 /****************************************************
- * 2) Glide Slope — Airbus ND (amber)
+ * 2) Glide Slope — Airbus ND
  ****************************************************/
 function drawGsLine(ap) {
 
@@ -91,7 +92,8 @@ function drawGsLine(ap) {
   const rw = ap.runways.find(r => r.name === active.name);
   if (!rw) return;
 
-  const gsAngleDeg = 3;
+  if (!ap.ndLayers) ap.ndLayers = [];   // 🔥 protection
+
   const gsLengthNm = 10;
   const lengthM = gsLengthNm * 1852;
 
@@ -107,7 +109,7 @@ function drawGsLine(ap) {
       [gs.lat + dLat, gs.lon + dLon]
     ],
     {
-      color: "#ffb300",      // Airbus amber GS
+      color: "#ffb300",
       weight: 2,
       dashArray: "4 4",
       opacity: 0.9
@@ -119,7 +121,7 @@ function drawGsLine(ap) {
 }
 
 /****************************************************
- * 3) Avion + déviation LOC / GS — Airbus ND
+ * 3) Avion + déviation LOC / GS
  ****************************************************/
 function drawAircraftAndDeviation(ap) {
 
@@ -133,7 +135,8 @@ function drawAircraftAndDeviation(ap) {
   const rw = ap.runways.find(r => r.name === active.name);
   if (!rw) return;
 
-  // Avion ND
+  if (!ap.ndLayers) ap.ndLayers = [];   // 🔥 protection
+
   const icon = L.circleMarker([ac.lat, ac.lon], {
     radius: 5,
     color: "#00ff00",
@@ -144,10 +147,8 @@ function drawAircraftAndDeviation(ap) {
   ap.ndLayers.push(icon);
   icon.addTo(map);
 
-  // Déviation LOC (approx)
   const distToLocAxisM = haversineDistance(ac.lat, ac.lon, loc.lat, loc.lon);
 
-  // Déviation GS
   const distAlongGsM = haversineDistance(ac.lat, ac.lon, gs.lat, gs.lon);
   const gsAngleRad = toRad(3);
   const altTheoreticalFt = (distAlongGsM * Math.tan(gsAngleRad)) * 3.2808;
@@ -172,6 +173,7 @@ export function refreshIlsNd() {
   Object.values(airports).forEach(ap => {
 
     if (!ap.ndLayers) ap.ndLayers = [];
+
     ap.ndLayers.forEach(l => map.removeLayer(l));
     ap.ndLayers = [];
 
