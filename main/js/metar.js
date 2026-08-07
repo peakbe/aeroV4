@@ -16,7 +16,7 @@ export async function fetchMetar(icao) {
     const data = await r.json();
 
     return {
-      raw: data.raw || null,
+      raw: data.raw || "",
 
       wind_dir: data.wind_direction?.value ?? "VRB",
       wind_speed: data.wind_speed?.value ?? 0,
@@ -66,6 +66,12 @@ function ktToMs(kt) {
   return (kt * 0.514444).toFixed(1);
 }
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export function updateMetarUI(airportKey, metar, targetId) {
 
   if (window.isSonoTab()) return;
@@ -81,10 +87,8 @@ export function updateMetarUI(airportKey, metar, targetId) {
   const windMs = ktToMs(metar.wind_speed || 0);
   const gustMs = ktToMs(metar.wind_gust || 0);
 
+  const rawEscaped = escapeHtml(metar.raw);
 
-  /****************************************************
-   * Rendu cockpit IFR — Airbus MCDU
-   ****************************************************/
   el.innerHTML = `
     <div class="metar-block">
 
@@ -92,19 +96,19 @@ export function updateMetarUI(airportKey, metar, targetId) {
         METAR — ${airportKey}
       </div>
 
-     <div class="metar-line">
-  <span class="metar-label">WIND</span>
-  <span class="metar-value" style="color:${windColor}">
-    ${metar.wind_dir}° / ${metar.wind_speed} kt 
-    <span class="wind-ms">(${windMs} m/s)</span>
-  </span>
+      <div class="metar-line">
+        <span class="metar-label">WIND</span>
+        <span class="metar-value" style="color:${windColor}">
+          ${metar.wind_dir || "VRB"}° / ${metar.wind_speed} kt 
+          <span class="wind-ms">(${windMs} m/s)</span>
+        </span>
 
-  ${metar.wind_gust ? `
-    <span class="metar-value" style="color:${gustColor}">
-      G${metar.wind_gust} kt 
-      <span class="wind-ms">(${gustMs} m/s)</span>
-    </span>` : ""}
-</div>
+        ${metar.wind_gust ? `
+          <span class="metar-value" style="color:${gustColor}">
+            G${metar.wind_gust} kt 
+            <span class="wind-ms">(${gustMs} m/s)</span>
+          </span>` : ""}
+      </div>
 
       ${metar.wind_var_from && metar.wind_var_to ? `
       <div class="metar-line">
@@ -142,7 +146,7 @@ export function updateMetarUI(airportKey, metar, targetId) {
       </div>
 
       <div class="metar-raw">
-        ${metar.raw}
+        ${rawEscaped}
       </div>
 
     </div>
