@@ -15,13 +15,16 @@ function classifyWind(speed) {
 export function updateWindRose(metar) {
 
   // Sécurité METAR
-  if (!metar || !metar.icao) return;
+  if (!metar) return;
 
   // Ne rien afficher dans l’onglet SONO
-  if (window.isSonoTab()) return;
+  if (window.isSonoTab?.()) return;
+
+  // ICAO fiable
+  const icao = metar.icao || metar.station || "EBCI";
 
   // Sélection du conteneur
-  const targetId = metar.icao === "EBCI"
+  const targetId = icao === "EBCI"
     ? "wind-rose-ebci"
     : "wind-rose-eblg";
 
@@ -29,25 +32,30 @@ export function updateWindRose(metar) {
   if (!el) return;
 
   // Aéroport valide ?
-  const ap = airports[metar.icao];
+  const ap = airports[icao];
   if (!ap) return;
 
   // Piste active (déjà calculée dans processAirport)
-  const runway = ap.activeRunway?.name || "??";
+  const runway = ap.activeRunway?.name || "n/a";
 
   // Valeurs METAR
-  const windDir = Number(metar.wind_dir) || 0;
+  let windDir = metar.wind_dir;
   const windSpd = Number(metar.wind_speed) || 0;
 
-  // Classification avionique
-  const windColor = classifyWind(windSpd);
+  // Gestion VRB
+  let windColor = classifyWind(windSpd);
+  let arrowRotation = 0;
+
+  if (windDir === "VRB" || windDir === null || windDir === undefined) {
+    windDir = "VRB";
+    arrowRotation = 0;          // flèche neutre
+    windColor = "#999999";      // gris neutre
+  } else {
+    arrowRotation = Number(windDir) || 0;
+  }
 
   /****************************************************
    * Rendu Airbus ND — PRO+++
-   * - Flèche fine (6px)
-   * - Longueur cockpit (26px)
-   * - Rotation propre
-   * - Pas de background inline
    ****************************************************/
   el.innerHTML = `
     <div class="wind-rose-container">
@@ -55,7 +63,7 @@ export function updateWindRose(metar) {
       <div class="wind-rose-circle"></div>
 
       <div class="wind-rose-arrow"
-           style="transform: rotate(${windDir}deg);
+           style="transform: rotate(${arrowRotation}deg);
                   border-bottom-color:${windColor};">
       </div>
 
