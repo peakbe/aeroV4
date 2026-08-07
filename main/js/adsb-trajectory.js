@@ -2,6 +2,8 @@
  * ADS-B TRAJECTORY — PRO+++
  ****************************************************/
 
+import { airports } from "./config.js";
+
 export const adsbHistory = {};
 export const adsbTrajectories = {};
 export const adsbLabels = {};
@@ -17,7 +19,13 @@ export function pushHistory(icao, lat, lon, gsKt, altFt, track) {
   const key = String(icao);
   if (!adsbHistory[key]) adsbHistory[key] = [];
 
-  adsbHistory[key].push({ lat, lon, gsKt, altFt, track });
+  adsbHistory[key].push({
+    lat,
+    lon,
+    gsKt: Number(gsKt || 0),
+    altFt: Number(altFt || 0),
+    track: Number(track || 0)
+  });
 
   if (adsbHistory[key].length > 150) {
     adsbHistory[key].shift();
@@ -102,7 +110,7 @@ function createLabel(lat, lon, gsKt, altFt) {
           border-radius:3px;
           border:1px solid #00ffff;
         ">
-          ${gsKt} kt<br>${altFt} ft
+          ${Math.round(gsKt)} kt<br>${Math.round(altFt)} ft
         </div>
       `
     })
@@ -122,16 +130,19 @@ function computeFuturePath(lat, lon, trackDeg, gsKt, minutes = 5, stepSec = 30) 
     const d = gsMs * t;
     const dByR = d / R;
 
+    const latRad = lat * Math.PI / 180;
+    const lonRad = lon * Math.PI / 180;
+
     const lat2 = Math.asin(
-      Math.sin(lat * Math.PI/180) * Math.cos(dByR) +
-      Math.cos(lat * Math.PI/180) * Math.sin(dByR) * Math.cos(track)
+      Math.sin(latRad) * Math.cos(dByR) +
+      Math.cos(latRad) * Math.sin(dByR) * Math.cos(track)
     );
-    const lon2 = lon * Math.PI/180 + Math.atan2(
-      Math.sin(track) * Math.sin(dByR) * Math.cos(lat * Math.PI/180),
-      Math.cos(dByR) - Math.sin(lat * Math.PI/180) * Math.sin(lat2)
+    const lon2 = lonRad + Math.atan2(
+      Math.sin(track) * Math.sin(dByR) * Math.cos(latRad),
+      Math.cos(dByR) - Math.sin(latRad) * Math.sin(lat2)
     );
 
-    points.push([lat2 * 180/Math.PI, lon2 * 180/Math.PI]);
+    points.push([lat2 * 180 / Math.PI, lon2 * 180 / Math.PI]);
   }
   return points;
 }
@@ -143,6 +154,8 @@ export function drawWindOnNd(airportKey, metar) {
   if (!window.ndMap || !window.L || !metar) return;
 
   const ap = airports[airportKey];
+  if (!ap) return;
+
   const dir = metar.wind_dir === "VRB" ? null : Number(metar.wind_dir);
   const speed = Number(metar.wind_speed || 0);
 
@@ -157,11 +170,11 @@ export function drawWindOnNd(airportKey, metar) {
   const start = [ap.lat, ap.lon];
   const end = [ap.lat + dy, ap.lon + dx];
 
-  if (window.ndWindVector?.[airportKey]) {
+  window.ndWindVector = window.ndWindVector || {};
+  if (window.ndWindVector[airportKey]) {
     window.ndMap.removeLayer(window.ndWindVector[airportKey]);
   }
 
-  window.ndWindVector = window.ndWindVector || {};
   window.ndWindVector[airportKey] = L.polyline([start, end], {
     color: "#ffcc00",
     weight: 4,
@@ -181,11 +194,11 @@ export function drawWindOnNd(airportKey, metar) {
     </div>
   `;
 
-  if (window.ndWindLabel?.[airportKey]) {
+  window.ndWindLabel = window.ndWindLabel || {};
+  if (window.ndWindLabel[airportKey]) {
     window.ndMap.removeLayer(window.ndWindLabel[airportKey]);
   }
 
-  window.ndWindLabel = window.ndWindLabel || {};
   window.ndWindLabel[airportKey] = L.marker(start, {
     icon: L.divIcon({
       className: "nd-wind-label",
@@ -198,12 +211,16 @@ export function drawWindOnNd(airportKey, metar) {
  * Trajectoire ADS-B
  ****************************************************/
 export function showOptimizedAdsbTrajectory(icao) {
+  if (!window.ndMap || !window.L) return;
+
   const key = String(icao);
   const history = adsbHistory[key];
 
   if (!history || history.length < 2) return;
 
   let pts = smoothPoints(filterPoints(history));
+  if (!pts.length) return;
+
   const latlngs = pts.map(p => [p.lat, p.lon]);
 
   const last = pts[pts.length - 1];
