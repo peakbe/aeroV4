@@ -1,51 +1,36 @@
 /****************************************************
  * ND AIRBUS A320 — Cockpit IFR PRO+++
- * Track-Up, LOC/GS, trajectoire cyan, Mini-PFD
+ * Multi‑targets, avion maître, traffic mode, future path,
+ * historique ADS‑B, centrage ND, Track‑Up
  ****************************************************/
 
 import { airports } from "./config.js";
 
 /****************************************************
- * Utils géométriques
+ * 1) Utils géométriques
  ****************************************************/
 function toRad(deg) { return deg * Math.PI / 180; }
 function toDeg(rad) { return rad * 180 / Math.PI; }
 
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat/2)**2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
 /****************************************************
- * Projection ND Track-Up
+ * 2) Projection ND Track-Up (centré sur avion maître)
  ****************************************************/
-function projectNd(ap, lat, lon) {
-  const ac = ap.aircraft;
-  const rangeNm = 40;          // rayon ND
+function projectNd(masterAc, lat, lon) {
+  const rangeNm = 40;
   const rangeM = rangeNm * 1852;
 
-  const dLat = toRad(lat - ac.lat);
-  const dLon = toRad(lon - ac.lon);
+  const dLat = toRad(lat - masterAc.lat);
+  const dLon = toRad(lon - masterAc.lon);
 
-  const yNorth =
-    Math.sin(dLat) * 6371000;
-  const xEast =
-    Math.sin(dLon) * Math.cos(toRad(ac.lat)) * 6371000;
+  const yNorth = Math.sin(dLat) * 6371000;
+  const xEast  = Math.sin(dLon) * Math.cos(toRad(masterAc.lat)) * 6371000;
 
-  // rotation Track-Up
-  const hdgRad = toRad(ac.hdg);
+  const hdgRad = toRad(masterAc.hdg || 0);
   const x =  xEast * Math.cos(hdgRad) + yNorth * Math.sin(hdgRad);
   const y = -xEast * Math.sin(hdgRad) + yNorth * Math.cos(hdgRad);
 
-  const norm = rangeM;
-  const nx = (x / norm) * 120;
-  const ny = (y / norm) * 120;
+  const nx = (x / rangeM) * 120;
+  const ny = (y / rangeM) * 120;
 
   return {
     x: 150 + nx,
@@ -54,13 +39,15 @@ function projectNd(ap, lat, lon) {
 }
 
 /****************************************************
- * Déviation LOC/GS simplifiée (Airbus-style)
+ * 3) LOC / GS — Piste active PRO+++
  ****************************************************/
 function computeLocDots(ap) {
   const ac = ap.aircraft;
-  const rw = ap.runways[0]; // piste principale
-  const rwLat = ap.lat;
-  const rwLon = ap.lon;
+  const rw = ap.activeRunway || ap.runways[0];
+  if (!rw || !ac) return 0;
+
+  const rwLat = rw.lat1;
+  const rwLon = rw.lon1;
 
   const dLat = toRad(rwLat - ac.lat);
   const dLon = toRad(rwLon - ac.lon);
@@ -74,7 +61,6 @@ function computeLocDots(ap) {
   const x =  xEast * Math.cos(hdgRad) + yNorth * Math.sin(hdgRad);
   const y = -xEast * Math.sin(hdgRad) + yNorth * Math.cos(hdgRad);
 
-  // écart latéral en m
   const lateral = x;
   const dot = lateral / 90; // ~90 m par dot
 
@@ -83,9 +69,11 @@ function computeLocDots(ap) {
 
 function computeGsDots(ap) {
   const ac = ap.aircraft;
-  const rwLat = ap.lat;
-  const rwLon = ap.lon;
-  const rw = ap.runways[0];
+  const rw = ap.activeRunway || ap.runways[0];
+  if (!rw || !ac) return 0;
+
+  const rwLat = rw.lat1;
+  const rwLon = rw.lon1;
 
   const dLat = toRad(rwLat - ac.lat);
   const dLon = toRad(rwLon - ac.lon);
@@ -99,7 +87,8 @@ function computeGsDots(ap) {
   const x =  xEast * Math.cos(hdgRad) + yNorth * Math.sin(hdgRad);
   const y = -xEast * Math.sin(hdgRad) + yNorth * Math.cos(hdgRad);
 
-  const distAlong = y; // le long de l’axe piste
+  const distAlong = y;
+
   const gsAngle = toRad(3);
   const altTheoFt = (distAlong * Math.tan(gsAngle)) * 3.2808;
 
@@ -110,28 +99,25 @@ function computeGsDots(ap) {
 }
 
 /****************************************************
- * ND Airbus A320 (SVG)
+ * 4) ND Airbus A320 — SVG harmonisé PRO+++
  ****************************************************/
-function ktToMs(kt) {
-  return (kt * 0.514444).toFixed(1);
-}
-
 function generateNdSvg(apKey) {
   const ap = airports[apKey];
   const ac = ap.aircraft;
+  const rw = ap.activeRunway || ap.runways[0];
 
-  const locDots = computeLocDots(ap);
-  const gsDots = computeGsDots(ap);
+  if (!ac || !rw) return "";
 
   const hdg = ac.hdg || 0;
-  const gs = ac.gs || 0;
+  const gs  = ac.gs  || 0;
   const alt = ac.altFt || 0;
-
-  const rw = ap.runways[0]?.name || "XX";
 
   const windDir = ap.metar?.wind_dir ?? "VRB";
   const windSpd = ap.metar?.wind_speed ?? 0;
-  const windMs = ktToMs(windSpd);
+  const windMs  = (windSpd * 0.514444).toFixed(1);
+
+  const locDots = computeLocDots(ap);
+  const gsDots  = computeGsDots(ap);
 
   return `
   <svg width="300" height="300" viewBox="0 0 300 300">
@@ -139,7 +125,7 @@ function generateNdSvg(apKey) {
     <!-- Fond ND -->
     <circle cx="150" cy="150" r="140" fill="#111" stroke="#444" stroke-width="4"/>
 
-    <!-- Rose -->
+    <!-- Rose ND -->
     <circle cx="150" cy="150" r="120" fill="none" stroke="#333" stroke-width="1"/>
     ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a => {
       const rad = toRad(a);
@@ -151,39 +137,39 @@ function generateNdSvg(apKey) {
     }).join("")}
 
     <!-- Heading -->
-    <text x="150" y="40" fill="#0af" font-size="22" text-anchor="middle">
+    <text x="150" y="40" fill="#00e5ff" font-size="22" text-anchor="middle">
       HDG ${hdg.toFixed(0)}
     </text>
 
     <!-- GS -->
-    <text x="40" y="150" fill="#0af" font-size="18" text-anchor="middle">
+    <text x="40" y="150" fill="#00e5ff" font-size="18" text-anchor="middle">
       GS ${gs.toFixed(0)}
     </text>
 
     <!-- ALT -->
-    <text x="260" y="150" fill="#0af" font-size="18" text-anchor="middle">
+    <text x="260" y="150" fill="#00e5ff" font-size="18" text-anchor="middle">
       ALT ${alt.toFixed(0)}
     </text>
-    
-    <!-- WIND -->
-    <text x="150" y="80" fill="#0af" font-size="18" text-anchor="middle">
+
+    <!-- Vent -->
+    <text x="150" y="80" fill="#00e5ff" font-size="18" text-anchor="middle">
       WIND ${windDir}° / ${windSpd} kt (${windMs} m/s)
     </text>
 
     <!-- LOC bar -->
     <rect x="140" y="100" width="20" height="100" fill="#222"/>
-    <rect x="140" y="${150 + locDots * 10}" width="20" height="5" fill="#0af"/>
+    <rect x="140" y="${150 + locDots * 10}" width="20" height="5" fill="#00e5ff"/>
 
     <!-- GS bar -->
     <rect x="100" y="140" width="100" height="20" fill="#222"/>
     <rect x="${150 + gsDots * 10}" y="140" width="5" height="20" fill="#ffaa00"/>
 
-    <!-- Avion -->
-    <polygon points="150,130 145,150 155,150" fill="#fff"/>
+    <!-- Avion maître -->
+    <polygon points="150,130 145,150 155,150" fill="#ffffff"/>
 
     <!-- Runway -->
-    <text x="150" y="280" fill="#fff" font-size="20" text-anchor="middle">
-      RWY ${rw}
+    <text x="150" y="280" fill="#ffffff" font-size="20" text-anchor="middle">
+      RWY ${rw.name}
     </text>
 
   </svg>
@@ -191,21 +177,7 @@ function generateNdSvg(apKey) {
 }
 
 /****************************************************
- * Mini-PFD Airbus (horizon artificiel)
- ****************************************************/
-function generatePfdSvg(apKey) {
-  return `
-  <svg width="300" height="200" viewBox="0 0 300 200">
-    <rect width="300" height="100" fill="#003366"/>
-    <rect y="100" width="300" height="100" fill="#663300"/>
-    <line x1="0" y1="100" x2="300" y2="100" stroke="#fff" stroke-width="2"/>
-    <polygon points="150,90 140,110 160,110" fill="#fff"/>
-  </svg>
-  `;
-}
-
-/****************************************************
- * Trajectoire cyan Airbus (canvas ND)
+ * 5) Canvas ND
  ****************************************************/
 function ensureNdCanvas(apKey) {
   const ndDiv = document.getElementById(`nd-${apKey}`);
@@ -223,56 +195,161 @@ function ensureNdCanvas(apKey) {
     ndDiv.style.position = "relative";
     ndDiv.appendChild(canvas);
   }
-  return canvas.getContext("2d");
+  return canvas;
 }
 
-function drawNdTrajectory(apKey) {
-  const ap = airports[apKey];
-  const ac = ap.aircraft;
-  const icao = ac.icao;
-  if (!icao) return;
+/****************************************************
+ * 6) Symbole avion maître / traffic
+ ****************************************************/
+function drawAircraftSymbol(apKey, masterAc, ac, isMaster) {
+  const ndDiv = document.getElementById(`nd-${apKey}`);
+  if (!ndDiv) return;
 
-  const key = String(icao);
-  const hist = (window.adsbHistory && window.adsbHistory[key]) || [];
-  if (!hist.length) return;
+  const color = isMaster ? "#00e5ff" : "#ffffff";
+  const size  = isMaster ? 14 : 10;
 
-  const ctx = ensureNdCanvas(apKey);
-  if (!ctx) return;
+  const pos = projectNd(masterAc, ac.lat, ac.lon);
 
-  ctx.clearRect(0, 0, 300, 300);
-  ctx.save();
+  const el = document.createElement("div");
+  el.style.position = "absolute";
+  el.style.left = `${pos.x - size/2}px`;
+  el.style.top  = `${pos.y - size/2}px`;
+  el.innerHTML = `
+    <svg width="${size}" height="${size}" viewBox="0 0 24 24"
+         fill="${color}" stroke="${color}" stroke-width="1.5">
+      <path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/>
+    </svg>
+  `;
+  ndDiv.appendChild(el);
+}
 
-  ctx.strokeStyle = "#00ffff";
-  ctx.lineWidth = 2;
+/****************************************************
+ * 7) Future path maître / traffic
+ ****************************************************/
+function drawFuturePath(apKey, masterAc, ac, isMaster) {
+  const canvas = ensureNdCanvas(apKey);
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+
+  const color = isMaster ? "#00e5ff" : "#ffffff";
+  const opacity = isMaster ? 0.9 : 0.5;
+
+  const gs = ac.gs || 0;
+  const hdg = ac.hdg || 0;
+
+  const distanceNm = gs / 60;
+  const distanceMeters = distanceNm * 1852;
+
+  const bearingRad = toRad(hdg);
+  const dLat = (distanceMeters / 6371000) * Math.cos(bearingRad);
+  const dLon = (distanceMeters / 6371000) * Math.sin(bearingRad);
+
+  const lat2 = ac.lat + (dLat * 180 / Math.PI);
+  const lon2 = ac.lon + (dLon * 180 / Math.PI);
+
+  const p1 = projectNd(masterAc, ac.lat, ac.lon);
+  const p2 = projectNd(masterAc, lat2, lon2);
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = isMaster ? 3 : 2;
+  ctx.globalAlpha = opacity;
+
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.lineTo(p2.x, p2.y);
+  ctx.stroke();
+
+  ctx.globalAlpha = 1;
+}
+
+/****************************************************
+ * 8) Historique ADS‑B (toujours blanc)
+ ****************************************************/
+function drawAdsbHistory(apKey, masterAc, ac) {
+  const canvas = ensureNdCanvas(apKey);
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+
+  const hist = window.adsbHistory?.[ac.icao] || [];
+  if (hist.length < 2) return;
+
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.6;
+
   ctx.beginPath();
 
   hist.forEach((p, idx) => {
-    const xy = projectNd(ap, p.lat, p.lng);
+    const xy = projectNd(masterAc, p.lat, p.lng);
     if (idx === 0) ctx.moveTo(xy.x, xy.y);
     else ctx.lineTo(xy.x, xy.y);
   });
 
   ctx.stroke();
-  ctx.restore();
+  ctx.globalAlpha = 1;
 }
 
 /****************************************************
- * Mise à jour ND Airbus
+ * 9) Nettoyage ND
  ****************************************************/
-export function updateNdAirbus(apKey) {
+function clearNd(apKey) {
+  const ndDiv = document.getElementById(`nd-${apKey}`);
+  if (!ndDiv) return;
+
+  ndDiv.innerHTML = "";
+}
+
+/****************************************************
+ * 10) ND Airbus — Multi‑targets PRO+++
+ ****************************************************/
+export function updateNdAirbus(input, selectedIcao = null, apKey = "EBCI") {
+
+  const aircraftList = Array.isArray(input)
+    ? input
+    : input ? [input] : [];
+
+  if (!aircraftList.length) return;
+
   const ap = airports[apKey];
+  if (!ap) return;
+
+  // Avion maître
+  let master = selectedIcao
+    ? aircraftList.find(a => a.icao === selectedIcao) || aircraftList[0]
+    : aircraftList[0];
+
+  // Synchronise ap.aircraft avec l’avion maître
+  ap.aircraft = {
+    lat: master.lat,
+    lon: master.lon,
+    altFt: Number(master.altFt || 0),
+    hdg: Number(master.track || master.hdg || 0),
+    gs: Number(master.gsKt || master.gs || 0),
+    icao: master.icao
+  };
+
+  clearNd(apKey);
 
   const ndDiv = document.getElementById(`nd-${apKey}`);
-  const pfdDiv = document.getElementById(`pfd-${apKey}`);
+  if (!ndDiv) return;
 
-  if (!ndDiv || !pfdDiv) return;
-
-  // ND SVG
+  // ND Airbus SVG (fond instrument)
   ndDiv.innerHTML = generateNdSvg(apKey);
 
-  // Canvas trajectoire cyan superposé
-  drawNdTrajectory(apKey);
+  // Canvas ND pour trajectoires / future path / historique
+  const canvas = ensureNdCanvas(apKey);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Mini-PFD
-  pfdDiv.innerHTML = generatePfdSvg(apKey);
+  // Dessin multi‑targets
+  aircraftList.forEach(ac => {
+    const isMaster = ac.icao === master.icao;
+
+    drawAircraftSymbol(apKey, ap.aircraft, ac, isMaster);
+    drawFuturePath(apKey, ap.aircraft, ac, isMaster);
+    drawAdsbHistory(apKey, ap.aircraft, ac);
+  });
 }
