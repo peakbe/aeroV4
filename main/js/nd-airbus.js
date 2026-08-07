@@ -14,6 +14,20 @@ function toRad(deg) { return deg * Math.PI / 180; }
 function toDeg(rad) { return rad * 180 / Math.PI; }
 
 /****************************************************
+ * 1bis) Limites vent — Tailwind Airbus PRO+++
+ ****************************************************/
+function getTailwindLimit(apKey) {
+  switch (apKey) {
+    case "EBCI":
+      return 10;   // Charleroi
+    case "EBLG":
+      return 15;   // Liège cargo ops
+    default:
+      return 10;   // fallback Airbus standard
+  }
+}
+
+/****************************************************
  * 2) Projection ND Track-Up (centré sur avion maître)
  ****************************************************/
 function projectNd(masterAc, lat, lon) {
@@ -125,7 +139,9 @@ function generateNdSvg(apKey) {
     computeWindComponents(rw.heading, windDir, windSpd);
 
   const tailwind = headwind < 0 ? Math.abs(headwind) : 0;
-  const tailwindWarning = tailwind >= 10; // seuil Airbus-like
+  const tailwindLimit = getTailwindLimit(apKey);
+  const tailwindWarning = tailwind >= tailwindLimit;
+
 
   // Flèche vent sur la rose ND
   let windArrow = "";
@@ -190,10 +206,10 @@ function generateNdSvg(apKey) {
 
     <!-- Tailwind warning -->
     ${tailwindWarning ? `
-      <text x="150" y="120" fill="#ff4444" font-size="14" text-anchor="middle">
-        TAILWIND ${tailwind} kt
-      </text>
-    ` : ""}
+  <text x="150" y="120" fill="#ff4444" font-size="14" text-anchor="middle">
+    TAILWIND ${tailwind} kt (LIMIT ${tailwindLimit})
+  </text>
+` : ""}
 
     <!-- LOC bar -->
     <rect x="140" y="140" width="20" height="100" fill="#222"/>
