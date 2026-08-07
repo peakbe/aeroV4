@@ -15,8 +15,8 @@ export async function fetchTaf(icao) {
     const data = await r.json();
 
     return {
-      raw: data.raw || null,
-      forecast: data.forecast || []
+      raw: data.raw || "",
+      forecast: Array.isArray(data.forecast) ? data.forecast : []
     };
 
   } catch (e) {
@@ -34,8 +34,24 @@ function fmt(val, unit = "") {
 
 function fmtTime(t) {
   if (!t) return "n/a";
+
   try {
-    return t.replace("T", " ").replace("Z", "");
+    // Format ISO → "2024-12-01T12:00:00Z"
+    if (t.includes("T")) {
+      return t.replace("T", " ").replace("Z", "");
+    }
+
+    // Format compact → "202412011200Z"
+    if (/^\d{12}Z$/.test(t)) {
+      const y = t.slice(0, 4);
+      const m = t.slice(4, 6);
+      const d = t.slice(6, 8);
+      const hh = t.slice(8, 10);
+      const mm = t.slice(10, 12);
+      return `${y}-${m}-${d} ${hh}:${mm}`;
+    }
+
+    return t;
   } catch {
     return "n/a";
   }
@@ -59,7 +75,16 @@ function colorVis(vis) {
 /****************************************************
  * 4) AFFICHAGE TAF — Airbus MCDU PRO+++
  ****************************************************/
+function escapeHtml(str) {
+  return String(str)
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export function updateTafUI(airportKey, taf) {
+
+  // Si onglet SONO → ne rien afficher
+  if (window.isSonoTab?.()) return;
 
   const el = document.getElementById("taf-content");
   if (!el) return;
@@ -74,13 +99,12 @@ export function updateTafUI(airportKey, taf) {
     return;
   }
 
-  /****************************************************
-   * Construction cockpit IFR
-   ****************************************************/
+  const rawEscaped = escapeHtml(taf.raw);
+
   let html = `
     <div class="taf-block">
       <div class="taf-title">TAF — ${airportKey}</div>
-      <div class="taf-raw">${taf.raw}</div>
+      <div class="taf-raw">${rawEscaped}</div>
       <div class="taf-subtitle">FORECAST</div>
   `;
 
