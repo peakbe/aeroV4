@@ -1,6 +1,6 @@
 /****************************************************
- * PROXY RENDER — Airplanes.live → OpenSky → AirLabs
- * Version PRO+++ robuste, avionique, anti-HTML
+ * PROXY ADS-B PRO+++ — Airplanes.live → OpenSky → AirLabs → FR24
+ * Version cockpit IFR : logs structurés, timestamps UTC, cache intelligent
  ****************************************************/
 
 import express from "express";
@@ -10,7 +10,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /****************************************************
- * CORS global (toutes réponses, même erreurs)
+ * LOG IFR — format avionique
+ ****************************************************/
+function logIFR(level, msg) {
+  const ts = new Date().toISOString();
+  console.log(`[${ts}] [${level}] ${msg}`);
+}
+
+/****************************************************
+ * CORS global
  ****************************************************/
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -23,7 +31,7 @@ app.use((req, res, next) => {
  * Cache backend (anti surcharge)
  ****************************************************/
 const cache = new Map();
-const CACHE_MS = 5000;
+const CACHE_MS = 30000; // 30 sec PRO+++
 
 function getCache(key) {
   const entry = cache.get(key);
@@ -47,7 +55,7 @@ function isHtml(text) {
  * FALLBACK 1 — OpenSky
  ****************************************************/
 async function fetchOpenSky(lat, lon, distNm) {
-  const delta = distNm / 60; // approx deg
+  const delta = distNm / 60;
   const bbox = [
     lat - delta,
     lon - delta,
@@ -56,6 +64,7 @@ async function fetchOpenSky(lat, lon, distNm) {
   ].join(",");
 
   const url = `https://opensky-network.org/api/states/all?bbox=${bbox}`;
+
   try {
     const r = await fetch(url);
     const data = await r.json();
@@ -89,6 +98,7 @@ async function fetchAirLabs() {
   if (!key) return [];
 
   const url = `https://airlabs.co/api/v9/flights?api_key=${key}`;
+
   try {
     const r = await fetch(url);
     const data = await r.json();
@@ -111,21 +121,63 @@ async function fetchAirLabs() {
 }
 
 /****************************************************
+ * FALLBACK 3 — FlightRadar24 (non officiel)
+ ****************************************************/
+async function fetchFR24(lat, lon, distNm) {
+  const delta = distNm / 60;
+  const bounds = [
+    lat - delta,
+    lon - delta,
+    lat + delta,
+    lon + delta
+  ].join(",");
+
+  const url = `https://data-live.flightradar24.com/zones/fcgi/feed.json?bounds=${bounds}&faa=1&satellite=1&mlat=1&flarm=1&adsb=1&gnd=1&air=1`;
+
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
+
+    const ac = Object.entries(data)
+      .filter(([key]) => key !== "full_count" && key !== "version")
+      .map(([icao, arr]) => ({
+        icao,
+        lat: arr[1],
+        lon: arr[2],
+        altFt: arr[4],
+        gsKt: arr[5],
+        track: arr[3],
+        callsign: arr[16] || "n/a",
+        source: "fr24"
+      }));
+
+    return ac;
+
+  } catch {
+    return [];
+  }
+}
+
+/****************************************************
  * ENDPOINT PRINCIPAL — Airplanes.live + fallbacks
  ****************************************************/
 app.get("/airplanes", async (req, res) => {
   const { lat, lon, dist } = req.query;
 
   if (!lat || !lon || !dist) {
+    logIFR("WARN", "Missing lat/lon/dist");
     return res.status(400).json({ error: "Missing lat/lon/dist" });
   }
 
   const cacheKey = `${lat}_${lon}_${dist}`;
   const cached = getCache(cacheKey);
-  if (cached) return res.json(cached);
+  if (cached) {
+    logIFR("INFO", "Cache hit");
+    return res.json(cached);
+  }
 
   /****************************************************
-   * 1️⃣ Airplanes.live (source principale)
+   * 1️⃣ Airplanes.live
    ****************************************************/
   const urlAL = `https://api.airplanes.live/v2/lat/${lat}/lon/${lon}/dist/${dist}`;
 
@@ -136,45 +188,63 @@ app.get("/airplanes", async (req, res) => {
     if (!isHtml(text)) {
       const json = JSON.parse(text);
       setCache(cacheKey, json);
+      logIFR("INFO", "Airplanes.live OK");
       return res.json(json);
     }
 
-    console.log("Airplanes.live DOWN → fallback OpenSky");
+    logIFR("WARN", "Airplanes.live returned HTML → fallback OpenSky");
 
-  } catch (err) {
-    console.log("Airplanes.live unreachable → fallback OpenSky");
+  } catch {
+    logIFR("ERROR", "Airplanes.live unreachable → fallback OpenSky");
   }
 
   /****************************************************
-   * 2️⃣ Fallback OpenSky
+   * 2️⃣ OpenSky
    ****************************************************/
   const opensky = await fetchOpenSky(Number(lat), Number(lon), Number(dist));
 
   if (opensky.length > 0) {
     const payload = { source: "opensky", ac: opensky };
     setCache(cacheKey, payload);
+    logIFR("INFO", "OpenSky OK");
     return res.json(payload);
   }
 
-  console.log("OpenSky DOWN → fallback AirLabs");
+  logIFR("WARN", "OpenSky empty → fallback AirLabs");
 
   /****************************************************
-   * 3️⃣ Fallback AirLabs
+   * 3️⃣ AirLabs
    ****************************************************/
   const airlabs = await fetchAirLabs();
 
   if (airlabs.length > 0) {
     const payload = { source: "airlabs", ac: airlabs };
     setCache(cacheKey, payload);
+    logIFR("INFO", "AirLabs OK");
+    return res.json(payload);
+  }
+
+  logIFR("WARN", "AirLabs empty → fallback FR24");
+
+  /****************************************************
+   * 4️⃣ FlightRadar24 (non officiel)
+   ****************************************************/
+  const fr24 = await fetchFR24(Number(lat), Number(lon), Number(dist));
+
+  if (fr24.length > 0) {
+    const payload = { source: "fr24", ac: fr24 };
+    setCache(cacheKey, payload);
+    logIFR("INFO", "FR24 OK");
     return res.json(payload);
   }
 
   /****************************************************
-   * 4️⃣ Tout DOWN → réponse JSON propre
+   * 5️⃣ Tout DOWN
    ****************************************************/
+  logIFR("ERROR", "ALL SOURCES DOWN");
   return res.status(502).json({
     error: "ALL_SOURCES_DOWN",
-    details: "Airplanes.live returned HTML, OpenSky empty, AirLabs empty"
+    details: "Airplanes.live returned HTML, OpenSky empty, AirLabs empty, FR24 empty"
   });
 });
 
@@ -182,5 +252,5 @@ app.get("/airplanes", async (req, res) => {
  * START SERVER
  ****************************************************/
 app.listen(PORT, () => {
-  console.log(`Proxy ADS-B PRO+++ running on port ${PORT}`);
+  logIFR("INFO", `Proxy ADS-B PRO+++ running on port ${PORT}`);
 });
