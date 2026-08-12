@@ -281,6 +281,8 @@ export async function updateFidsFlights(airportKey) {
   /****************************************************
    * Mise à jour ND Airbus (trajectoires + future path)
    ****************************************************/
+  aircraft = sanitizeAircraft(aircraft);
+  
   updateNdAirbus(aircraft);
 
   /****************************************************
