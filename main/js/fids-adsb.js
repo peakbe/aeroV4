@@ -24,8 +24,9 @@ export function setFidsFilter(filter) {
  * Format HH:MM cockpit IFR
  ****************************************************/
 function formatTime(ts) {
+  if (!ts || isNaN(ts)) return "--:--";
   try {
-    const d = new Date(ts * 1000); // Airplanes.live = epoch seconds
+    const d = new Date(ts * 1000);
     return d.toTimeString().slice(0, 5);
   } catch {
     return "--:--";
@@ -40,6 +41,8 @@ function classifyArrivalDeparture(track, lat, lon, airportKey) {
   const rw = ap.activeRunway || ap.runways[0];
 
   const dist = distanceNm(lat, lon, ap.lat, ap.lon);
+  if (distNm > 200) return;
+
   if (dist > 80) return "ENR";
 
   const heading = rw.heading;
@@ -95,7 +98,7 @@ async function fetchAroundAirport(airportKey) {
 
   const aircraft = data.states.map(s => ({
     icao: s[0],
-    callsign: s[1] || "n/a",
+    callsign: s[1] ? s[1].trim() : "n/a",
     lat: s[6],
     lon: s[5],
     altFt: s[13] || 0,
