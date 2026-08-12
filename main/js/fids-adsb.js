@@ -242,7 +242,8 @@ export async function updateFidsFlights(airportKey) {
 
   const ap = airports[airportKey];
   let aircraft = await fetchAroundAirport(airportKey);
-
+  aircraft = sanitizeAircraft(aircraft);   // 🔥 filtrage AVANT la boucle
+  
   arrTbody.innerHTML = "";
   depTbody.innerHTML = "";
 
