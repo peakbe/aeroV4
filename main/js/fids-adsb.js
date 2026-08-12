@@ -43,14 +43,15 @@ function classifyArrivalDeparture(track, lat, lon, airportKey) {
   const dist = distanceNm(lat, lon, ap.lat, ap.lon);
   if (distNm > 200) return;
 
-  if (dist > 80) return "ENR";
+  if (distNm > 60) return;
 
   const heading = rw.heading;
   const diff = Math.abs(((track - heading + 180) % 360) - 180);
   const anti = Math.abs(((track - ((heading + 180) % 360) + 180) % 360) - 180);
 
-  if (dist <= 40 && diff < 35) return "ARR";
-  if (dist <= 40 && anti < 35) return "DEP";
+  if (dist <= 25 && diff < 30) return "ARR";
+  if (dist <= 25 && anti < 30) return "DEP";
+
 
   return "ENR";
 }
@@ -83,7 +84,7 @@ function setCachedFids(key, data) {
  ****************************************************/
 async function fetchAroundAirport(airportKey) {
   const ap = airports[airportKey];
-
+  const BOX = 0.35; // ~40 km
   const url = `https://opensky-network.org/api/states/all?lamin=${ap.lat - 1}&lomin=${ap.lon - 1}&lamax=${ap.lat + 1}&lomax=${ap.lon + 1}`;
 
   let data;
@@ -98,10 +99,10 @@ async function fetchAroundAirport(airportKey) {
 
   const aircraft = data.states.map(s => ({
     icao: s[0],
-    callsign: s[1] ? s[1].trim() : "n/a",
+    callsign: s[1] && s[1].trim() !== "" ? s[1].trim().toUpperCase() : "N/A",
     lat: s[6],
     lon: s[5],
-    altFt: s[13] || 0,
+    altFt: s[13] || s[7] || 0,
     gsMs: s[9] || 0,
     gsKt: (s[9] || 0) * 1.94384,
     track: s[10] || 0,
@@ -110,6 +111,18 @@ async function fetchAroundAirport(airportKey) {
     origin: "n/a",
     destination: "n/a"
   }));
+
+  const cacheKey = `OSN_${airportKey}`;
+  const cached = getCachedFids(cacheKey);
+  if (cached) return cached;
+
+  aircraft = aircraft.filter(a =>
+  a.gsKt > 30 &&          // vitesse minimale
+  a.altFt > 500 &&        // éviter les avions au sol
+  a.track >= 0 && a.track <= 360
+);
+
+  setCachedFids(cacheKey, aircraft);
 
   return aircraft.filter(a =>
     typeof a.lat === "number" &&
@@ -223,8 +236,10 @@ aircraft = aircraft.filter(a =>
     `;
 
     tr.addEventListener("click", () => {
-      document.querySelectorAll(".fids-row").forEach(r => r.classList.remove("fids-selected"));
-      tr.classList.add("fids-selected");
+      for (const r of document.getElementsByClassName("fids-row")) {
+  r.classList.remove("fids-selected");
+}
+
 
       airports[airportKey].aircraft = {
         lat: f.lat,
@@ -235,8 +250,14 @@ aircraft = aircraft.filter(a =>
       };
 
       showOptimizedAdsbTrajectory(f.icao);
-      updateNdAirbus([f]);
-    });
+      updateNdAirbus([{
+  lat: f.lat,
+  lon: f.lon,
+  altFt: f.altFt,
+  gsKt: f.gsKt,
+  track: f.track
+}]);
+
 
     arrTbody.appendChild(tr);
   });
