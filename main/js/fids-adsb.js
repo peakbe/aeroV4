@@ -250,7 +250,13 @@ export async function updateFidsFlights(airportKey) {
   const departures = [];
 
   aircraft.forEach(a => {
-    if (!a.lat || !a.lon) return;
+    if (
+  typeof a.lat !== "number" ||
+  typeof a.lon !== "number" ||
+  isNaN(a.lat) ||
+  isNaN(a.lon)
+) return;
+
 
     const distNm = distanceNm(a.lat, a.lon, ap.lat, ap.lon);
     const status = classifyArrivalDeparture(a.track, a.lat, a.lon, airportKey);
