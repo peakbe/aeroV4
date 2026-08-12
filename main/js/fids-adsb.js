@@ -121,20 +121,42 @@ async function fetchAirLabs(ap) {
   }
 }
 
+// PATCH 1 — Ajouter normalizeSource
+function normalizeSource(payload) {
+  if (!payload) return [];
+
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload.ac)) return payload.ac;
+  if (Array.isArray(payload.states)) return payload.states;
+
+  if (typeof payload === "object") {
+    const arrs = Object.values(payload).filter(v => Array.isArray(v));
+    if (arrs.length > 0) return arrs.flat();
+  }
+
+  return [];
+}
+
 /****************************************************
  * Fusion Airplanes.live + AirLabs — robuste
  ****************************************************/
 function mergeSources(aliveList, airlabsList) {
+
+  aliveList = normalizeSource(aliveList);
+  airlabsList = normalizeSource(airlabsList);
+
   const map = new Map();
 
   aliveList.forEach(a => {
+    if (!a || isNaN(a.lat) || isNaN(a.lon)) return;
+
     map.set(a.icao, {
       icao: a.icao,
       lat: a.lat,
       lon: a.lon,
-      altFt: a.alt_baro || 0,
-      gsMs: a.gs || 0,
-      gsKt: a.gs ? a.gs * 1.94384 : 0,
+      altFt: a.alt_baro || a.altFt || 0,
+      gsMs: a.gs || a.gsMs || 0,
+      gsKt: a.gs ? a.gs * 1.94384 : (a.gsKt || 0),
       track: a.track || 0,
       time: a.time || a.last_contact || 0,
       callsign: a.callsign || "n/a",
@@ -146,14 +168,14 @@ function mergeSources(aliveList, airlabsList) {
   });
 
   airlabsList.forEach(f => {
-    if (!f.icao) return;
+    if (!f || !f.icao) return;
     if (!map.has(f.icao)) return;
 
     const a = map.get(f.icao);
-    a.airline = f.airline;
-    a.origin = f.origin;
-    a.destination = f.destination;
-    a.statusAirLabs = f.status;
+    a.airline = f.airline || a.airline;
+    a.origin = f.origin || a.origin;
+    a.destination = f.destination || a.destination;
+    a.statusAirLabs = f.status || a.statusAirLabs;
   });
 
   return [...map.values()];
@@ -165,7 +187,9 @@ function mergeSources(aliveList, airlabsList) {
 export async function fetchAroundAirport(airportKey) {
   const ap = airports[airportKey];
 
-  const alive = await fetchFids(ap.lat, ap.lon, ap.radius || 120);
+  let aliveRaw = await fetchFids(ap.lat, ap.lon, ap.radius || 120);
+let alive = normalizeSource(aliveRaw);
+
   const airlabs = await fetchAirLabs(ap);
 
   return mergeSources(alive, airlabs);
