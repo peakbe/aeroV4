@@ -241,13 +241,13 @@ export async function updateFidsFlights(airportKey) {
   depTbody.innerHTML = "<tr><td colspan='10'>Loading flights...</td></tr>";
 
   const ap = airports[airportKey];
-  const aircraft = await fetchAroundAirport(airportKey);
+  let aircraft = await fetchAroundAirport(airportKey);
 
   arrTbody.innerHTML = "";
   depTbody.innerHTML = "";
 
-  const arrivals = [];
-  const departures = [];
+  let arrivals = [];
+  let departures = [];
 
   aircraft.forEach(a => {
     if (
@@ -263,7 +263,7 @@ export async function updateFidsFlights(airportKey) {
 
     pushHistory(a.icao, a.lat, a.lon, a.gsKt, a.altFt, a.track);
 
-    const row = {
+    let row = {
       icao: a.icao,
       time: formatTime(a.time),
       callsign: a.callsign,
