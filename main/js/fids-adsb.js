@@ -137,6 +137,18 @@ function normalizeSource(payload) {
   return [];
 }
 
+// Filtrer les avions invalides
+function sanitizeAircraft(list) {
+  return list.filter(a =>
+    a &&
+    typeof a.lat === "number" &&
+    typeof a.lon === "number" &&
+    !isNaN(a.lat) &&
+    !isNaN(a.lon)
+  );
+}
+
+
 /****************************************************
  * Fusion Airplanes.live + AirLabs — robuste
  ****************************************************/
