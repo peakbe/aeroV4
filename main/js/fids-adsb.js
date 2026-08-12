@@ -156,6 +156,7 @@ function mergeSources(aliveList, airlabsList) {
 
   aliveList = normalizeSource(aliveList);
   airlabsList = normalizeSource(airlabsList);
+  aliveList = sanitizeAircraft(normalizeSource(aliveList));
 
   const map = new Map();
 
