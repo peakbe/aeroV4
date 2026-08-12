@@ -211,20 +211,6 @@ export async function fetchAroundAirport(airportKey) {
 }
 
 /****************************************************
- * Pipeline principal
- ****************************************************/
-export async function fetchAroundAirport(airportKey) {
-  const ap = airports[airportKey];
-
-  let aliveRaw = await fetchFids(ap.lat, ap.lon, ap.radius || 120);
-let alive = normalizeSource(aliveRaw);
-
-  const airlabs = await fetchAirLabs(ap);
-
-  return mergeSources(alive, airlabs);
-}
-
-/****************************************************
  * FIDS Airbus ECAM — Statut CSS
  ****************************************************/
 function statusClass(status) {
