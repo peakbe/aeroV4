@@ -148,7 +148,14 @@ export async function updateFidsFlights(airportKey) {
 
   const ap = airports[airportKey];
   let aircraft = await fetchAroundAirport(airportKey);
-  aircraft = sanitizeAircraft(aircraft);   // 🔥 filtrage AVANT la boucle
+ 
+  // Filtre anti-NaN AVANT la boucle
+aircraft = aircraft.filter(a =>
+  typeof a.lat === "number" &&
+  typeof a.lon === "number" &&
+  !isNaN(a.lat) &&
+  !isNaN(a.lon)
+);
   
   arrTbody.innerHTML = "";
   depTbody.innerHTML = "";
