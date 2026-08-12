@@ -2,7 +2,7 @@
  * FIDS — Pipeline Airplanes.live (proxy Render) + AirLabs PRO+++
  ****************************************************/
 
-import { airports, AIRLABS_API_KEY } from "./config.js";
+import { airports } from "./config.js";
 import { distanceNm } from "./utils.js";
 import { updateNdAirbus } from "./nd-airbus.js";
 import { showOptimizedAdsbTrajectory, pushHistory, drawWindOnNd } from "./adsb-trajectory.js";
@@ -69,145 +69,51 @@ function setCachedFids(key, data) {
   fidsCache.set(key, { ts: Date.now(), data });
 }
 
+
+
+
+
+
+
 /****************************************************
- * FIDS — Fetch via PROXY Render (Airplanes.live)
+ * ADS-B Simplifié — OpenSky uniquement
  ****************************************************/
-async function fetchFids(lat, lon, dist) {
-  const cacheKey = `${lat}_${lon}_${dist}`;
-  const cached = getCachedFids(cacheKey);
-  if (cached) return cached;
+async function fetchAroundAirport(airportKey) {
+  const ap = airports[airportKey];
 
+  const url = `https://opensky-network.org/api/states/all?lamin=${ap.lat - 1}&lomin=${ap.lon - 1}&lamax=${ap.lat + 1}&lomax=${ap.lon + 1}`;
+
+  let data;
   try {
-    const url = `https://aerov4-proxy.onrender.com/airplanes?lat=${lat}&lon=${lon}&dist=${dist}`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error("Proxy Render error: " + response.status);
-    }
-
-    const data = await response.json();
-    setCachedFids(cacheKey, data);
-    return data;
-
-  } catch (err) {
-    console.error("FIDS ADS-B error:", err);
+    const res = await fetch(url);
+    data = await res.json();
+  } catch {
     return [];
   }
-}
 
-/****************************************************
- * Fetch AirLabs
- ****************************************************/
-async function fetchAirLabs(ap) {
-  const url = `https://airlabs.co/api/v9/flights?api_key=${AIRLABS_API_KEY}`;
+  if (!data || !Array.isArray(data.states)) return [];
 
-  try {
-    const r = await fetch(url);
-    const data = await r.json();
+  const aircraft = data.states.map(s => ({
+    icao: s[0],
+    callsign: s[1] || "n/a",
+    lat: s[6],
+    lon: s[5],
+    altFt: s[13] || 0,
+    gsMs: s[9] || 0,
+    gsKt: (s[9] || 0) * 1.94384,
+    track: s[10] || 0,
+    time: data.time || 0,
+    airline: "n/a",
+    origin: "n/a",
+    destination: "n/a"
+  }));
 
-    if (!data.response) return [];
-
-    return data.response.map(f => ({
-      icao: f.hex,
-      callsign: f.flight_iata || f.flight_icao || "n/a",
-      airline: f.airline_iata || f.airline_icao || "n/a",
-      origin: f.dep_iata || "n/a",
-      destination: f.arr_iata || "n/a",
-      status: f.status || "n/a"
-    }));
-  } catch (err) {
-    console.error("AirLabs error:", err);
-    return [];
-  }
-}
-
-/****************************************************
- * MODULE FIDS PRO+++ — Normalisation + Fusion + Pipeline
- ****************************************************/
-
-/* Normalise n'importe quelle source ADS-B en tableau d'avions */
-function normalizeSource(payload) {
-  if (!payload) return [];
-
-  // Cas: tableau direct
-  if (Array.isArray(payload)) return payload;
-
-  // Cas: { ac: [...] }
-  if (Array.isArray(payload.ac)) return payload.ac;
-
-  // Cas: OpenSky global { states: [...] }
-  if (Array.isArray(payload.states)) return payload.states;
-
-  // Cas: FR24 map { ICAO1: [...], ICAO2: [...] }
-  if (typeof payload === "object") {
-    const arrs = Object.values(payload).filter(v => Array.isArray(v));
-    if (arrs.length > 0) return arrs.flat();
-  }
-
-  return [];
-}
-
-/* Filtre les avions invalides (lat/lon null, undefined, NaN) */
-function sanitizeAircraft(list) {
-  return list.filter(a =>
-    a &&
+  return aircraft.filter(a =>
     typeof a.lat === "number" &&
     typeof a.lon === "number" &&
     !isNaN(a.lat) &&
     !isNaN(a.lon)
   );
-}
-
-/* Fusion Airplanes.live + AirLabs — version PRO+++ robuste */
-function mergeSources(aliveList, airlabsList) {
-
-  aliveList = sanitizeAircraft(normalizeSource(aliveList));
-  airlabsList = normalizeSource(airlabsList);
-
-  const map = new Map();
-
-  aliveList.forEach(a => {
-    map.set(a.icao, {
-      icao: a.icao,
-      lat: a.lat,
-      lon: a.lon,
-      altFt: a.alt_baro || a.altFt || 0,
-      gsMs: a.gs || a.gsMs || 0,
-      gsKt: a.gs ? a.gs * 1.94384 : (a.gsKt || 0),
-      track: a.track || 0,
-      time: a.time || a.last_contact || 0,
-      callsign: a.callsign || "n/a",
-      airline: "n/a",
-      origin: "n/a",
-      destination: "n/a",
-      statusAirLabs: null
-    });
-  });
-
-  airlabsList.forEach(f => {
-    if (!f || !f.icao) return;
-    if (!map.has(f.icao)) return;
-
-    const a = map.get(f.icao);
-    a.airline = f.airline || a.airline;
-    a.origin = f.origin || a.origin;
-    a.destination = f.destination || a.destination;
-    a.statusAirLabs = f.status || a.statusAirLabs;
-  });
-
-  return [...map.values()];
-}
-
-/* Pipeline principal PRO+++ */
-export async function fetchAroundAirport(airportKey) {
-  const ap = airports[airportKey];
-
-  let aliveRaw = await fetchFids(ap.lat, ap.lon, ap.radius || 120);
-  let alive = sanitizeAircraft(normalizeSource(aliveRaw));
-
-  const airlabs = await fetchAirLabs(ap);
-
-  return mergeSources(alive, airlabs);
 }
 
 /****************************************************
@@ -258,7 +164,6 @@ export async function updateFidsFlights(airportKey) {
   isNaN(a.lon)
 ) return;
 
-
     const distNm = distanceNm(a.lat, a.lon, ap.lat, ap.lon);
     const status = classifyArrivalDeparture(a.track, a.lat, a.lon, airportKey);
 
@@ -285,14 +190,7 @@ export async function updateFidsFlights(airportKey) {
     else if (status === "DEP") departures.push(row);
   });
 
-  /****************************************************
-   * Mise à jour ND Airbus (trajectoires + future path)
-   ****************************************************/
-  aircraft = sanitizeAircraft(aircraft);
-  
-  updateNdAirbus(aircraft);
-
-  /****************************************************
+   /****************************************************
    * ARRIVALS
    ****************************************************/
   arrivals.sort((a, b) => parseFloat(a.distNm) - parseFloat(b.distNm));
