@@ -41,9 +41,10 @@ function classifyArrivalDeparture(track, lat, lon, airportKey) {
   const rw = ap.activeRunway || ap.runways[0];
 
   const dist = distanceNm(lat, lon, ap.lat, ap.lon);
-  if (distNm > 200) return;
 
-  if (distNm > 60) return;
+  // Filtre distance IFR
+  if (dist > 200) return "ENR";
+  if (dist > 60) return "ENR";
 
   const heading = rw.heading;
   const diff = Math.abs(((track - heading + 180) % 360) - 180);
@@ -51,7 +52,6 @@ function classifyArrivalDeparture(track, lat, lon, airportKey) {
 
   if (dist <= 25 && diff < 30) return "ARR";
   if (dist <= 25 && anti < 30) return "DEP";
-
 
   return "ENR";
 }
@@ -73,19 +73,13 @@ function setCachedFids(key, data) {
   fidsCache.set(key, { ts: Date.now(), data });
 }
 
-
-
-
-
-
-
 /****************************************************
  * ADS-B Simplifié — OpenSky uniquement
  ****************************************************/
 async function fetchAroundAirport(airportKey) {
   const ap = airports[airportKey];
-  const BOX = 0.35; // ~40 km
-  const url = `https://opensky-network.org/api/states/all?lamin=${ap.lat - 1}&lomin=${ap.lon - 1}&lamax=${ap.lat + 1}&lomax=${ap.lon + 1}`;
+  const BOX = 0.35;
+const url = `https://opensky-network.org/api/states/all?lamin=${ap.lat - BOX}&lomin=${ap.lon - BOX}&lamax=${ap.lat + BOX}&lomax=${ap.lon + BOX}`;
 
   let data;
   try {
@@ -258,9 +252,10 @@ aircraft = aircraft.filter(a =>
   track: f.track
 }]);
 
+}); // <-- FIN DU addEventListener
 
-    arrTbody.appendChild(tr);
-  });
+arrTbody.appendChild(tr);
+
 
   /****************************************************
    * DEPARTURES
