@@ -81,7 +81,6 @@ async function fetchAroundAirport(airportKey) {
   const BOX = 0.35;
   const url = `https://aerov4.pnyr682w7f.workers.dev?lamin=${ap.lat - BOX}&lomin=${ap.lon - BOX}&lamax=${ap.lat + BOX}&lomax=${ap.lon + BOX}`;
 
-
   let data;
   try {
     const res = await fetch(url);
