@@ -90,22 +90,19 @@ async function fetchAroundAirport(airportKey) {
     return [];
   }
 
-  // -------------------------------
-  // 1. Détection automatique source
-  // -------------------------------
-  const isAirplanesLive = data.source === "airplanes.live";
+  const source = data.source || "unknown";
+  const degraded = data.degraded || false;
   const states = data.states || [];
 
-  // -------------------------------
-  // 2. Normalisation OpenSky → format unique
-  // -------------------------------
-  let aircraft;
+  let aircraft = [];
 
-  if (!isAirplanesLive) {
-    // Format OpenSky
+  // -------------------------
+  // OpenSky
+  // -------------------------
+  if (source === "opensky") {
     aircraft = states.map(s => ({
       icao: s[0],
-      callsign: s[1] && s[1].trim() !== "" ? s[1].trim().toUpperCase() : "N/A",
+      callsign: s[1] ? s[1].trim().toUpperCase() : "N/A",
       lat: s[6],
       lon: s[5],
       altFt: s[13] || s[7] || 0,
@@ -113,12 +110,14 @@ async function fetchAroundAirport(airportKey) {
       gsKt: (s[9] || 0) * 1.94384,
       track: s[10] || 0,
       time: data.time || 0,
-      airline: "n/a",
-      origin: "n/a",
-      destination: "n/a"
-    });
-  } else {
-    // Format Airplanes.live
+      degraded
+    }));
+  }
+
+  // -------------------------
+  // Airplanes.live
+  // -------------------------
+  else if (source === "airplanes.live") {
     aircraft = states.map(a => ({
       icao: a.hex || "N/A",
       callsign: a.flight || "N/A",
@@ -129,15 +128,31 @@ async function fetchAroundAirport(airportKey) {
       gsKt: (a.gs || 0) * 1.94384,
       track: a.track || 0,
       time: a.updated || 0,
-      airline: a.t || "n/a",
-      origin: a.r || "n/a",
-      destination: a.d || "n/a"
+      degraded
     }));
   }
 
-  // -------------------------------
-  // 3. Filtre anti-NaN
-  // -------------------------------
+  // -------------------------
+  // ADSBexchange (mode dégradé)
+  // -------------------------
+  else if (source === "adsbexchange") {
+    aircraft = states.map(a => ({
+      icao: a.hex || "N/A",
+      callsign: a.flight || "N/A",
+      lat: a.lat,
+      lon: a.lon,
+      altFt: a.alt_baro || 0,
+      gsMs: a.gs || 0,
+      gsKt: (a.gs || 0) * 1.94384,
+      track: a.track || 0,
+      time: a.updated || 0,
+      degraded: true
+    }));
+  }
+
+  // -------------------------
+  // Filtre anti-NaN
+  // -------------------------
   aircraft = aircraft.filter(a =>
     typeof a.lat === "number" &&
     typeof a.lon === "number" &&
@@ -145,9 +160,9 @@ async function fetchAroundAirport(airportKey) {
     !isNaN(a.lon)
   );
 
-  // -------------------------------
-  // 4. Filtre vitesse / altitude
-  // -------------------------------
+  // -------------------------
+  // Filtre vitesse / altitude
+  // -------------------------
   aircraft = aircraft.filter(a =>
     a.gsKt > 30 &&
     a.altFt > 500 &&
@@ -156,6 +171,7 @@ async function fetchAroundAirport(airportKey) {
 
   return aircraft;
 }
+
 
 
 /****************************************************
