@@ -397,7 +397,16 @@ export function updateNdAirbus(input, selectedIcao = null, apKey = "EBCI") {
     ? input
     : input ? [input] : [];
 
-  if (!aircraftList.length) return;
+  // Filtre anti-NaN / anti-avions incomplets
+const cleanList = aircraftList.filter(a =>
+    typeof a.lat === "number" &&
+    typeof a.lon === "number" &&
+    !isNaN(a.lat) &&
+    !isNaN(a.lon)
+);
+
+if (!cleanList.length) return;
+
 
   const ap = airports[apKey];
   if (!ap) return;
