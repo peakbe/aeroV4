@@ -413,16 +413,14 @@ if (!cleanList.length) return;
 
   // Avion maître
   let master = selectedIcao
-    ? aircraftList.find(a => a.icao === selectedIcao) || aircraftList[0]
-    : aircraftList[0];
+    ? cleanList.find(a => a.icao === selectedIcao) || cleanList[0]
+    : cleanList[0];
 
   const fp = predictFuturePosition(ac, 30);
 
 drawVector(ac.lat, ac.lon, future.lat, future.lon, "yellow");
 
-  
   // Synchronise ap.aircraft avec l’avion maître
-// Synchronise ap.aircraft avec l’avion maître
 ap.aircraft = {
     lat: master.lat,
     lon: master.lon,
@@ -460,7 +458,7 @@ if (ndStatus) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Dessin multi‑targets
-  aircraftList.forEach(ac => {
+  cleanList.forEach(ac => {
     const isMaster = ac.icao === master.icao;
 
     drawAircraftSymbol(apKey, ap.aircraft, ac, isMaster);
