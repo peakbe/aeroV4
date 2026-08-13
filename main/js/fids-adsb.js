@@ -79,7 +79,8 @@ function setCachedFids(key, data) {
 async function fetchAroundAirport(airportKey) {
   const ap = airports[airportKey];
   const BOX = 0.35;
-  const url = `https://aerov4-proxy.onrender.com/opensky?lamin=${ap.lat - BOX}&lomin=${ap.lon - BOX}&lamax=${ap.lat + BOX}&lomax=${ap.lon + BOX}`;
+  const url = `aerov4.pnyr682w7f.workers.dev?lamin=${ap.lat - BOX}&lomin=${ap.lon - BOX}&lamax=${ap.lat + BOX}&lomax=${ap.lon + BOX}`;
+
 
   let data;
   try {
