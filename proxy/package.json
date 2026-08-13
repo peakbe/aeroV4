@@ -1,39 +1,13 @@
 {
-  "name": "cockpit-ifr-proxy",
+  "name": "opensky-proxy",
   "version": "1.0.0",
-  "description": "Proxy ADS-B PRO+++ avec fallbacks Airplanes.live → OpenSky → AirLabs → FR24",
   "type": "module",
   "main": "server.js",
-
   "scripts": {
-    "start": "node server.js",
-    "dev": "NODE_ENV=development node server.js",
-    "debug": "NODE_ENV=debug node server.js",
-    "test-proxy": "curl -s http://localhost:3000/airplanes?lat=50.637&lon=5.443&dist=120",
-    "check-env": "node -e \"console.log('AIRLABS_KEY=', process.env.AIRLABS_KEY || '❌ missing')\""
+    "start": "node server.js"
   },
-
   "dependencies": {
     "express": "^4.18.2",
     "node-fetch": "^3.3.2"
-  },
-
-  "engines": {
-    "node": ">=18"
-  },
-
-  "keywords": [
-    "adsb",
-    "proxy",
-    "opensky",
-    "airlabs",
-    "fr24",
-    "airplanes.live",
-    "cockpit-ifr",
-    "avionics",
-    "nd-airbus"
-  ],
-
-  "author": "Patrick",
-  "license": "MIT"
+  }
 }
