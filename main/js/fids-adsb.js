@@ -74,12 +74,13 @@ function setCachedFids(key, data) {
 }
 
 /****************************************************
- * ADS-B Simplifié — OpenSky uniquement
+ * ADS-B Simplifié — OpenSky + Aiplines.live
  ****************************************************/
 async function fetchAroundAirport(airportKey) {
   const ap = airports[airportKey];
   const BOX = 0.35;
-  const url = `https://aerov4.pnyr682w7f.workers.dev?lamin=${ap.lat - BOX}&lomin=${ap.lon - BOX}&lamax=${ap.lat + BOX}&lomax=${ap.lon + BOX}`;
+
+  const url = `https://aerov4.pnyr682w7f.workers.dev/?lamin=${ap.lat - BOX}&lomin=${ap.lon - BOX}&lamax=${ap.lat + BOX}&lomax=${ap.lon + BOX}`;
 
   let data;
   try {
@@ -89,42 +90,73 @@ async function fetchAroundAirport(airportKey) {
     return [];
   }
 
-  if (!data || !Array.isArray(data.states)) return [];
+  // -------------------------------
+  // 1. Détection automatique source
+  // -------------------------------
+  const isAirplanesLive = data.source === "airplanes.live";
+  const states = data.states || [];
 
-  const aircraft = data.states.map(s => ({
-    icao: s[0],
-    callsign: s[1] && s[1].trim() !== "" ? s[1].trim().toUpperCase() : "N/A",
-    lat: s[6],
-    lon: s[5],
-    altFt: s[13] || s[7] || 0,
-    gsMs: s[9] || 0,
-    gsKt: (s[9] || 0) * 1.94384,
-    track: s[10] || 0,
-    time: data.time || 0,
-    airline: "n/a",
-    origin: "n/a",
-    destination: "n/a"
-  }));
+  // -------------------------------
+  // 2. Normalisation OpenSky → format unique
+  // -------------------------------
+  let aircraft;
 
-  const cacheKey = `OSN_${airportKey}`;
-  const cached = getCachedFids(cacheKey);
-  if (cached) return cached;
+  if (!isAirplanesLive) {
+    // Format OpenSky
+    aircraft = states.map(s => ({
+      icao: s[0],
+      callsign: s[1] && s[1].trim() !== "" ? s[1].trim().toUpperCase() : "N/A",
+      lat: s[6],
+      lon: s[5],
+      altFt: s[13] || s[7] || 0,
+      gsMs: s[9] || 0,
+      gsKt: (s[9] || 0) * 1.94384,
+      track: s[10] || 0,
+      time: data.time || 0,
+      airline: "n/a",
+      origin: "n/a",
+      destination: "n/a"
+    });
+  } else {
+    // Format Airplanes.live
+    aircraft = states.map(a => ({
+      icao: a.hex || "N/A",
+      callsign: a.flight || "N/A",
+      lat: a.lat,
+      lon: a.lon,
+      altFt: a.alt_baro || 0,
+      gsMs: a.gs || 0,
+      gsKt: (a.gs || 0) * 1.94384,
+      track: a.track || 0,
+      time: a.updated || 0,
+      airline: a.t || "n/a",
+      origin: a.r || "n/a",
+      destination: a.d || "n/a"
+    }));
+  }
 
+  // -------------------------------
+  // 3. Filtre anti-NaN
+  // -------------------------------
   aircraft = aircraft.filter(a =>
-  a.gsKt > 30 &&          // vitesse minimale
-  a.altFt > 500 &&        // éviter les avions au sol
-  a.track >= 0 && a.track <= 360
-);
-
-  setCachedFids(cacheKey, aircraft);
-
-  return aircraft.filter(a =>
     typeof a.lat === "number" &&
     typeof a.lon === "number" &&
     !isNaN(a.lat) &&
     !isNaN(a.lon)
   );
+
+  // -------------------------------
+  // 4. Filtre vitesse / altitude
+  // -------------------------------
+  aircraft = aircraft.filter(a =>
+    a.gsKt > 30 &&
+    a.altFt > 500 &&
+    a.track >= 0 && a.track <= 360
+  );
+
+  return aircraft;
 }
+
 
 /****************************************************
  * FIDS Airbus ECAM — Statut CSS
