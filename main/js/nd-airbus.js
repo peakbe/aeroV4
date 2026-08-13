@@ -407,6 +407,11 @@ export function updateNdAirbus(input, selectedIcao = null, apKey = "EBCI") {
     ? aircraftList.find(a => a.icao === selectedIcao) || aircraftList[0]
     : aircraftList[0];
 
+  const future = predictFuturePosition(ac, 30); // 30 sec ahead
+
+drawVector(ac.lat, ac.lon, future.lat, future.lon, "yellow");
+
+  
   // Synchronise ap.aircraft avec l’avion maître
   ap.aircraft = {
     lat: master.lat,
@@ -448,4 +453,30 @@ if (aircraft.degraded) {
 } else {
     ndStatus.innerText = "ND Airbus – Mode normal";
     ndStatus.style.color = "lightgreen";
+}
+
+// predictFuturePosition — ND Airbus
+function predictFuturePosition(ac, secondsAhead = 30) {
+  const R = 6371e3; // rayon Terre
+  const speedMs = ac.gsKt * 0.514444; // kt → m/s
+  const distance = speedMs * secondsAhead;
+
+  const lat1 = ac.lat * Math.PI / 180;
+  const lon1 = ac.lon * Math.PI / 180;
+  const bearing = ac.track * Math.PI / 180;
+
+  const lat2 = Math.asin(
+    Math.sin(lat1) * Math.cos(distance / R) +
+    Math.cos(lat1) * Math.sin(distance / R) * Math.cos(bearing)
+  );
+
+  const lon2 = lon1 + Math.atan2(
+    Math.sin(bearing) * Math.sin(distance / R) * Math.cos(lat1),
+    Math.cos(distance / R) - Math.sin(lat1) * Math.sin(lat2)
+  );
+
+  return {
+    lat: lat2 * 180 / Math.PI,
+    lon: lon2 * 180 / Math.PI
+  };
 }
