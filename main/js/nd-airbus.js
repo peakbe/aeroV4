@@ -440,3 +440,12 @@ export function updateNdAirbus(input, selectedIcao = null, apKey = "EBCI") {
     drawAdsbHistory(apKey, ap.aircraft, ac);
   });
 }
+
+// Mode dégradé ND Airbus
+if (aircraft.degraded) {
+    ndStatus.innerText = "ND Airbus – Mode dégradé (ADSBexchange)";
+    ndStatus.style.color = "orange";
+} else {
+    ndStatus.innerText = "ND Airbus – Mode normal";
+    ndStatus.style.color = "lightgreen";
+}
