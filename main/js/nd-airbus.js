@@ -407,20 +407,34 @@ export function updateNdAirbus(input, selectedIcao = null, apKey = "EBCI") {
     ? aircraftList.find(a => a.icao === selectedIcao) || aircraftList[0]
     : aircraftList[0];
 
-  const future = predictFuturePosition(ac, 30); // 30 sec ahead
+  const fp = predictFuturePosition(ac, 30);
 
 drawVector(ac.lat, ac.lon, future.lat, future.lon, "yellow");
 
   
   // Synchronise ap.aircraft avec l’avion maître
-  ap.aircraft = {
+// Synchronise ap.aircraft avec l’avion maître
+ap.aircraft = {
     lat: master.lat,
     lon: master.lon,
     altFt: Number(master.altFt || 0),
     hdg: Number(master.track || master.hdg || 0),
     gs: Number(master.gsKt || master.gs || 0),
-    icao: master.icao
-  };
+    icao: master.icao,
+    degraded: master.degraded || false
+};
+
+// Mode dégradé ND Airbus
+const ndStatus = document.getElementById(`nd-status-${apKey}`);
+if (ndStatus) {
+    if (ap.aircraft.degraded) {
+        ndStatus.innerText = "ND Airbus – Mode dégradé (fallback)";
+        ndStatus.style.color = "orange";
+    } else {
+        ndStatus.innerText = "ND Airbus – Mode normal";
+        ndStatus.style.color = "lightgreen";
+    }
+}
 
   clearNd(apKey);
 
@@ -444,15 +458,6 @@ drawVector(ac.lat, ac.lon, future.lat, future.lon, "yellow");
     drawFuturePath(apKey, ap.aircraft, ac, isMaster);
     drawAdsbHistory(apKey, ap.aircraft, ac);
   });
-}
-
-// Mode dégradé ND Airbus
-if (aircraft.degraded) {
-    ndStatus.innerText = "ND Airbus – Mode dégradé (ADSBexchange)";
-    ndStatus.style.color = "orange";
-} else {
-    ndStatus.innerText = "ND Airbus – Mode normal";
-    ndStatus.style.color = "lightgreen";
 }
 
 // predictFuturePosition — ND Airbus
