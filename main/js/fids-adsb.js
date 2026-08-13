@@ -244,7 +244,7 @@ aircraft = aircraft.filter(a =>
       };
 
       showOptimizedAdsbTrajectory(f.icao);
-      updateNdAirbus([{
+     updateNdAirbus([{
   lat: f.lat,
   lon: f.lon,
   altFt: f.altFt,
@@ -255,7 +255,7 @@ aircraft = aircraft.filter(a =>
 }); // <-- FIN DU addEventListener
 
 arrTbody.appendChild(tr);
-
+}); // <-- FIN DU arrivals.forEach
 
   /****************************************************
    * DEPARTURES
