@@ -296,6 +296,7 @@ function drawAircraftSymbol(apKey, masterAc, ac, isMaster) {
   const size  = isMaster ? 14 : 10;
 
   const pos = projectNd(masterAc, ac.lat, ac.lon);
+  if (!masterAc || isNaN(masterAc.lat) || isNaN(masterAc.lon)) return;
 
   const el = document.createElement("div");
   el.style.position = "absolute";
@@ -316,6 +317,8 @@ function drawAircraftSymbol(apKey, masterAc, ac, isMaster) {
 function drawFuturePath(apKey, masterAc, ac, isMaster) {
   const canvas = ensureNdCanvas(apKey);
   if (!canvas) return;
+  if (!masterAc || !ac) return;
+  if (isNaN(ac.lat) || isNaN(ac.lon)) return;
 
   const ctx = canvas.getContext("2d");
 
@@ -406,6 +409,16 @@ const cleanList = aircraftList.filter(a =>
 );
 
 if (!cleanList.length) return;
+if (window.adsbHistory) {
+    Object.keys(window.adsbHistory).forEach(icao => {
+        window.adsbHistory[icao] = window.adsbHistory[icao].filter(p =>
+            typeof p.lat === "number" &&
+            typeof p.lng === "number" &&
+            !isNaN(p.lat) &&
+            !isNaN(p.lng)
+        );
+    });
+}
 
 
   const ap = airports[apKey];
@@ -416,11 +429,7 @@ if (!cleanList.length) return;
     ? cleanList.find(a => a.icao === selectedIcao) || cleanList[0]
     : cleanList[0];
 
-  const fp = predictFuturePosition(ac, 30);
-
-drawVector(ac.lat, ac.lon, future.lat, future.lon, "yellow");
-
-  // Synchronise ap.aircraft avec l’avion maître
+    // Synchronise ap.aircraft avec l’avion maître
 ap.aircraft = {
     lat: master.lat,
     lon: master.lon,
@@ -470,12 +479,12 @@ if (ndStatus) {
 // predictFuturePosition — ND Airbus
 function predictFuturePosition(ac, secondsAhead = 30) {
   const R = 6371e3; // rayon Terre
-  const speedMs = ac.gsKt * 0.514444; // kt → m/s
+  const speedMs = (ac.gs || 0) * 0.514444;
   const distance = speedMs * secondsAhead;
 
   const lat1 = ac.lat * Math.PI / 180;
   const lon1 = ac.lon * Math.PI / 180;
-  const bearing = ac.track * Math.PI / 180;
+  const bearing = (ac.hdg || ac.track || 0) * Math.PI / 180;
 
   const lat2 = Math.asin(
     Math.sin(lat1) * Math.cos(distance / R) +
